@@ -1,0 +1,121 @@
+# Pattern Testing
+
+RegexLens provides real-time regex testing with instant visual feedback. As you type your pattern, matches are highlighted immediately in your test text.
+
+## Live Match Highlighting
+
+Every match is highlighted in your test text with distinct colors:
+
+- **Full matches** are highlighted with the primary color
+- **Capture groups** each get their own color for easy identification
+- **Named groups** display their names alongside the match
+
+### Example: Phone Number Matching
+
+Pattern:
+```regex
+\((\d{3})\)\s*(\d{3})-(\d{4})
+```
+
+Test text:
+```
+Call us at (555) 123-4567 or (800) 555-1234
+```
+
+RegexLens will highlight both phone numbers and show you:
+- Group 1: `555` and `800` (area codes)
+- Group 2: `123` and `555` (exchange)
+- Group 3: `4567` and `1234` (subscriber)
+
+[Try this pattern →](https://regexlens.app/?p=XCgoXGR7M30pXClccyooXGR7M30pLShcZHs0fSk=&f=g&t=Q2FsbCB1cyBhdCAoNTU1KSAxMjMtNDU2NyBvciAoODAwKSA1NTUtMTIzNA==)
+
+## Regex Flags
+
+Toggle any combination of JavaScript regex flags:
+
+| Flag | Name | Description |
+|------|------|-------------|
+| `g` | Global | Find all matches, not just the first |
+| `i` | Case Insensitive | Match regardless of case |
+| `m` | Multiline | `^` and `$` match line boundaries |
+| `s` | DotAll | `.` matches newlines |
+| `u` | Unicode | Enable full Unicode support |
+| `y` | Sticky | Match only at `lastIndex` position |
+
+### Flag Combinations
+
+Common flag combinations for different use cases:
+
+```
+gi  - Find all matches, case-insensitive (most common)
+gm  - Find all matches across multiple lines
+gis - Find all matches including newlines in .
+```
+
+## Match List
+
+Below the test text, RegexLens displays a detailed match list showing:
+
+- **Match index** (0, 1, 2, ...)
+- **Full match text**
+- **Start and end positions** in the test text
+- **Capture groups** with their values
+- **Named groups** with their names and values
+
+### Truncation Protection
+
+To keep the UI responsive, RegexLens limits:
+- Maximum **1,000 matches** displayed
+- Maximum **50,000 characters** in test text
+- Maximum **2,000 characters** in pattern
+
+If your pattern produces more matches, you'll see a "(truncated)" indicator.
+
+## Token Toolbar
+
+Quickly insert common regex tokens with the toolbar below the pattern input:
+
+| Token | Meaning |
+|-------|---------|
+| `\d` | Any digit (0-9) |
+| `\w` | Word character (a-z, A-Z, 0-9, _) |
+| `\s` | Whitespace (space, tab, newline) |
+| `.` | Any character (except newline) |
+| `+` | One or more |
+| `*` | Zero or more |
+| `?` | Zero or one (optional) |
+| `{}` | Exact quantifier |
+| `()` | Capture group |
+| `(?:)` | Non-capturing group |
+| `[]` | Character class |
+| `^` | Start anchor |
+| `$` | End anchor |
+| `\|` | Alternation (OR) |
+| `\b` | Word boundary |
+
+Click any token to append it to your current pattern.
+
+## Keyboard Shortcuts
+
+Speed up your workflow with keyboard shortcuts:
+
+| Shortcut | Action |
+|----------|--------|
+| `/` | Focus the regex editor |
+| `Cmd/Ctrl + Enter` | Force re-parse |
+| `Escape` | Clear selection |
+| `Cmd/Ctrl + Shift + C` | Copy share link |
+
+## Error Handling
+
+When your pattern has a syntax error, RegexLens shows:
+
+1. **Red underline** on the problematic part of the pattern
+2. **Error message** explaining what's wrong
+3. **Error position** so you know exactly where to fix
+
+Common errors detected:
+- Unmatched parentheses `(` or `)`
+- Invalid escape sequences `\q`
+- Invalid quantifiers `{3,1}` (min > max)
+- Unterminated character classes `[abc`

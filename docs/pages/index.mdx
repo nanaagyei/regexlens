@@ -1,0 +1,87 @@
+# Welcome to RegexLens
+
+**RegexLens** is a premium, UI-first developer tool for understanding, testing, and documenting regular expressions. Unlike traditional regex testers that only tell you *if* something matches, RegexLens shows you:
+
+- **What it matches** — Live highlighting with color-coded capture groups
+- **Why it matches** — Plain-English, step-by-step explanations
+- **How it's structured** — Interactive syntax tree visualization
+- **Where it might fail** — Performance warnings and correctness gotchas
+
+No AI fluff. No chat interfaces. Just clarity.
+
+## Quick Start
+
+### Try it Online
+
+Visit [regexlens.app](https://regexlens.app) and start testing immediately. No signup required for core features.
+
+### Basic Workflow
+
+1. **Enter a regex pattern** in the left panel
+2. **Toggle flags** as needed (g, i, m, s, u, y)
+3. **Paste test text** in the center panel
+4. **View results** in the right panel:
+   - **Explanation tab** — Step-by-step breakdown
+   - **Structure tab** — AST tree view
+   - **Warnings tab** — Potential issues
+
+## Example
+
+Let's say you want to validate email addresses. Enter this pattern:
+
+```regex
+^[\w.-]+@[\w.-]+\.\w{2,}$
+```
+
+RegexLens will immediately show you:
+
+| Component | Explanation |
+|-----------|-------------|
+| `^` | Start of string |
+| `[\w.-]+` | One or more word characters, dots, or hyphens |
+| `@` | Literal @ symbol |
+| `[\w.-]+` | Domain name (word chars, dots, hyphens) |
+| `\.` | Literal dot |
+| `\w{2,}` | TLD with 2+ characters |
+| `$` | End of string |
+
+[Try this pattern in RegexLens →](https://regexlens.app/?p=XltcXHcuLV0rQFtcXHcuLV0rXC5cXHd7Mix9JA==&f=g)
+
+## Why RegexLens?
+
+### For Learning
+
+- See exactly how each part of a regex works
+- Understand quantifiers, groups, and lookaheads visually
+- Learn from 15+ built-in templates with real-world patterns
+
+### For Debugging
+
+- Instant match highlighting shows exactly what matches
+- Warnings catch catastrophic backtracking before production
+- AST view reveals how the regex engine interprets your pattern
+
+### For Documentation
+
+- Export explanations to Markdown, PR comments, or Notion (Pro)
+- Share patterns with teammates via URL
+- Save and organize your regex library (Pro)
+
+## Next Steps
+
+import { Cards, Card } from 'nextra/components'
+
+<Cards>
+  <Card title="Features" href="/features/pattern-testing">
+    Learn about all RegexLens features
+  </Card>
+  <Card title="Examples" href="/examples/email-validation">
+    See real-world regex examples
+  </Card>
+  <Card title="Pro Features" href="/pro/saved-library">
+    Unlock advanced capabilities
+  </Card>
+  <Card title="Reference" href="/reference/flags">
+    Quick reference guides
+  </Card>
+</Cards>

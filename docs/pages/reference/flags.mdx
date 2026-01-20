@@ -1,0 +1,204 @@
+# Regex Flags
+
+JavaScript regex flags modify how the pattern is interpreted and matched. RegexLens supports all six flags.
+
+## Flag Reference
+
+### `g` — Global
+
+Find **all matches** instead of stopping after the first.
+
+| Without `g` | With `g` |
+|-------------|----------|
+| Returns first match only | Returns all matches |
+| `"abc".match(/a/)` → `["a"]` | `"aba".match(/a/g)` → `["a", "a"]` |
+
+**When to use:**
+- Finding all occurrences in text
+- Search and replace all
+- Counting matches
+
+[Try it →](https://regexlens.app/?p=YQ==&f=g&t=YWJhY2FkYQ==)
+
+---
+
+### `i` — Case Insensitive
+
+Match letters regardless of case.
+
+| Without `i` | With `i` |
+|-------------|----------|
+| `a` matches only `a` | `a` matches `a` and `A` |
+| `[A-Z]` matches uppercase | `[A-Z]` matches any letter |
+
+**When to use:**
+- User input validation (emails, usernames)
+- Searching text content
+- Case-insensitive comparisons
+
+[Try it →](https://regexlens.app/?p=aGVsbG8=&f=gi&t=SGVsbG8gSEVMTE8gaGVsbG8=)
+
+---
+
+### `m` — Multiline
+
+Changes behavior of `^` and `$` anchors.
+
+| Without `m` | With `m` |
+|-------------|----------|
+| `^` matches start of string | `^` matches start of each line |
+| `$` matches end of string | `$` matches end of each line |
+
+**When to use:**
+- Processing multi-line text
+- Matching at line boundaries
+- Log file parsing
+
+[Try it →](https://regexlens.app/?p=Xmhlbw==&f=gm&t=aGVsbG8Kd29ybGQKaGVsbG8gYWdhaW4=)
+
+---
+
+### `s` — DotAll (Single Line)
+
+Makes `.` match newline characters.
+
+| Without `s` | With `s` |
+|-------------|----------|
+| `.` matches any char except `\n` | `.` matches any char including `\n` |
+| `a.b` doesn't match `a\nb` | `a.b` matches `a\nb` |
+
+**When to use:**
+- Matching across line breaks
+- Processing text blocks
+- HTML/XML parsing (with caution)
+
+[Try it →](https://regexlens.app/?p=YS4q&f=gs&t=YQpiCmM=)
+
+---
+
+### `u` — Unicode
+
+Enables full Unicode support.
+
+| Without `u` | With `u` |
+|-------------|----------|
+| `\u{1F600}` is invalid | `\u{1F600}` matches 😀 |
+| `.` may not match emoji | `.` matches any Unicode char |
+| `\p{L}` is invalid | `\p{L}` matches any letter |
+
+**When to use:**
+- International text processing
+- Emoji handling
+- Unicode property escapes (`\p{...}`)
+
+**Unicode property escapes (with `u` flag):**
+- `\p{L}` — Any letter
+- `\p{N}` — Any number
+- `\p{Emoji}` — Any emoji
+- `\p{Script=Greek}` — Greek letters
+
+[Try it →](https://regexlens.app/?p=XHB7TH0r&f=gu&t=SGVsbG8g5L2g5aW9IM6Tzq3OsSDwn5iA)
+
+---
+
+### `y` — Sticky
+
+Matches only at the `lastIndex` position.
+
+| Without `y` | With `y` |
+|-------------|----------|
+| Searches entire string | Only matches at current position |
+| `lastIndex` is suggestion | `lastIndex` is required position |
+
+**When to use:**
+- Tokenizers/lexers
+- Sequential parsing
+- State machine implementations
+
+**Example:**
+```javascript
+const re = /\d+/y;
+const str = "123abc456";
+
+re.lastIndex = 0;
+re.exec(str);  // ["123"], lastIndex = 3
+
+re.exec(str);  // null (no digit at position 3)
+
+re.lastIndex = 6;
+re.exec(str);  // ["456"]
+```
+
+## Flag Combinations
+
+### Common Combinations
+
+| Flags | Use Case |
+|-------|----------|
+| `gi` | Find all, case-insensitive (most common) |
+| `gm` | Find all across multiple lines |
+| `gim` | Find all, case-insensitive, multiline |
+| `gis` | Find all, case-insensitive, dotAll |
+| `gu` | Find all with Unicode support |
+
+### Examples
+
+**Find all emails (case-insensitive):**
+```regex
+/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi
+```
+
+**Match lines starting with #:**
+```regex
+/^#.+$/gm
+```
+
+**Match any character including newlines:**
+```regex
+/start.*end/gs
+```
+
+## Flag Order
+
+Flags can be specified in any order:
+- `gi` = `ig`
+- `gim` = `mig` = `gmi`
+
+RegexLens normalizes flag display to alphabetical order.
+
+## Browser Support
+
+All flags are supported in modern browsers:
+
+| Flag | Chrome | Firefox | Safari | Edge |
+|------|--------|---------|--------|------|
+| `g` | ✓ | ✓ | ✓ | ✓ |
+| `i` | ✓ | ✓ | ✓ | ✓ |
+| `m` | ✓ | ✓ | ✓ | ✓ |
+| `s` | 62+ | 78+ | 11.1+ | 79+ |
+| `u` | 50+ | 46+ | 10+ | 79+ |
+| `y` | 49+ | 3+ | 10+ | 79+ |
+
+## Tips
+
+import { Callout } from 'nextra/components'
+
+<Callout type="info">
+**Performance tip:** The `g` flag with `exec()` maintains state via `lastIndex`. Reset it between uses or create a new RegExp.
+</Callout>
+
+### Global Flag Gotcha
+
+```javascript
+const re = /a/g;
+re.test("abc");  // true, lastIndex = 1
+re.test("abc");  // false, lastIndex = 0 (reset after no match)
+re.test("abc");  // true again
+```
+
+### Unicode Flag Requirement
+
+Some features require the `u` flag:
+- `\u{...}` code point syntax
+- `\p{...}` property escapes
+- Correct surrogate pair handling

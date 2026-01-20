@@ -1,5 +1,6 @@
 # Dependencies
 /node_modules
+/docs/node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
@@ -9,6 +10,7 @@
 
 # Next.js
 /.next/
+/docs/.next/
 /out/
 
 # Production
@@ -39,3 +41,5 @@ next-env.d.ts
 .vscode
 
 initial_prds/
+.cursor/
+.cursor/debug.log

@@ -21,6 +21,7 @@ import { AstPanel } from "@/components/structure/AstPanel";
 import { WarningsPanel } from "@/components/warnings/WarningsPanel";
 import { TemplatePicker } from "@/components/templates/TemplatePicker";
 import { ShareBar } from "@/components/share/ShareBar";
+import { UserMenu } from "./UserMenu";
 import { HoverSyncProvider } from "@/hooks/useHoverSync";
 import { useRegexState } from "@/hooks/useRegexState";
 import { useRegexParse } from "@/hooks/useRegexParse";
@@ -29,13 +30,13 @@ import { useExplanation } from "@/hooks/useExplanation";
 import { useWarnings } from "@/hooks/useWarnings";
 import { useUrlState } from "@/hooks/useUrlState";
 import {
-  Code2,
   FileText,
   AlertTriangle,
   TreeDeciduous,
   Share2,
   RotateCcw,
 } from "lucide-react";
+import Image from "next/image";
 
 export function AppShell() {
   const [activeTab, setActiveTab] = useState("explanation");
@@ -61,16 +62,15 @@ export function AppShell() {
         <div className="h-screen flex flex-col bg-background">
           {/* Header */}
           <header className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Code2 className="h-6 w-6 text-primary" />
-                <h1 className="text-xl font-semibold tracking-tight">
-                  RegexLens
-                </h1>
-              </div>
-              <span className="text-xs text-muted-foreground px-2 py-0.5 rounded bg-muted">
-                JavaScript
-              </span>
+            <div className="flex items-center">
+              <Image
+                src="/regexlens-logo.png"
+                alt="RegexLens"
+                width={120}
+                height={120}
+                className="rounded-lg"
+                priority
+              />
             </div>
 
             <div className="flex items-center gap-2">
@@ -89,6 +89,8 @@ export function AppShell() {
                 </TooltipTrigger>
                 <TooltipContent>Reset all</TooltipContent>
               </Tooltip>
+              <div className="w-px h-6 bg-border mx-1" />
+              <UserMenu />
             </div>
           </header>
 

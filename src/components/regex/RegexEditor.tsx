@@ -28,7 +28,7 @@ export function RegexEditor({ value, onChange, parseResult }: RegexEditorProps) 
       lineNumbers: "off",
       glyphMargin: false,
       folding: false,
-      lineDecorationsWidth: 0,
+      lineDecorationsWidth: 12,
       lineNumbersMinChars: 0,
       renderLineHighlight: "none",
       scrollBeyondLastLine: false,
@@ -132,6 +132,8 @@ export function RegexEditor({ value, onChange, parseResult }: RegexEditorProps) 
           fontSize: 14,
           fontFamily: "var(--font-mono)",
           scrollBeyondLastLine: false,
+          lineDecorationsWidth: 12,
+          padding: { top: 12, bottom: 12 },
         }}
         theme="vs-dark"
         loading={
@@ -141,7 +143,7 @@ export function RegexEditor({ value, onChange, parseResult }: RegexEditorProps) 
         }
       />
       {value === "" && (
-        <div className="absolute top-3 left-3 text-muted-foreground text-sm pointer-events-none">
+        <div className="absolute top-3 left-[22px] text-muted-foreground text-sm pointer-events-none">
           Type or paste a regex pattern...
         </div>
       )}

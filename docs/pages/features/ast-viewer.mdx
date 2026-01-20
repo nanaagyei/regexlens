@@ -1,0 +1,147 @@
+# AST Viewer (Structure Tab)
+
+The Structure tab shows the internal Abstract Syntax Tree (AST) of your regex. This reveals exactly how the JavaScript regex engine interprets your pattern.
+
+## What is an AST?
+
+An Abstract Syntax Tree is a tree representation of your regex's structure. Each node represents a component:
+
+- **Root** — The entire regex
+- **Groups** — Capture groups, non-capturing groups
+- **Alternatives** — Branches in alternation (`|`)
+- **Quantifiers** — Repetition operators (`*`, `+`, `?`, `{}`)
+- **Characters** — Literal characters and character classes
+- **Assertions** — Anchors and lookarounds
+
+## Reading the AST
+
+For the pattern `(foo|bar)+`:
+
+```
+RegExp
+└── Repetition (+)
+    └── Group (capturing)
+        └── Disjunction
+            ├── Alternative
+            │   └── "foo"
+            └── Alternative
+                └── "bar"
+```
+
+This shows:
+1. The entire regex is a `RegExp`
+2. It contains a `Repetition` with `+` quantifier
+3. Inside is a capturing `Group`
+4. The group contains a `Disjunction` (alternation)
+5. Two `Alternative` branches: "foo" and "bar"
+
+## Interactive Features
+
+### Collapse/Expand
+
+Click the arrow next to any node to collapse or expand its children. This helps navigate complex patterns.
+
+### Node Information
+
+Each node displays:
+- **Type** — What kind of node (Group, Quantifier, etc.)
+- **Value** — The actual content or parameters
+- **Range** — Character positions in the original pattern
+
+### Click to Highlight
+
+Click any AST node to highlight the corresponding part of your regex pattern. This helps you understand which part of the pattern each node represents.
+
+## Common Node Types
+
+### Character Nodes
+
+```
+Char: "a"           — Literal character
+CharacterClass      — [abc] or [^abc]
+CharacterSet        — \d, \w, \s, .
+```
+
+### Group Nodes
+
+```
+Group (capturing)   — (...)
+Group (non-capturing) — (?:...)
+Group (named)       — (?<name>...)
+```
+
+### Quantifier Nodes
+
+```
+Repetition (*)      — Zero or more
+Repetition (+)      — One or more
+Repetition (?)      — Zero or one
+Repetition ({n})    — Exactly n
+Repetition ({n,m})  — Between n and m
+```
+
+### Assertion Nodes
+
+```
+Assertion (^)       — Start of string/line
+Assertion ($)       — End of string/line
+Assertion (\b)      — Word boundary
+Lookahead           — (?=...) or (?!...)
+Lookbehind          — (?<=...) or (?<!...)
+```
+
+## Use Cases
+
+### Debugging Complex Patterns
+
+When a regex doesn't behave as expected, the AST shows you exactly how it's being parsed. Common issues revealed:
+
+- **Operator precedence** — Is `ab+` matching "ab+" or "a" followed by "b+"?
+- **Group boundaries** — Where does a group start and end?
+- **Quantifier scope** — What exactly is being repeated?
+
+### Learning Regex
+
+The AST is an excellent learning tool:
+
+- See how different constructs are represented
+- Understand the hierarchy of regex components
+- Learn operator precedence visually
+
+### Optimizing Patterns
+
+The AST can reveal:
+
+- Unnecessary nesting
+- Redundant groups
+- Overly complex structures that could be simplified
+
+## Example: Email Pattern
+
+Pattern:
+```regex
+^[\w.-]+@[\w.-]+\.\w{2,}$
+```
+
+AST:
+```
+RegExp
+├── Assertion (^)
+├── Repetition (+)
+│   └── CharacterClass [\w.-]
+├── Char (@)
+├── Repetition (+)
+│   └── CharacterClass [\w.-]
+├── Char (.)
+├── Repetition ({2,})
+│   └── CharacterSet (\w)
+└── Assertion ($)
+```
+
+This clearly shows:
+- Anchors at start and end
+- Two character class repetitions
+- A literal `@` and `.`
+- The TLD requires 2+ word characters
+
+[View this in RegexLens →](https://regexlens.app/?p=XltcXHcuLV0rQFtcXHcuLV0rXC5cXHd7Mix9JA==&f=g)

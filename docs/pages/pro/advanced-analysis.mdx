@@ -1,0 +1,238 @@
+# Advanced Analysis
+
+import { Callout } from 'nextra/components'
+
+<Callout type="info">
+**Pro Feature:** Advanced Analysis requires a RegexLens Pro subscription.
+</Callout>
+
+Go beyond basic explanations with deep pattern analysis, performance insights, and optimization suggestions.
+
+## Features
+
+### Complexity Analysis
+
+Understand how complex your regex is:
+
+- **Node count** — Total AST nodes
+- **Depth** — Maximum nesting level
+- **Quantifier count** — Number of repetition operators
+- **Group count** — Capture and non-capture groups
+- **Lookaround count** — Lookahead/lookbehind assertions
+
+**Example output:**
+
+```
+Complexity Score: 7/10 (Moderate)
+
+Metrics:
+- Nodes: 23
+- Max depth: 4
+- Quantifiers: 5
+- Groups: 3
+- Lookarounds: 2
+```
+
+### Performance Estimation
+
+Get insights into how your regex might perform:
+
+- **Best case** — Minimum steps for a match
+- **Worst case** — Maximum steps (backtracking)
+- **ReDoS risk** — Potential for catastrophic backtracking
+
+<Callout type="warning">
+Performance estimates are heuristic-based. Always test with real data for accurate benchmarks.
+</Callout>
+
+### Backtracking Analysis
+
+Identify patterns that cause excessive backtracking:
+
+```
+⚠️ Potential Backtracking Issues
+
+1. Nested quantifiers at position 5-12
+   Pattern: (a+)+
+   Risk: Exponential backtracking on non-matching input
+
+2. Overlapping alternatives at position 15-25
+   Pattern: (foo|foobar)
+   Risk: Unnecessary backtracking when matching "foobar"
+```
+
+### Optimization Suggestions
+
+Get actionable recommendations:
+
+```
+💡 Optimization Suggestions
+
+1. Use atomic group or possessive quantifier
+   Before: (a+)+
+   After: (?>a+)+ or a++ (if supported)
+
+2. Reorder alternatives by frequency
+   Before: (rare|common|frequent)
+   After: (frequent|common|rare)
+
+3. Use character class instead of alternation
+   Before: (a|b|c|d)
+   After: [abcd]
+```
+
+## Diff View
+
+Compare two regex patterns side-by-side:
+
+### Use Cases
+
+- **Before/after optimization** — See what changed
+- **Version comparison** — Compare saved versions
+- **Team review** — Discuss pattern changes
+
+### How to Use
+
+1. Enter your original pattern
+2. Click **Compare** in Advanced Analysis
+3. Enter the modified pattern
+4. View the diff with highlighted changes
+
+### Diff Output
+
+```diff
+- ^[A-Za-z]+@[A-Za-z]+\.[A-Za-z]{2,3}$
++ ^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$
+
+Changes:
+- [A-Za-z] → [\w.+-] (more permissive local part)
+- [A-Za-z] → [\w.-] (allows subdomains)
+- {2,3} → {2,} (allows longer TLDs)
+```
+
+## Equivalent Patterns
+
+Discover alternative ways to write your regex:
+
+```
+Your pattern: [0-9]+
+Equivalent patterns:
+- \d+
+- [0123456789]+
+
+Your pattern: [A-Za-z]
+Equivalent patterns:
+- [a-zA-Z]
+- [A-z] (⚠️ includes [\]^_`)
+```
+
+## Test Case Generation
+
+Automatically generate test cases for your pattern:
+
+### Matching Cases
+
+```
+Generated matching inputs:
+- "test@example.com"
+- "user.name+tag@sub.domain.co.uk"
+- "a@b.cd"
+```
+
+### Non-Matching Cases
+
+```
+Generated non-matching inputs:
+- "@example.com" (missing local part)
+- "test@" (missing domain)
+- "test@example" (missing TLD)
+- "test example.com" (missing @)
+```
+
+### Edge Cases
+
+```
+Edge cases to consider:
+- Empty string: ""
+- Very long input: "a".repeat(10000) + "@example.com"
+- Unicode: "用户@例子.广告"
+- Special characters: "\"test\"@example.com"
+```
+
+## API Access
+
+Access advanced analysis programmatically:
+
+```bash
+POST /api/analyze
+Authorization: Bearer <your-token>
+Content-Type: application/json
+
+{
+  "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+  "flags": "gi",
+  "options": {
+    "complexity": true,
+    "performance": true,
+    "suggestions": true,
+    "testCases": true
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "complexity": {
+    "score": 5,
+    "level": "moderate",
+    "nodes": 15,
+    "depth": 3,
+    "quantifiers": 3,
+    "groups": 0,
+    "lookarounds": 0
+  },
+  "performance": {
+    "bestCase": "O(n)",
+    "worstCase": "O(n)",
+    "redosRisk": "low"
+  },
+  "suggestions": [
+    {
+      "type": "info",
+      "message": "Consider using named groups for clarity",
+      "position": { "start": 1, "end": 10 }
+    }
+  ],
+  "testCases": {
+    "matching": ["test@example.com", "a@b.cd"],
+    "nonMatching": ["@example.com", "test@"],
+    "edge": ["", "very-long-email..."]
+  }
+}
+```
+
+## Best Practices
+
+### Regular Analysis
+
+Run analysis when:
+- Creating new patterns
+- Modifying existing patterns
+- Reviewing team members' patterns
+- Before deploying to production
+
+### Acting on Suggestions
+
+Not all suggestions need to be implemented:
+- **Performance critical** — Prioritize backtracking fixes
+- **Readability** — Balance optimization with clarity
+- **Compatibility** — Some optimizations require specific engines
+
+### Documentation
+
+Use analysis results to document:
+- Why certain patterns were chosen
+- Known limitations
+- Performance characteristics

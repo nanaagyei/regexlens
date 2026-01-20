@@ -1,0 +1,157 @@
+# Smart Warnings
+
+RegexLens analyzes your patterns for common pitfalls, performance issues, and potential bugs. Warnings appear in the Warnings tab with severity levels and actionable advice.
+
+## Warning Severity Levels
+
+| Level | Icon | Meaning |
+|-------|------|---------|
+| **Danger** | 🔴 | Critical issue that could cause crashes or security problems |
+| **Warning** | 🟡 | Potential problem that may cause unexpected behavior |
+| **Info** | 🔵 | Suggestion for improvement or clarification |
+
+## Warning Types
+
+### 🔴 Nested Quantifiers (Danger)
+
+**Pattern:** `(a+)+` or `(.*)*`
+
+**Problem:** This can cause catastrophic backtracking, where the regex engine tries exponentially many combinations. On malicious input, this can freeze your application (ReDoS attack).
+
+**Example:**
+```regex
+(a+)+$
+```
+On input `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaab`, this pattern takes exponentially longer as the string grows.
+
+**Fix:** Avoid nesting quantifiers. Use atomic groups or possessive quantifiers if your engine supports them, or restructure the pattern:
+```regex
+a+$
+```
+
+[See the danger demo →](https://regexlens.app/?p=KGErKSs=&f=g)
+
+---
+
+### 🟡 Ambiguous `.*` (Warning)
+
+**Pattern:** `.*foo`
+
+**Problem:** The `.*` is greedy and will match as much as possible before backtracking to find "foo". This can be slow on long strings and may not match what you expect.
+
+**Example:**
+```regex
+<.*>
+```
+On `<div>content</div>`, this matches the entire string, not just `<div>`.
+
+**Fix:** Use lazy quantifier `.*?` or be more specific:
+```regex
+<.*?>        // Lazy - matches <div>
+<[^>]*>      // Specific - matches <div>
+```
+
+---
+
+### 🟡 Alternation in Repetition (Warning)
+
+**Pattern:** `(foo|bar)*`
+
+**Problem:** When alternation is inside a repeated group, the regex engine must try all combinations. This can be slow and may indicate a design issue.
+
+**Fix:** Consider if you really need repetition, or if a character class would work:
+```regex
+// Instead of (a|b|c)+
+[abc]+
+```
+
+---
+
+### 🔵 Unescaped Dot (Info)
+
+**Pattern:** `example.com`
+
+**Problem:** The `.` matches any character, not just a literal dot. This pattern would match `exampleXcom`, `example-com`, etc.
+
+**Fix:** Escape the dot:
+```regex
+example\.com
+```
+
+---
+
+### 🔵 Pipe in Character Class (Info)
+
+**Pattern:** `[a|b|c]`
+
+**Problem:** Inside a character class `[]`, the pipe `|` is a literal character, not alternation. This matches `a`, `|`, `b`, or `c`.
+
+**Fix:** Remove the pipes for a character class, or use alternation outside:
+```regex
+[abc]        // Character class
+(a|b|c)      // Alternation
+```
+
+---
+
+### 🟡 Empty Alternatives (Warning)
+
+**Pattern:** `(foo|)` or `(|bar)`
+
+**Problem:** An empty alternative matches the empty string, which may not be intentional and can cause unexpected matches.
+
+**Fix:** Use `?` for optional matching:
+```regex
+(foo)?       // "foo" is optional
+```
+
+---
+
+### 🔵 Multiline Anchor Behavior (Info)
+
+**Pattern:** `^` with `m` flag
+
+**Problem:** With the multiline flag, `^` matches the start of each line, not just the start of the string. This is informational to ensure you're aware of the behavior.
+
+**Example:**
+```regex
+^foo
+```
+With `m` flag, matches "foo" at the start of any line.
+Without `m` flag, only matches "foo" at the start of the string.
+
+---
+
+### 🔵 DotAll Behavior (Info)
+
+**Pattern:** `.` with `s` flag
+
+**Problem:** With the dotAll flag, `.` matches newlines too. This is informational to ensure you're aware of the behavior.
+
+**Example:**
+```regex
+a.b
+```
+With `s` flag, matches `a\nb` (a, newline, b).
+Without `s` flag, does not match `a\nb`.
+
+## How Warnings Are Detected
+
+RegexLens uses static analysis heuristics to detect potential issues:
+
+1. **Pattern Analysis** — The regex is parsed and analyzed for known problematic patterns
+2. **Flag Awareness** — Warnings consider which flags are enabled
+3. **Context Sensitivity** — Some warnings only appear in specific contexts
+
+## Disabling Warnings
+
+Currently, warnings cannot be disabled. They're designed to be helpful, not annoying. If you understand the warning and the pattern is intentional, you can safely ignore it.
+
+## False Positives
+
+Occasionally, a warning may not apply to your specific use case. For example:
+
+- `.*` might be intentional if you want greedy matching
+- Nested quantifiers might be safe if the input is always small and trusted
+
+Use your judgment—warnings are suggestions, not errors.

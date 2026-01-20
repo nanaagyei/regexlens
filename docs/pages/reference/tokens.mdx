@@ -1,0 +1,171 @@
+# Token Reference
+
+Quick reference for all regex tokens and syntax supported in JavaScript.
+
+## Character Classes
+
+| Token | Meaning | Example |
+|-------|---------|---------|
+| `.` | Any character (except newline) | `a.c` matches `abc`, `a1c` |
+| `\d` | Any digit (0-9) | `\d+` matches `123` |
+| `\D` | Any non-digit | `\D+` matches `abc` |
+| `\w` | Word character (a-z, A-Z, 0-9, _) | `\w+` matches `hello_123` |
+| `\W` | Non-word character | `\W+` matches `!@#` |
+| `\s` | Whitespace (space, tab, newline) | `\s+` matches `   ` |
+| `\S` | Non-whitespace | `\S+` matches `hello` |
+| `[abc]` | Any character in set | `[aeiou]` matches vowels |
+| `[^abc]` | Any character not in set | `[^0-9]` matches non-digits |
+| `[a-z]` | Character range | `[a-zA-Z]` matches letters |
+
+## Anchors
+
+| Token | Meaning | Example |
+|-------|---------|---------|
+| `^` | Start of string (or line with `m`) | `^hello` matches at start |
+| `$` | End of string (or line with `m`) | `world$` matches at end |
+| `\b` | Word boundary | `\bword\b` matches whole word |
+| `\B` | Non-word boundary | `\Bword` matches within word |
+
+## Quantifiers
+
+| Token | Meaning | Example |
+|-------|---------|---------|
+| `*` | Zero or more | `a*` matches ``, `a`, `aaa` |
+| `+` | One or more | `a+` matches `a`, `aaa` |
+| `?` | Zero or one | `colou?r` matches `color`, `colour` |
+| `{n}` | Exactly n | `a{3}` matches `aaa` |
+| `{n,}` | n or more | `a{2,}` matches `aa`, `aaa`, ... |
+| `{n,m}` | Between n and m | `a{2,4}` matches `aa`, `aaa`, `aaaa` |
+
+### Lazy Quantifiers
+
+Add `?` after any quantifier to make it lazy (match minimum):
+
+| Token | Meaning |
+|-------|---------|
+| `*?` | Zero or more (lazy) |
+| `+?` | One or more (lazy) |
+| `??` | Zero or one (lazy) |
+| `{n,m}?` | Between n and m (lazy) |
+
+**Example:**
+```
+Greedy: <.*>  on "<a><b>" matches "<a><b>"
+Lazy:   <.*?> on "<a><b>" matches "<a>"
+```
+
+## Groups
+
+| Token | Meaning | Example |
+|-------|---------|---------|
+| `(...)` | Capture group | `(ab)+` captures `ab` |
+| `(?:...)` | Non-capturing group | `(?:ab)+` groups without capture |
+| `(?<name>...)` | Named capture group | `(?<year>\d{4})` |
+| `\1`, `\2` | Backreference | `(.)\1` matches `aa`, `bb` |
+| `\k<name>` | Named backreference | `\k<year>` |
+
+## Lookarounds
+
+| Token | Meaning | Example |
+|-------|---------|---------|
+| `(?=...)` | Positive lookahead | `a(?=b)` matches `a` in `ab` |
+| `(?!...)` | Negative lookahead | `a(?!b)` matches `a` not before `b` |
+| `(?<=...)` | Positive lookbehind | `(?<=a)b` matches `b` in `ab` |
+| `(?<!...)` | Negative lookbehind | `(?<!a)b` matches `b` not after `a` |
+
+## Alternation
+
+| Token | Meaning | Example |
+|-------|---------|---------|
+| `\|` | OR | `cat\|dog` matches `cat` or `dog` |
+
+## Escape Sequences
+
+| Token | Meaning |
+|-------|---------|
+| `\\` | Literal backslash |
+| `\.` | Literal dot |
+| `\*` | Literal asterisk |
+| `\+` | Literal plus |
+| `\?` | Literal question mark |
+| `\^` | Literal caret |
+| `\$` | Literal dollar |
+| `\[` | Literal bracket |
+| `\]` | Literal bracket |
+| `\{` | Literal brace |
+| `\}` | Literal brace |
+| `\(` | Literal parenthesis |
+| `\)` | Literal parenthesis |
+| `\|` | Literal pipe |
+| `\/` | Literal slash |
+
+## Special Characters
+
+| Token | Meaning |
+|-------|---------|
+| `\n` | Newline |
+| `\r` | Carriage return |
+| `\t` | Tab |
+| `\v` | Vertical tab |
+| `\f` | Form feed |
+| `\0` | Null character |
+| `\xNN` | Hex character (e.g., `\x41` = `A`) |
+| `\uNNNN` | Unicode character (e.g., `\u0041` = `A`) |
+| `\u{NNNN}` | Unicode code point (requires `u` flag) |
+
+## Unicode Properties (with `u` flag)
+
+| Token | Meaning |
+|-------|---------|
+| `\p{L}` | Any letter |
+| `\p{Ll}` | Lowercase letter |
+| `\p{Lu}` | Uppercase letter |
+| `\p{N}` | Any number |
+| `\p{P}` | Any punctuation |
+| `\p{S}` | Any symbol |
+| `\p{Z}` | Any separator |
+| `\p{Emoji}` | Any emoji |
+| `\P{...}` | Negation (non-matching) |
+
+## Character Class Syntax
+
+Inside `[...]`:
+
+| Syntax | Meaning |
+|--------|---------|
+| `[abc]` | a, b, or c |
+| `[a-z]` | a through z |
+| `[^abc]` | Not a, b, or c |
+| `[a-zA-Z]` | Any letter |
+| `[\d\s]` | Digit or whitespace |
+| `[.]` | Literal dot (no escape needed) |
+| `[-]` | Literal hyphen (at start/end) |
+| `[\]]` | Literal bracket (escaped) |
+
+## Operator Precedence
+
+From highest to lowest:
+
+1. `\` — Escape
+2. `()`, `(?:)`, `(?=)`, etc. — Grouping
+3. `*`, `+`, `?`, `{n,m}` — Quantifiers
+4. `^`, `$`, `\b` — Anchors
+5. `|` — Alternation
+
+**Example:**
+```
+ab|cd   = (ab)|(cd)     — alternation has lowest precedence
+ab+     = a(b+)         — quantifier binds to preceding char
+^ab$    = (^)(ab)($)    — anchors are separate
+```
+
+## Quick Examples
+
+| Pattern | Matches |
+|---------|---------|
+| `^\d+$` | String of only digits |
+| `^[a-z]+$` | String of only lowercase |
+| `\b\w+\b` | Whole words |
+| `"[^"]*"` | Quoted strings |
+| `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}` | IP address (basic) |
+| `(?=.*[A-Z])(?=.*\d).{8,}` | Password with uppercase and digit |
