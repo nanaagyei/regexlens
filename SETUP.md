@@ -60,11 +60,11 @@ docker compose up -d
 | Setting | Value |
 |---------|-------|
 | Host | `localhost` |
-| Port | `5432` |
+| Port | `5433` |
 | Database | `regexlens` |
 | Username | `regexlens` |
 | Password | `regexlens_dev` |
-| Connection String | `postgresql://regexlens:regexlens_dev@localhost:5432/regexlens` |
+| Connection String | `postgresql://regexlens:regexlens_dev@localhost:5433/regexlens` |
 
 ### Database Commands
 
@@ -204,7 +204,7 @@ Create a `.env.local` file with the following variables:
 # ===========================================
 # Database
 # ===========================================
-DATABASE_URL=postgresql://regexlens:regexlens_dev@localhost:5432/regexlens
+DATABASE_URL=postgresql://regexlens:regexlens_dev@localhost:5433/regexlens
 
 # ===========================================
 # Authentication (Auth.js)
@@ -277,16 +277,9 @@ npm run db:logs
 npm run db:reset
 ```
 
-### Port 5432 already in use
+### Port 5433 already in use
 
-Another PostgreSQL instance may be running. Either stop it or change the port in `docker-compose.yml`:
-
-```yaml
-ports:
-  - "5433:5432"  # Use port 5433 instead
-```
-
-Then update `DATABASE_URL` accordingly.
+Another PostgreSQL instance may be running. Either stop it or change the port in `docker-compose.yml` to a different port (e.g., 5434), then update `DATABASE_URL` accordingly.
 
 ### Authentication not working
 

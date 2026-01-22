@@ -26,12 +26,13 @@ END $$;
 -- ============================================
 
 -- Users table
+-- Note: Column names use camelCase to match @auth/pg-adapter expectations
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE,
   name TEXT,
   image TEXT,
-  email_verified TIMESTAMPTZ,
+  "emailVerified" TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -87,12 +88,13 @@ CREATE INDEX IF NOT EXISTS snippet_versions_created_at_idx ON snippet_versions(c
 -- ============================================
 
 -- Accounts table - stores OAuth provider connections
+-- Note: Column names use camelCase to match @auth/pg-adapter expectations
 CREATE TABLE IF NOT EXISTS accounts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  "userId" UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   type TEXT NOT NULL,
   provider TEXT NOT NULL,
-  provider_account_id TEXT NOT NULL,
+  "providerAccountId" TEXT NOT NULL,
   refresh_token TEXT,
   access_token TEXT,
   expires_at BIGINT,
@@ -102,22 +104,23 @@ CREATE TABLE IF NOT EXISTS accounts (
   session_state TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE(provider, provider_account_id)
+  UNIQUE(provider, "providerAccountId")
 );
 
-CREATE INDEX IF NOT EXISTS accounts_user_id_idx ON accounts(user_id);
+CREATE INDEX IF NOT EXISTS accounts_user_id_idx ON accounts("userId");
 
 -- Sessions table - stores active user sessions
+-- Note: Column names use camelCase to match @auth/pg-adapter expectations
 CREATE TABLE IF NOT EXISTS sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_token TEXT NOT NULL UNIQUE,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  "userId" UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   expires TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions("userId");
 CREATE INDEX IF NOT EXISTS sessions_session_token_idx ON sessions(session_token);
 
 -- Verification tokens - for email magic links
