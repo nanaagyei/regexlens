@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Toaster } from "sonner";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://regexlens.dev";
@@ -222,7 +224,20 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <NuqsAdapter>{children}</NuqsAdapter>
+        <AuthProvider>
+          <NuqsAdapter>{children}</NuqsAdapter>
+        </AuthProvider>
+        <Toaster 
+          position="bottom-right" 
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: 'hsl(var(--card))',
+              border: '1px solid hsl(var(--border))',
+              color: 'hsl(var(--foreground))',
+            },
+          }}
+        />
       </body>
     </html>
   );

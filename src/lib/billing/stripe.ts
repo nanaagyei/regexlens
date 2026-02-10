@@ -27,18 +27,34 @@ export function getStripe(): Stripe {
 }
 
 /**
- * Price IDs for Pro subscription
+ * Get Price IDs for Pro subscription (reads env vars at runtime)
+ */
+export function getPriceIds() {
+  return {
+    PRO_MONTHLY: process.env.STRIPE_PRO_MONTHLY_PRICE_ID || "",
+    PRO_YEARLY: process.env.STRIPE_PRO_YEARLY_PRICE_ID || "",
+  };
+}
+
+/**
+ * Price IDs for Pro subscription (for backwards compatibility)
+ * Note: Use getPriceIds() for runtime access to ensure env vars are loaded
  */
 export const PRICE_IDS = {
-  PRO_MONTHLY: process.env.STRIPE_PRO_MONTHLY_PRICE_ID || "",
-  PRO_YEARLY: process.env.STRIPE_PRO_YEARLY_PRICE_ID || "",
+  get PRO_MONTHLY() {
+    return process.env.STRIPE_PRO_MONTHLY_PRICE_ID || "";
+  },
+  get PRO_YEARLY() {
+    return process.env.STRIPE_PRO_YEARLY_PRICE_ID || "";
+  },
 } as const;
 
 /**
  * Validate that a price ID is valid for Pro subscription
  */
 export function isValidPriceId(priceId: string): boolean {
-  return priceId === PRICE_IDS.PRO_MONTHLY || priceId === PRICE_IDS.PRO_YEARLY;
+  const prices = getPriceIds();
+  return priceId === prices.PRO_MONTHLY || priceId === prices.PRO_YEARLY;
 }
 
 /**

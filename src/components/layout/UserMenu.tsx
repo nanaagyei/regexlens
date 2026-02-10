@@ -12,8 +12,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useEntitlement } from "@/hooks/useEntitlement";
 import { AuthExplainerModal, AuthProvider } from "./AuthExplainerModal";
+import { cn } from "@/lib/utils";
 import {
   User,
   LogOut,
@@ -24,6 +32,7 @@ import {
   CreditCard,
   Loader2,
   ChevronDown,
+  Check,
 } from "lucide-react";
 
 // Google icon component since lucide doesn't have one
@@ -44,6 +53,9 @@ export function UserMenu() {
     null
   );
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showPlanSelector, setShowPlanSelector] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly">("yearly");
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const searchParams = useSearchParams();
 
   // Check for auth success callback and show pricing
@@ -71,33 +83,66 @@ export function UserMenu() {
     await signOut({ callbackUrl: "/" });
   };
 
-  const handleUpgrade = async () => {
-    // Redirect to checkout - for now just show the pricing info
-    // In production, this would create a checkout session
+  const handleUpgrade = () => {
+    // Show plan selector modal
+    setShowPlanSelector(true);
+  };
+
+  const handlePlanCheckout = async () => {
+    setIsCheckingOut(true);
     try {
+      // First fetch the available prices from the API
+      const pricesResponse = await fetch("/api/billing/checkout");
+      if (!pricesResponse.ok) {
+        console.error("Failed to fetch prices");
+        return;
+      }
+      const pricesData = await pricesResponse.json();
+      
+      // Use the selected plan
+      const priceId = selectedPlan === "yearly" 
+        ? pricesData.prices?.yearly?.id 
+        : pricesData.prices?.monthly?.id;
+      
+      if (!priceId) {
+        console.error("No price ID available");
+        return;
+      }
+
+      // Create checkout session
       const response = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID || "",
+          priceId,
+          returnUrl: window.location.origin + "/?checkout=complete",
         }),
       });
       const data = await response.json();
       if (data.url) {
         window.location.href = data.url;
+      } else if (data.error) {
+        console.error("Checkout error:", data.message);
       }
     } catch (error) {
       console.error("Checkout error:", error);
+    } finally {
+      setIsCheckingOut(false);
     }
   };
 
   const handleManageSubscription = async () => {
-    // In production, this would create a portal session
     try {
       const response = await fetch("/api/billing/portal", {
         method: "POST",
       });
       const data = await response.json();
+      
+      if (!response.ok) {
+        console.error("Portal error:", data.message || "Failed to open portal");
+        return;
+      }
+      
       if (data.url) {
         window.location.href = data.url;
       }
@@ -123,14 +168,14 @@ export function UserMenu() {
           <DropdownMenuTrigger asChild>
             <Button
               size="sm"
-              className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
+              className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
             >
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline">Get Pro</span>
-              <ChevronDown className="h-3 w-3 opacity-70" />
+              <ChevronDown className="h-3 w-3 opacity-70 hidden sm:inline" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64">
+          <DropdownMenuContent align="end" className="w-64 max-w-[calc(100vw-2rem)]">
             <div className="px-2 py-2">
               <p className="text-sm font-medium">Unlock Pro Features</p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -301,6 +346,100 @@ export function UserMenu() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Plan Selector Modal */}
+      <Dialog open={showPlanSelector} onOpenChange={setShowPlanSelector}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-amber-500" />
+              Upgrade to Pro
+            </DialogTitle>
+            <DialogDescription>
+              Choose your billing plan. Cancel anytime.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-3 py-4">
+            {/* Yearly Plan */}
+            <button
+              onClick={() => setSelectedPlan("yearly")}
+              className={cn(
+                "relative flex flex-col p-4 rounded-lg border-2 text-left transition-all",
+                selectedPlan === "yearly"
+                  ? "border-amber-500 bg-amber-500/5"
+                  : "border-border hover:border-amber-500/50"
+              )}
+            >
+              {selectedPlan === "yearly" && (
+                <div className="absolute top-3 right-3">
+                  <Check className="h-5 w-5 text-amber-500" />
+                </div>
+              )}
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-semibold">Yearly</span>
+                <span className="text-xs bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full font-medium">
+                  Save ~40%
+                </span>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-bold">$49</span>
+                <span className="text-muted-foreground">/year</span>
+              </div>
+              <span className="text-xs text-muted-foreground mt-1">
+                ~$4.08/month, billed annually
+              </span>
+            </button>
+
+            {/* Monthly Plan */}
+            <button
+              onClick={() => setSelectedPlan("monthly")}
+              className={cn(
+                "relative flex flex-col p-4 rounded-lg border-2 text-left transition-all",
+                selectedPlan === "monthly"
+                  ? "border-amber-500 bg-amber-500/5"
+                  : "border-border hover:border-amber-500/50"
+              )}
+            >
+              {selectedPlan === "monthly" && (
+                <div className="absolute top-3 right-3">
+                  <Check className="h-5 w-5 text-amber-500" />
+                </div>
+              )}
+              <span className="font-semibold mb-1">Monthly</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-bold">$8</span>
+                <span className="text-muted-foreground">/month</span>
+              </div>
+              <span className="text-xs text-muted-foreground mt-1">
+                Flexible, cancel anytime
+              </span>
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={handlePlanCheckout}
+              disabled={isCheckingOut}
+              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+            >
+              {isCheckingOut ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  Continue to Checkout
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-center text-muted-foreground">
+              Secure payment via Stripe. Cancel anytime from your account.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

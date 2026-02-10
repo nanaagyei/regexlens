@@ -43,3 +43,5 @@ next-env.d.ts
 initial_prds/
 .cursor/
 .cursor/debug.log
+
+IMPLEMENTATION_STATUS.md

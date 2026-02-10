@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useImperativeHandle, forwardRef } from "react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import { ParseResult } from "@/types";
@@ -13,10 +13,22 @@ interface RegexEditorProps {
   parseResult: ParseResult;
 }
 
-export function RegexEditor({ value, onChange, parseResult }: RegexEditorProps) {
+export interface RegexEditorRef {
+  focus: () => void;
+}
+
+export const RegexEditor = forwardRef<RegexEditorRef, RegexEditorProps>(
+  function RegexEditor({ value, onChange, parseResult }, ref) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
   const { hoverState, setHoveredRange } = useHoverSync();
+
+  // Expose focus method via ref
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      editorRef.current?.focus();
+    },
+  }), []);
 
   const handleEditorMount: OnMount = useCallback((editor, monaco) => {
     editorRef.current = editor;
@@ -165,4 +177,4 @@ export function RegexEditor({ value, onChange, parseResult }: RegexEditorProps) 
       `}</style>
     </div>
   );
-}
+});

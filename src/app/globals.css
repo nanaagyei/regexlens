@@ -112,3 +112,86 @@
 .focus-ring {
   @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
 }
+
+/* Mobile touch improvements */
+@layer utilities {
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  /* Prevent text selection on interactive elements */
+  .select-none-touch {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  
+  /* Improve tap highlight on mobile */
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 640px) {
+  /* Larger touch targets */
+  button, [role="button"] {
+    min-height: 36px;
+    min-width: 36px;
+  }
+  
+  /* Better scrolling on mobile */
+  .overflow-auto, .overflow-y-auto, .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent zoom on input focus (iOS) */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  .safe-area-inset-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .safe-area-inset-top {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+}
+
+/* Custom breakpoint for extra small screens (xs: 480px) */
+@media (min-width: 480px) {
+  .xs\:inline {
+    display: inline !important;
+  }
+  .xs\:inline-flex {
+    display: inline-flex !important;
+  }
+  .xs\:hidden {
+    display: none !important;
+  }
+  .xs\:flex {
+    display: flex !important;
+  }
+  .xs\:block {
+    display: block !important;
+  }
+}
+
+/* Hide on xs screens (below 480px) */
+@media (max-width: 479px) {
+  .xs\:inline, .xs\:inline-flex, .xs\:flex, .xs\:block {
+    /* These are only visible above 480px */
+  }
+}
+
+/* Tablet-specific adjustments (768px - 1279px) */
+@media (min-width: 768px) and (max-width: 1279px) {
+  /* Improve panel spacing on tablets */
+  .tablet-compact {
+    gap: 0.5rem;
+  }
+}

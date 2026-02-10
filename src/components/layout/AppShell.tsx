@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,8 +9,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Panel, PanelContent } from "./Panel";
-import { RegexEditor } from "@/components/regex/RegexEditor";
+import { RegexEditor, RegexEditorRef } from "@/components/regex/RegexEditor";
 import { FlagsToggle } from "@/components/regex/FlagsToggle";
 import { TokenToolbar } from "@/components/regex/TokenToolbar";
 import { ParseStatus } from "@/components/regex/ParseStatus";
@@ -22,24 +29,45 @@ import { WarningsPanel } from "@/components/warnings/WarningsPanel";
 import { TemplatePicker } from "@/components/templates/TemplatePicker";
 import { ShareBar } from "@/components/share/ShareBar";
 import { UserMenu } from "./UserMenu";
-import { HoverSyncProvider } from "@/hooks/useHoverSync";
+import { HoverSyncProvider, useHoverSync } from "@/hooks/useHoverSync";
 import { useRegexState } from "@/hooks/useRegexState";
 import { useRegexParse } from "@/hooks/useRegexParse";
 import { useRegexMatches } from "@/hooks/useRegexMatches";
 import { useExplanation } from "@/hooks/useExplanation";
 import { useWarnings } from "@/hooks/useWarnings";
 import { useUrlState } from "@/hooks/useUrlState";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { getShareUrl } from "@/hooks/useUrlState";
+import { SavedLibrary, SaveSnippetModal } from "@/components/library";
 import {
   FileText,
   AlertTriangle,
   TreeDeciduous,
-  Share2,
   RotateCcw,
+  BookText,
+  Save,
+  FolderOpen,
+  Share2,
+  MoreHorizontal,
 } from "lucide-react";
+import Link from "next/link";
 import Image from "next/image";
 
 export function AppShell() {
+  return (
+    <TooltipProvider delayDuration={300}>
+      <HoverSyncProvider>
+        <AppShellContent />
+      </HoverSyncProvider>
+    </TooltipProvider>
+  );
+}
+
+function AppShellContent() {
   const [activeTab, setActiveTab] = useState("explanation");
+  const regexEditorRef = useRef<RegexEditorRef>(null);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   // Core state and hooks
   const { state, actions } = useRegexState();
@@ -52,30 +80,128 @@ export function AppShell() {
   );
   const explanationResult = useExplanation(parseResult);
   const warningsResult = useWarnings(state.pattern, state.flags, parseResult, matchResult);
+  const { clearAll } = useHoverSync();
 
   // URL state sync
   useUrlState(state, actions);
 
+  // Keyboard shortcut handlers
+  const handleFocusEditor = useCallback(() => {
+    regexEditorRef.current?.focus();
+  }, []);
+
+  const handleReparse = useCallback(() => {
+    // Force re-render by setting the same pattern (triggers debounced parse)
+    actions.setPattern(state.pattern);
+  }, [actions, state.pattern]);
+
+  const handleClearSelection = useCallback(() => {
+    clearAll();
+  }, [clearAll]);
+
+  const handleCopyShareLink = useCallback(async () => {
+    try {
+      const url = getShareUrl(state);
+      await navigator.clipboard.writeText(url);
+    } catch (error) {
+      console.error("Failed to copy share link:", error);
+    }
+  }, [state]);
+
+  // Wire up keyboard shortcuts
+  useKeyboardShortcuts({
+    onFocusEditor: handleFocusEditor,
+    onReparse: handleReparse,
+    onClearSelection: handleClearSelection,
+    onCopyShareLink: handleCopyShareLink,
+  });
+
+  // Handler for loading a snippet from the library
+  const handleLoadSnippet = useCallback(
+    (pattern: string, flags: string) => {
+      actions.setPattern(pattern);
+      actions.setFlags(flags);
+      handleFocusEditor();
+    },
+    [actions, handleFocusEditor]
+  );
+
+  // Handler for when a snippet is saved
+  const handleSnippetSaved = useCallback(() => {
+    // Could refresh library or show notification
+  }, []);
+
   return (
-    <TooltipProvider delayDuration={300}>
-      <HoverSyncProvider>
         <div className="h-screen flex flex-col bg-background">
           {/* Header */}
-          <header className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <header className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-border">
             <div className="flex items-center">
               <Image
                 src="/regexlens-logo.png"
                 alt="RegexLens"
-                width={120}
-                height={120}
-                className="rounded-lg"
+                width={100}
+                height={100}
+                className="rounded-lg w-[80px] sm:w-[100px]"
                 priority
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <TemplatePicker onSelect={actions.applyTemplate} />
-              <ShareBar state={state} />
+            {/* Desktop/Tablet Navigation - Show on md (768px+) */}
+            <div className="hidden md:flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                    <Link href="/docs" target="_blank">
+                      <BookText className="h-4 w-4" />
+                      <span className="hidden lg:inline">Docs</span>
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>View documentation</TooltipContent>
+              </Tooltip>
+              <TemplatePicker onSelect={actions.applyTemplate} onAfterSelect={handleFocusEditor} />
+              
+              {/* Library buttons */}
+              <div className="flex items-center gap-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSaveModalOpen(true)}
+                      disabled={!state.pattern}
+                      className="gap-1.5"
+                    >
+                      <Save className="h-4 w-4" />
+                      <span className="hidden lg:inline">Save</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {state.pattern ? "Save to library" : "Enter a pattern to save"}
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setLibraryOpen(true)}
+                      className="gap-1.5"
+                    >
+                      <FolderOpen className="h-4 w-4" />
+                      <span className="hidden lg:inline">Library</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Open saved library</TooltipContent>
+                </Tooltip>
+              </div>
+
+              <ShareBar 
+                state={state} 
+                steps={explanationResult.steps} 
+                warnings={warningsResult.warnings} 
+              />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -92,22 +218,80 @@ export function AppShell() {
               <div className="w-px h-6 bg-border mx-1" />
               <UserMenu />
             </div>
+
+            {/* Mobile Navigation - Show below md (768px) */}
+            <div className="flex md:hidden items-center gap-2">
+              {/* Quick actions visible on mobile */}
+              <TemplatePicker onSelect={actions.applyTemplate} onAfterSelect={handleFocusEditor} />
+              
+              {/* More menu for other actions */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-8 w-8">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link href="/docs" target="_blank" className="flex items-center">
+                      <BookText className="mr-2 h-4 w-4" />
+                      Documentation
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => setSaveModalOpen(true)}
+                    disabled={!state.pattern}
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Pattern
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLibraryOpen(true)}>
+                    <FolderOpen className="mr-2 h-4 w-4" />
+                    My Library
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={async () => {
+                      const url = getShareUrl(state);
+                      await navigator.clipboard.writeText(url);
+                    }}
+                    disabled={!state.pattern && !state.text}
+                  >
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Copy Share Link
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={actions.reset}>
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Reset All
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <UserMenu />
+            </div>
           </header>
 
-          {/* Main Content */}
-          <main className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_1.5fr_1.2fr] gap-4 p-4 overflow-hidden">
-            {/* Left Panel - Regex Editor */}
-            <div className="flex flex-col gap-4 min-h-0">
-              <Panel title="Pattern" className="flex-1">
+          {/* Main Content 
+              - Mobile (< 768px): Single column stacked layout
+              - Tablet (768px - 1279px): Two column layout with Pattern on left, Test/Results on right
+              - Desktop (>= 1280px): Three column layout
+          */}
+          <main className="flex-1 flex flex-col md:grid md:grid-cols-2 xl:grid-cols-[1fr_1.5fr_1.2fr] gap-3 sm:gap-4 p-3 sm:p-4 overflow-auto xl:overflow-hidden">
+            {/* Left Panel - Regex Editor (full width on mobile, left column on tablet, first column on desktop) */}
+            <div className="flex flex-col gap-3 sm:gap-4 min-h-0 shrink-0 md:row-span-2 xl:row-span-1">
+              <Panel title="Pattern" className="flex-1 min-h-[180px] sm:min-h-[200px] xl:min-h-0">
                 <div className="flex flex-col h-full">
-                  <div className="flex-1 min-h-[120px]">
+                  <div className="flex-1 min-h-[80px] sm:min-h-[100px]">
                     <RegexEditor
+                      ref={regexEditorRef}
                       value={state.pattern}
                       onChange={actions.setPattern}
                       parseResult={parseResult}
                     />
                   </div>
-                  <div className="border-t border-border p-3 space-y-3">
+                  <div className="border-t border-border p-2 sm:p-3 space-y-2">
                     <FlagsToggle
                       flags={state.flags}
                       onToggle={actions.toggleFlag}
@@ -119,9 +303,9 @@ export function AppShell() {
               </Panel>
             </div>
 
-            {/* Center Panel - Test Text & Matches */}
-            <div className="flex flex-col gap-4 min-h-0">
-              <Panel title="Test Text" className="flex-[2]">
+            {/* Center Panel - Test Text & Matches (stacks with Pattern on mobile, right column on tablet) */}
+            <div className="flex flex-col gap-3 sm:gap-4 min-h-0 shrink-0">
+              <Panel title="Test Text" className="flex-[2] min-h-[120px] sm:min-h-[150px] xl:min-h-0">
                 <PanelContent className="p-0">
                   <TestTextEditor
                     value={state.text}
@@ -144,7 +328,7 @@ export function AppShell() {
                     </span>
                   )
                 }
-                className="flex-1 min-h-[150px]"
+                className="flex-1 min-h-[80px] sm:min-h-[100px]"
               >
                 <PanelContent>
                   <MatchList matches={matchResult} />
@@ -152,25 +336,28 @@ export function AppShell() {
               </Panel>
             </div>
 
-            {/* Right Panel - Tabs */}
-            <div className="min-h-0">
+            {/* Right Panel - Tabs (spans full width on tablet [2 cols], third column on desktop [3 cols]) */}
+            <div className="min-h-[200px] sm:min-h-[250px] xl:min-h-0 shrink-0 col-span-full xl:col-span-1">
               <Tabs
                 value={activeTab}
                 onValueChange={setActiveTab}
                 className="h-full flex flex-col"
               >
-                <TabsList className="w-full grid grid-cols-3">
-                  <TabsTrigger value="explanation" className="gap-1.5">
+                <TabsList className="w-full grid grid-cols-3 h-9">
+                  <TabsTrigger value="explanation" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                     <FileText className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Explanation</span>
+                    <span className="hidden sm:inline">Explain</span>
+                    <span className="sm:hidden">Exp</span>
                   </TabsTrigger>
-                  <TabsTrigger value="structure" className="gap-1.5">
+                  <TabsTrigger value="structure" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
                     <TreeDeciduous className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">Structure</span>
+                    <span className="sm:hidden">AST</span>
                   </TabsTrigger>
-                  <TabsTrigger value="warnings" className="gap-1.5 relative">
+                  <TabsTrigger value="warnings" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 relative">
                     <AlertTriangle className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">Warnings</span>
+                    <span className="sm:hidden">Warn</span>
                     {warningsResult.warnings.length > 0 && (
                       <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-warning-warn text-[10px] font-medium flex items-center justify-center text-black">
                         {warningsResult.warnings.length}
@@ -210,8 +397,22 @@ export function AppShell() {
               </Tabs>
             </div>
           </main>
+
+          {/* Save Modal */}
+          <SaveSnippetModal
+            open={saveModalOpen}
+            onOpenChange={setSaveModalOpen}
+            pattern={state.pattern}
+            flags={state.flags}
+            onSaved={handleSnippetSaved}
+          />
+
+          {/* Library Modal */}
+          <SavedLibrary
+            open={libraryOpen}
+            onOpenChange={setLibraryOpen}
+            onLoadSnippet={handleLoadSnippet}
+          />
         </div>
-      </HoverSyncProvider>
-    </TooltipProvider>
   );
 }
