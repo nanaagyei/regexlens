@@ -15,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEntitlement } from "@/hooks/useEntitlement";
 import { Snippet, SnippetListResponse } from "./types";
 import { SnippetCard } from "./SnippetCard";
+import { SnippetDetailModal } from "./SnippetDetailModal";
 import { SaveSnippetModal } from "./SaveSnippetModal";
 import {
   Lock,
@@ -43,6 +44,7 @@ export function SavedLibrary({
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [editingSnippet, setEditingSnippet] = useState<Snippet | null>(null);
+  const [historySnippet, setHistorySnippet] = useState<Snippet | null>(null);
   const [allTags, setAllTags] = useState<string[]>([]);
 
   const fetchSnippets = useCallback(
@@ -110,6 +112,15 @@ export function SavedLibrary({
       onLoadSnippet(snippet.pattern, snippet.flags);
       onOpenChange(false);
       toast.success(`Loaded: ${snippet.name}`);
+    },
+    [onLoadSnippet, onOpenChange]
+  );
+
+  const handleLoadVersion = useCallback(
+    (pattern: string, flags: string) => {
+      onLoadSnippet(pattern, flags);
+      setHistorySnippet(null);
+      onOpenChange(false);
     },
     [onLoadSnippet, onOpenChange]
   );
@@ -247,6 +258,7 @@ export function SavedLibrary({
                         onLoad={handleLoadSnippet}
                         onEdit={setEditingSnippet}
                         onDelete={handleDeleteSnippet}
+                        onOpenHistory={setHistorySnippet}
                       />
                     ))}
 
@@ -279,6 +291,16 @@ export function SavedLibrary({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Version history / Diff modal */}
+      {historySnippet && (
+        <SnippetDetailModal
+          open={!!historySnippet}
+          onOpenChange={(open) => !open && setHistorySnippet(null)}
+          snippet={historySnippet}
+          onLoadVersion={handleLoadVersion}
+        />
+      )}
 
       {/* Edit modal */}
       {editingSnippet && (

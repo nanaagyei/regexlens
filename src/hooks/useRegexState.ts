@@ -10,12 +10,25 @@ const DEFAULT_STATE: RegexState = {
   flavor: "javascript",
 };
 
+/** Minimal shape for fixture suite/test application */
+export interface FixtureApplySuite {
+  regex?: { source: string; flags: string };
+  tests: Array<{ input: string; regex?: { source: string; flags: string } }>;
+}
+
+export interface FixtureApplyTest {
+  input: string;
+  regex?: { source: string; flags: string };
+}
+
 export interface RegexStateActions {
   setPattern: (pattern: string) => void;
   setFlags: (flags: string) => void;
   toggleFlag: (flag: string) => void;
   setText: (text: string) => void;
   applyTemplate: (template: RegexTemplate) => void;
+  applyFixtureSuite: (suite: FixtureApplySuite) => void;
+  applyFixtureTest: (test: FixtureApplyTest, fallbackRegex?: { source: string; flags: string }) => void;
   reset: () => void;
 }
 
@@ -63,6 +76,26 @@ export function useRegexState(
     }));
   }, []);
 
+  const applyFixtureSuite = useCallback((suite: FixtureApplySuite) => {
+    const regex = suite.regex ?? suite.tests[0]?.regex;
+    const pattern = regex?.source ?? "";
+    const flags = regex?.flags ?? "";
+    const text = suite.tests[0]?.input ?? "";
+    setState((prev) => ({ ...prev, pattern, flags, text }));
+  }, []);
+
+  const applyFixtureTest = useCallback(
+    (test: FixtureApplyTest, fallbackRegex?: { source: string; flags: string }) => {
+      const regex = test.regex ?? fallbackRegex;
+      setState((prev) => ({
+        ...prev,
+        text: test.input,
+        ...(regex && { pattern: regex.source, flags: regex.flags }),
+      }));
+    },
+    []
+  );
+
   const reset = useCallback(() => {
     setState(DEFAULT_STATE);
   }, []);
@@ -74,9 +107,20 @@ export function useRegexState(
       toggleFlag,
       setText,
       applyTemplate,
+      applyFixtureSuite,
+      applyFixtureTest,
       reset,
     }),
-    [setPattern, setFlags, toggleFlag, setText, applyTemplate, reset]
+    [
+      setPattern,
+      setFlags,
+      toggleFlag,
+      setText,
+      applyTemplate,
+      applyFixtureSuite,
+      applyFixtureTest,
+      reset,
+    ]
   );
 
   return { state, actions };

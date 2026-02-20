@@ -1,9 +1,13 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useRef, useImperativeHandle, forwardRef } from "react";
 import { MatchResult, MatchSpan } from "@/types";
 import { useHoverSync } from "@/hooks/useHoverSync";
 import { cn } from "@/lib/utils";
+
+export interface TestTextEditorRef {
+  scrollToMatch: (start: number, end: number) => void;
+}
 
 interface TestTextEditorProps {
   value: string;
@@ -22,14 +26,24 @@ const HIGHLIGHT_CLASSES = [
   "match-highlight-6",
 ];
 
-export function TestTextEditor({
-  value,
-  onChange,
-  matches,
-  pattern,
-  flags,
-}: TestTextEditorProps) {
+export const TestTextEditor = forwardRef<TestTextEditorRef, TestTextEditorProps>(
+  function TestTextEditor({ value, onChange, matches, pattern, flags }, ref) {
   const { hoverState, setHoveredMatchIndex } = useHoverSync();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    scrollToMatch(start: number, end: number) {
+      const el = textareaRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(start, end);
+      const lineHeight = parseInt(getComputedStyle(el).lineHeight, 10) || 16;
+      const textBefore = value.slice(0, start);
+      const lineIndex = (textBefore.match(/\n/g) || []).length;
+      const targetScrollTop = Math.max(0, lineIndex * lineHeight - el.clientHeight / 2 + lineHeight);
+      el.scrollTop = targetScrollTop;
+    },
+  }), [value]);
 
   // Build highlighted text segments
   const highlightedSegments = useMemo(() => {
@@ -93,6 +107,7 @@ export function TestTextEditor({
     <div className="relative h-full">
       {/* Actual textarea for editing */}
       <textarea
+        ref={textareaRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Paste sample text here — matches highlight instantly"
@@ -146,4 +161,4 @@ export function TestTextEditor({
       )}
     </div>
   );
-}
+});

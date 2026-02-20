@@ -1,0 +1,277 @@
+{
+  "fixture_version": "1.0.0",
+  "fixture_name": "RegexLens Stress + Correctness Pack (JS Browser + Node)",
+  "created_at": "2026-02-20",
+  "notes": [
+    "Designed for RegexLens: browser UI (Web Worker) + Node API routes.",
+    "Includes correctness suites + catastrophic backtracking red-team cases + environment sanity checks.",
+    "Some cases are expected to time out or throw in certain environments; see expected.behavior.",
+    "All patterns are JavaScript RegExp source strings (no surrounding /.../). Flags are provided separately."
+  ],
+  "defaults": {
+    "timeout_ms_browser_worker": 75,
+    "timeout_ms_node": 50,
+    "max_input_preview_chars": 5000,
+    "reset_lastIndex_before_each_test": true
+  },
+  "suites": [
+    {
+      "id": "suite_htmlish_tag_pair",
+      "title": "HTML-ish Tag Pair (JS-compatible, non-validating nesting)",
+      "category": "correctness",
+      "regex": {
+        "source": "<([A-Za-z][\\w:-]*)\\b[^>]*>[\\s\\S]*?<\\/\\1>",
+        "flags": "g"
+      },
+      "description": "Matches a start tag and the corresponding end tag (same name) with any content in between. Does NOT validate nested tag correctness; JS cannot do recursive regex.",
+      "tests": [
+        {
+          "id": "html_01",
+          "input": "<div>Hello</div>",
+          "expected": { "behavior": "match", "match_count": 1 }
+        },
+        {
+          "id": "html_02",
+          "input": "<span class=\"x\">hi</span>",
+          "expected": { "behavior": "match", "match_count": 1 }
+        },
+        {
+          "id": "html_03",
+          "input": "<custom-tag data-id=\"1\">ok</custom-tag>",
+          "expected": { "behavior": "match", "match_count": 1 }
+        },
+        {
+          "id": "html_04",
+          "input": "<div><span>nested</span></div>",
+          "expected": { "behavior": "match", "match_count": 1 }
+        },
+        {
+          "id": "html_05",
+          "input": "<div>Hello</span>",
+          "expected": { "behavior": "no_match", "match_count": 0 }
+        },
+        {
+          "id": "html_06",
+          "input": "<div>Unclosed",
+          "expected": { "behavior": "no_match", "match_count": 0 }
+        },
+        {
+          "id": "html_07",
+          "input": "</div>",
+          "expected": { "behavior": "no_match", "match_count": 0 }
+        },
+        {
+          "id": "html_08",
+          "input": "<div>first</div> junk <div>second</div>",
+          "expected": { "behavior": "match", "match_count": 2 }
+        },
+        {
+          "id": "html_09",
+          "input": "<div attr=\">\">weird attribute</div>",
+          "expected": {
+            "behavior": "match_or_no_match",
+            "match_count": null,
+            "notes": "Depending on parsing expectations, attributes with > can confuse simplistic tag regex. Use to see how your UI behaves."
+          }
+        }
+      ]
+    },
+    {
+      "id": "suite_email_validator",
+      "title": "Email Validator (pragmatic, dot-atom local-part)",
+      "category": "correctness",
+      "regex": {
+        "source": "^(?=.{1,254}$)(?=.{1,64}@)[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+[A-Za-z]{2,}$",
+        "flags": ""
+      },
+      "description": "Validates common email formats (not full RFC 5322). Includes total length and local-part length constraints.",
+      "tests": [
+        { "id": "email_01", "input": "test@example.com", "expected": { "behavior": "match" } },
+        { "id": "email_02", "input": "first.last@sub.domain.com", "expected": { "behavior": "match" } },
+        { "id": "email_03", "input": "user+tag@domain.co", "expected": { "behavior": "match" } },
+        { "id": "email_04", "input": "a_b-c.d+e@long-domain-name.org", "expected": { "behavior": "match" } },
+        { "id": "email_05", "input": "a@b.co", "expected": { "behavior": "match" } },
+        { "id": "email_06", "input": "plainaddress", "expected": { "behavior": "no_match" } },
+        { "id": "email_07", "input": "@no-local-part.com", "expected": { "behavior": "no_match" } },
+        { "id": "email_08", "input": "user@domain", "expected": { "behavior": "no_match" } },
+        { "id": "email_09", "input": "user@.com", "expected": { "behavior": "no_match" } },
+        { "id": "email_10", "input": "user..double@dot.com", "expected": { "behavior": "no_match" } },
+        { "id": "email_11", "input": "user@domain..com", "expected": { "behavior": "no_match" } },
+        { "id": "email_12", "input": "user@-domain.com", "expected": { "behavior": "no_match" } },
+        { "id": "email_13", "input": "user@domain-.com", "expected": { "behavior": "no_match" } },
+        {
+          "id": "email_14",
+          "input": "x@xn--bcher-kva.ch",
+          "expected": { "behavior": "match", "notes": "Punycode ASCII label. Regex allows it." }
+        }
+      ]
+    },
+    {
+      "id": "suite_ipv6_validator",
+      "title": "IPv6 Validator (many canonical + compressed forms)",
+      "category": "correctness",
+      "regex": {
+        "source": "^((?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}|(?:[0-9A-Fa-f]{1,4}:){1,7}:|(?:[0-9A-Fa-f]{1,4}:){1,6}:[0-9A-Fa-f]{1,4}|(?:[0-9A-Fa-f]{1,4}:){1,5}(?::[0-9A-Fa-f]{1,4}){1,2}|(?:[0-9A-Fa-f]{1,4}:){1,4}(?::[0-9A-Fa-f]{1,4}){1,3}|(?:[0-9A-Fa-f]{1,3}:){1,3}(?::[0-9A-Fa-f]{1,4}){1,4}|(?:[0-9A-Fa-f]{1,2}:){1,2}(?::[0-9A-Fa-f]{1,4}){1,5}|[0-9A-Fa-f]{1,4}:(?:(?::[0-9A-Fa-f]{1,4}){1,6})|:(?:(?::[0-9A-Fa-f]{1,4}){1,7}|:))$",
+        "flags": ""
+      },
+      "description": "Validates many IPv6 forms including :: compression. Does NOT include embedded IPv4 forms in this version.",
+      "tests": [
+        { "id": "ip6_01", "input": "2001:0db8:85a3:0000:0000:8a2e:0370:7334", "expected": { "behavior": "match" } },
+        { "id": "ip6_02", "input": "2001:db8:85a3::8a2e:370:7334", "expected": { "behavior": "match" } },
+        { "id": "ip6_03", "input": "::1", "expected": { "behavior": "match" } },
+        { "id": "ip6_04", "input": "::", "expected": { "behavior": "match" } },
+        { "id": "ip6_05", "input": "fe80::1ff:fe23:4567:890a", "expected": { "behavior": "match" } },
+        { "id": "ip6_06", "input": "2001:db8::", "expected": { "behavior": "match" } },
+        { "id": "ip6_07", "input": "0:0:0:0:0:0:0:1", "expected": { "behavior": "match" } },
+        { "id": "ip6_08", "input": "2001:::7334", "expected": { "behavior": "no_match" } },
+        { "id": "ip6_09", "input": "2001:db8:85a3::8a2e::7334", "expected": { "behavior": "no_match" } },
+        { "id": "ip6_10", "input": "12345::abcd", "expected": { "behavior": "no_match" } },
+        { "id": "ip6_11", "input": "2001:db8:85a3:8a2e:370:7334", "expected": { "behavior": "no_match" } },
+        { "id": "ip6_12", "input": "2001:dg8::1", "expected": { "behavior": "no_match" } }
+      ]
+    },
+    {
+      "id": "suite_backtracking_doom",
+      "title": "Catastrophic Backtracking (red-team) — validate timeouts + worker isolation",
+      "category": "performance_safety",
+      "regex": { "source": "^(a+)+$", "flags": "" },
+      "description": "Classic exponential backtracking case. Inputs with trailing non-match should be treated as timeout candidates.",
+      "tests": [
+        { "id": "doom_01", "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "expected": { "behavior": "match", "may_be_slow": false } },
+        { "id": "doom_02", "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaX", "expected": { "behavior": "timeout_or_no_match", "may_be_slow": true } },
+        { "id": "doom_03", "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaX", "expected": { "behavior": "timeout_or_no_match", "may_be_slow": true } },
+        { "id": "doom_04", "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaX", "expected": { "behavior": "timeout_or_no_match", "may_be_slow": true } }
+      ]
+    },
+    {
+      "id": "suite_backtracking_alpha_star",
+      "title": "Backtracking Trap: (^([a-zA-Z]+)*$)",
+      "category": "performance_safety",
+      "regex": { "source": "^([a-zA-Z]+)*$", "flags": "" },
+      "tests": [
+        { "id": "alphastar_01", "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "expected": { "behavior": "match" } },
+        { "id": "alphastar_02", "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!", "expected": { "behavior": "timeout_or_no_match", "may_be_slow": true } },
+        { "id": "alphastar_03", "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!", "expected": { "behavior": "timeout_or_no_match", "may_be_slow": true } }
+      ]
+    },
+    {
+      "id": "suite_ambiguous_alternation",
+      "title": "Ambiguous Alternation: (a|aa)+",
+      "category": "performance_safety",
+      "regex": { "source": "^(a|aa)+$", "flags": "" },
+      "tests": [
+        { "id": "alt_01", "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "expected": { "behavior": "match" } },
+        { "id": "alt_02", "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaX", "expected": { "behavior": "timeout_or_no_match", "may_be_slow": true } },
+        { "id": "alt_03", "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaX", "expected": { "behavior": "timeout_or_no_match", "may_be_slow": true } }
+      ]
+    },
+    {
+      "id": "suite_dotstar_anchor",
+      "title": "Dot-star Anchor Pain: (.*a){10}",
+      "category": "performance_safety",
+      "regex": { "source": "^(.*a){10}$", "flags": "" },
+      "tests": [
+        { "id": "dsa_01", "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "expected": { "behavior": "match_or_no_match", "notes": "Depends on length; included to observe perf + highlighting behavior." } },
+        { "id": "dsa_02", "input": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "expected": { "behavior": "no_match" } },
+        { "id": "dsa_03", "input": "aaaaaaaaaaaaabaaaaaaaaaaaaabaaaaaaaaaaaaabaaaaaaa", "expected": { "behavior": "match_or_no_match", "notes": "Ambiguous; use to observe perf + timeout behavior." } }
+      ]
+    },
+    {
+      "id": "suite_unicode_sanity",
+      "title": "Unicode & Flags Sanity (u flag + property escapes)",
+      "category": "environment_sanity",
+      "tests": [
+        {
+          "id": "uni_01_no_u",
+          "regex": { "source": "^.$", "flags": "" },
+          "input": "😄",
+          "expected": { "behavior": "no_match_or_match", "notes": "Without /u, many engines treat emoji as 2 code units; often fails. UI should explain /u." }
+        },
+        {
+          "id": "uni_02_with_u",
+          "regex": { "source": "^.$", "flags": "u" },
+          "input": "😄",
+          "expected": { "behavior": "match", "notes": "With /u, should match a single Unicode code point." }
+        },
+        {
+          "id": "uni_03_prop_escape",
+          "regex": { "source": "^\\p{Letter}+$", "flags": "u" },
+          "input": "Gödel",
+          "expected": { "behavior": "match" }
+        },
+        {
+          "id": "uni_04_prop_escape",
+          "regex": { "source": "^\\p{Letter}+$", "flags": "u" },
+          "input": "東京",
+          "expected": { "behavior": "match" }
+        },
+        {
+          "id": "uni_05_prop_escape_fail",
+          "regex": { "source": "^\\p{Letter}+$", "flags": "u" },
+          "input": "abc123",
+          "expected": { "behavior": "no_match" }
+        }
+      ]
+    },
+    {
+      "id": "suite_lookbehind_support",
+      "title": "Lookbehind Support (modern JS; should surface syntax errors cleanly)",
+      "category": "environment_sanity",
+      "regex": { "source": "(?<=\\$)\\d+", "flags": "" },
+      "tests": [
+        { "id": "lb_01", "input": "$123", "expected": { "behavior": "match", "match_count": 1 } },
+        { "id": "lb_02", "input": "USD 123", "expected": { "behavior": "no_match", "match_count": 0 } },
+        { "id": "lb_03", "input": "Price: $9 and $10", "expected": { "behavior": "match", "match_count": 2 } }
+      ],
+      "expected_engine_notes": [
+        "If a browser doesn't support lookbehind, RegExp construction throws. UI should catch and display a helpful error."
+      ]
+    },
+    {
+      "id": "suite_sticky_flag_lastIndex",
+      "title": "Sticky (y) flag + lastIndex correctness",
+      "category": "environment_sanity",
+      "regex": { "source": "\\d+", "flags": "y" },
+      "tests": [
+        {
+          "id": "sticky_01",
+          "input": "123abc456",
+          "expected": {
+            "behavior": "match",
+            "notes": "At lastIndex=0 it matches '123'. If lastIndex is advanced to 3, it should fail at 'a'."
+          },
+          "runtime_instructions": {
+            "set_lastIndex_sequence": [0, 3, 6],
+            "expected_results_sequence": ["match", "no_match", "match"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "suite_global_lastIndex_footgun",
+      "title": "Global (g) flag lastIndex footgun (ensure your runner resets)",
+      "category": "environment_sanity",
+      "regex": { "source": "a", "flags": "g" },
+      "tests": [
+        {
+          "id": "g_01",
+          "input": "banana",
+          "expected": {
+            "behavior": "match",
+            "notes": "Repeated .test() without resetting lastIndex can alternate results. Runner should reset lastIndex before each test."
+          }
+        }
+      ]
+    }
+  ],
+  "agent_instructions": {
+    "title": "Seed fixture + wire into RegexLens test/snippets + validate timeouts",
+    "goal": "Add this JSON fixture to seed data, expose it via snippets or internal fixtures, and ensure browser worker + Node runners handle timeouts/errors consistently without freezing UI.",
+    "constraints": [
+      "Do NOT run catastrophic backtracking tests on the main thread in the browser.",
+      "Always run regex evaluation in the Web Worker for UI layer; enforce matchWithTimeout.",
+      "Always reset RegExp.lastIndex before each test when flags include g or y.",
+      "Catch RegExp construction errors (syntax errors like unsupported lookbehind) and return structured error objects."
+    ]
+  }
+}

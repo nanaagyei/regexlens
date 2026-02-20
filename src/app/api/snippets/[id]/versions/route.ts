@@ -10,6 +10,7 @@ import {
   formatZodError,
   parseSearchParams,
 } from "@/lib/security/validation";
+import { computeDiff } from "@/lib/snippets/diff";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -264,72 +265,3 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-/**
- * Compute diff between two versions
- */
-function computeDiff(
-  from: VersionRow,
-  to: VersionRow
-): {
-  patternChanged: boolean;
-  flagsChanged: boolean;
-  patternDiff: { added: string[]; removed: string[] };
-  flagsDiff: { added: string[]; removed: string[] };
-} {
-  const patternChanged = from.pattern !== to.pattern;
-  const flagsChanged = from.flags !== to.flags;
-
-  // Simple character-level diff for pattern
-  const patternDiff = {
-    added: [] as string[],
-    removed: [] as string[],
-  };
-
-  if (patternChanged) {
-    // Find characters in 'to' not in 'from'
-    const fromChars = new Set(from.pattern.split(""));
-    const toChars = new Set(to.pattern.split(""));
-
-    for (const char of toChars) {
-      if (!fromChars.has(char)) {
-        patternDiff.added.push(char);
-      }
-    }
-
-    for (const char of fromChars) {
-      if (!toChars.has(char)) {
-        patternDiff.removed.push(char);
-      }
-    }
-  }
-
-  // Flag diff
-  const flagsDiff = {
-    added: [] as string[],
-    removed: [] as string[],
-  };
-
-  if (flagsChanged) {
-    const fromFlags = new Set(from.flags.split(""));
-    const toFlags = new Set(to.flags.split(""));
-
-    for (const flag of toFlags) {
-      if (!fromFlags.has(flag)) {
-        flagsDiff.added.push(flag);
-      }
-    }
-
-    for (const flag of fromFlags) {
-      if (!toFlags.has(flag)) {
-        flagsDiff.removed.push(flag);
-      }
-    }
-  }
-
-  return {
-    patternChanged,
-    flagsChanged,
-    patternDiff,
-    flagsDiff,
-  };
-}

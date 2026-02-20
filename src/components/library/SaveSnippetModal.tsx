@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useEntitlement } from "@/hooks/useEntitlement";
 import { Snippet, CreateSnippetInput, UpdateSnippetInput } from "./types";
-import { Lock, Loader2, X, Plus } from "lucide-react";
+import { Lock, Loader2, X, Plus, GitBranch } from "lucide-react";
 import Link from "next/link";
 
 interface SaveSnippetModalProps {
@@ -40,6 +40,7 @@ export function SaveSnippetModal({
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingVersion, setIsSavingVersion] = useState(false);
 
   const isEditing = !!snippet;
 
@@ -125,6 +126,38 @@ export function SaveSnippetModal({
       setIsSaving(false);
     }
   }, [isPro, name, description, tags, pattern, flags, isEditing, snippet, onSaved, onOpenChange]);
+
+  const handleSaveAsVersion = useCallback(async () => {
+    if (!isPro || !snippet) return;
+
+    setIsSavingVersion(true);
+
+    try {
+      const response = await fetch(`/api/snippets/${snippet.id}/versions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pattern,
+          flags,
+          notes: description.trim() || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to save version");
+      }
+
+      toast.success("Version saved");
+    } catch (error) {
+      console.error("Save version error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save version"
+      );
+    } finally {
+      setIsSavingVersion(false);
+    }
+  }, [isPro, snippet, pattern, flags, description]);
 
   const handleClose = useCallback(() => {
     setName("");
@@ -262,10 +295,30 @@ export function SaveSnippetModal({
               </p>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex-wrap gap-2">
               <Button variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
+              {isEditing && (
+                <Button
+                  variant="outline"
+                  onClick={handleSaveAsVersion}
+                  disabled={isSavingVersion}
+                  className="gap-1.5"
+                >
+                  {isSavingVersion ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <GitBranch className="h-4 w-4" />
+                      Save as version
+                    </>
+                  )}
+                </Button>
+              )}
               <Button
                 onClick={handleSave}
                 disabled={isSaving || !name.trim()}

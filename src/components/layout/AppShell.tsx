@@ -21,18 +21,21 @@ import { RegexEditor, RegexEditorRef } from "@/components/regex/RegexEditor";
 import { FlagsToggle } from "@/components/regex/FlagsToggle";
 import { TokenToolbar } from "@/components/regex/TokenToolbar";
 import { ParseStatus } from "@/components/regex/ParseStatus";
-import { TestTextEditor } from "@/components/testbench/TestTextEditor";
+import { TestTextEditor, TestTextEditorRef } from "@/components/testbench/TestTextEditor";
 import { MatchList } from "@/components/testbench/MatchList";
 import { ExplanationPanel } from "@/components/explain/ExplanationPanel";
 import { AstPanel } from "@/components/structure/AstPanel";
 import { WarningsPanel } from "@/components/warnings/WarningsPanel";
+import { AnalysisPanel } from "@/components/analysis/AnalysisPanel";
 import { TemplatePicker } from "@/components/templates/TemplatePicker";
+import { FixturePicker } from "@/components/fixtures/FixturePicker";
+import { FixtureSuitePanel } from "@/components/fixtures/FixtureSuitePanel";
 import { ShareBar } from "@/components/share/ShareBar";
 import { UserMenu } from "./UserMenu";
 import { HoverSyncProvider, useHoverSync } from "@/hooks/useHoverSync";
 import { useRegexState } from "@/hooks/useRegexState";
 import { useRegexParse } from "@/hooks/useRegexParse";
-import { useRegexMatches } from "@/hooks/useRegexMatches";
+import { useRegexMatches, FIXTURE_TIMEOUT_MS } from "@/hooks/useRegexMatches";
 import { useExplanation } from "@/hooks/useExplanation";
 import { useWarnings } from "@/hooks/useWarnings";
 import { useUrlState } from "@/hooks/useUrlState";
@@ -49,7 +52,9 @@ import {
   FolderOpen,
   Share2,
   MoreHorizontal,
+  Search,
 } from "lucide-react";
+import type { FixtureSuite } from "@/lib/fixtures/types";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -66,8 +71,11 @@ export function AppShell() {
 function AppShellContent() {
   const [activeTab, setActiveTab] = useState("explanation");
   const regexEditorRef = useRef<RegexEditorRef>(null);
+  const testTextEditorRef = useRef<TestTextEditorRef>(null);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [selectedFixtureSuite, setSelectedFixtureSuite] =
+    useState<FixtureSuite | null>(null);
 
   // Core state and hooks
   const { state, actions } = useRegexState();
@@ -76,11 +84,15 @@ function AppShellContent() {
     state.pattern,
     state.flags,
     state.text,
-    parseResult.ok
+    parseResult.ok,
+    undefined,
+    selectedFixtureSuite?.category === "performance_safety"
+      ? FIXTURE_TIMEOUT_MS
+      : undefined
   );
   const explanationResult = useExplanation(parseResult);
   const warningsResult = useWarnings(state.pattern, state.flags, parseResult, matchResult);
-  const { clearAll } = useHoverSync();
+  const { clearAll, setHoveredMatchIndex } = useHoverSync();
 
   // URL state sync
   useUrlState(state, actions);
@@ -131,6 +143,40 @@ function AppShellContent() {
     // Could refresh library or show notification
   }, []);
 
+  const handleSelectFixtureSuite = useCallback(
+    (suite: FixtureSuite) => {
+      actions.applyFixtureSuite({
+        regex: suite.regex,
+        tests: suite.tests.map((t) => ({ input: t.input, regex: t.regex })),
+      });
+      setSelectedFixtureSuite(suite);
+      handleFocusEditor();
+    },
+    [actions, handleFocusEditor]
+  );
+
+  const handleSelectFixtureTest = useCallback(
+    (
+      test: { input: string; regex?: { source: string; flags: string } },
+      fallbackRegex?: { source: string; flags: string }
+    ) => {
+      actions.applyFixtureTest(test, fallbackRegex);
+    },
+    [actions]
+  );
+
+  const handleClearFixtureSuite = useCallback(() => {
+    setSelectedFixtureSuite(null);
+  }, []);
+
+  const handleMatchClick = useCallback(
+    (index: number, start: number, end: number) => {
+      setHoveredMatchIndex(index);
+      testTextEditorRef.current?.scrollToMatch(start, end);
+    },
+    [setHoveredMatchIndex]
+  );
+
   return (
         <div className="h-screen flex flex-col bg-background">
           {/* Header */}
@@ -160,6 +206,7 @@ function AppShellContent() {
                 <TooltipContent>View documentation</TooltipContent>
               </Tooltip>
               <TemplatePicker onSelect={actions.applyTemplate} onAfterSelect={handleFocusEditor} />
+              <FixturePicker onSelectSuite={handleSelectFixtureSuite} onAfterSelect={handleFocusEditor} />
               
               {/* Library buttons */}
               <div className="flex items-center gap-1">
@@ -223,6 +270,7 @@ function AppShellContent() {
             <div className="flex md:hidden items-center gap-2">
               {/* Quick actions visible on mobile */}
               <TemplatePicker onSelect={actions.applyTemplate} onAfterSelect={handleFocusEditor} />
+              <FixturePicker onSelectSuite={handleSelectFixtureSuite} onAfterSelect={handleFocusEditor} />
               
               {/* More menu for other actions */}
               <DropdownMenu>
@@ -307,7 +355,16 @@ function AppShellContent() {
             <div className="flex flex-col gap-3 sm:gap-4 min-h-0 shrink-0">
               <Panel title="Test Text" className="flex-[2] min-h-[120px] sm:min-h-[150px] xl:min-h-0">
                 <PanelContent className="p-0">
+                  {selectedFixtureSuite && (
+                    <FixtureSuitePanel
+                      suite={selectedFixtureSuite}
+                      currentTestInput={state.text}
+                      onSelectTest={handleSelectFixtureTest}
+                      onClear={handleClearFixtureSuite}
+                    />
+                  )}
                   <TestTextEditor
+                    ref={testTextEditorRef}
                     value={state.text}
                     onChange={actions.setText}
                     matches={matchResult}
@@ -331,7 +388,7 @@ function AppShellContent() {
                 className="flex-1 min-h-[80px] sm:min-h-[100px]"
               >
                 <PanelContent>
-                  <MatchList matches={matchResult} />
+                  <MatchList matches={matchResult} onMatchClick={handleMatchClick} />
                 </PanelContent>
               </Panel>
             </div>
@@ -343,18 +400,23 @@ function AppShellContent() {
                 onValueChange={setActiveTab}
                 className="h-full flex flex-col"
               >
-                <TabsList className="w-full grid grid-cols-3 h-9">
-                  <TabsTrigger value="explanation" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                <TabsList className="w-full grid grid-cols-4 h-9">
+                  <TabsTrigger value="explanation" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
                     <FileText className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">Explain</span>
                     <span className="sm:hidden">Exp</span>
                   </TabsTrigger>
-                  <TabsTrigger value="structure" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                  <TabsTrigger value="structure" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
                     <TreeDeciduous className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">Structure</span>
                     <span className="sm:hidden">AST</span>
                   </TabsTrigger>
-                  <TabsTrigger value="warnings" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 relative">
+                  <TabsTrigger value="analysis" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
+                    <Search className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Analysis</span>
+                    <span className="sm:hidden">Analyze</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="warnings" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2 relative">
                     <AlertTriangle className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">Warnings</span>
                     <span className="sm:hidden">Warn</span>
@@ -386,6 +448,13 @@ function AppShellContent() {
                     </Panel>
                   </TabsContent>
 
+                  <TabsContent value="analysis" className="h-full m-0">
+                    <Panel className="h-full">
+                      <PanelContent>
+                        <AnalysisPanel pattern={state.pattern} flags={state.flags} />
+                      </PanelContent>
+                    </Panel>
+                  </TabsContent>
                   <TabsContent value="warnings" className="h-full m-0">
                     <Panel className="h-full">
                       <PanelContent>

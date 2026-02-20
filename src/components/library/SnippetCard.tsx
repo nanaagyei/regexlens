@@ -24,6 +24,7 @@ import {
   Edit,
   ExternalLink,
   Clock,
+  History,
 } from "lucide-react";
 
 interface SnippetCardProps {
@@ -31,6 +32,7 @@ interface SnippetCardProps {
   onLoad: (snippet: Snippet) => void;
   onEdit: (snippet: Snippet) => void;
   onDelete: (snippet: Snippet) => void;
+  onOpenHistory?: (snippet: Snippet) => void;
 }
 
 export function SnippetCard({
@@ -38,6 +40,7 @@ export function SnippetCard({
   onLoad,
   onEdit,
   onDelete,
+  onOpenHistory,
 }: SnippetCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -159,6 +162,12 @@ export function SnippetCard({
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
+              {onOpenHistory && (
+                <DropdownMenuItem onClick={() => onOpenHistory(snippet)}>
+                  <History className="h-4 w-4 mr-2" />
+                  Version history
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={handleDelete}

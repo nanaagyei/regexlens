@@ -16,10 +16,18 @@ interface Warning {
   range?: { start: number; end: number };
 }
 
+interface SafeRewriteSuggestion {
+  id: string;
+  title: string;
+  description: string;
+  caveat?: string;
+}
+
 interface AnalysisResult {
   riskScore: number;
   warnings: Warning[];
   notes: string[];
+  suggestions: SafeRewriteSuggestion[];
   complexity: {
     level: "low" | "medium" | "high" | "extreme";
     factors: string[];
@@ -100,6 +108,7 @@ export async function POST(request: NextRequest) {
 function analyzePattern(pattern: string, flags: string): AnalysisResult {
   const warnings: Warning[] = [];
   const notes: string[] = [];
+  const suggestions: SafeRewriteSuggestion[] = [];
   const complexityFactors: string[] = [];
   let riskScore = 0;
 
@@ -124,6 +133,12 @@ function analyzePattern(pattern: string, flags: string): AnalysisResult {
           "This pattern contains nested quantifiers (e.g., (a+)+) which can cause catastrophic backtracking on certain inputs.",
         hint: "Consider rewriting to avoid nested repetition, or use atomic groups if available.",
       });
+      suggestions.push({
+        id: "nested-quantifiers",
+        title: "Flatten nested repetition",
+        description: "Rewrite (a+)+ as a+ with a single quantifier where possible. Or replace the inner group with a non-capturing (?:...) and limit the outer quantifier.",
+        caveat: "JavaScript has no atomic groups. For complex cases, consider splitting validation into multiple passes.",
+      });
       riskScore += 40;
       complexityFactors.push("Nested quantifiers");
       break;
@@ -141,6 +156,12 @@ function analyzePattern(pattern: string, flags: string): AnalysisResult {
         message:
           "Alternation with potentially overlapping branches inside a quantifier can cause exponential backtracking.",
         hint: "Make alternation branches mutually exclusive or anchor them.",
+      });
+      suggestions.push({
+        id: "overlapping-alternation",
+        title: "Reorder or constrain alternation",
+        description: "Place longer/more specific branches first (e.g. (aa|a) instead of (a|aa)). Or use anchors and more specific character classes to make branches mutually exclusive.",
+        caveat: "These are heuristic suggestions; correctness depends on your use case.",
       });
       riskScore += 35;
       complexityFactors.push("Overlapping alternation");
@@ -324,6 +345,7 @@ function analyzePattern(pattern: string, flags: string): AnalysisResult {
     riskScore,
     warnings,
     notes,
+    suggestions,
     complexity: {
       level: complexityLevel,
       factors: complexityFactors,
