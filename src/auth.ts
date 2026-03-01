@@ -138,6 +138,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // Trust the host header in production (for Vercel)
   trustHost: true,
   
-  // Debug mode in development
-  debug: process.env.NODE_ENV === "development",
+  // Debug mode disabled - set AUTH_DEBUG=true in .env to re-enable for troubleshooting
+  debug: process.env.AUTH_DEBUG === "true",
 });

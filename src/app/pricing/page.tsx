@@ -142,7 +142,7 @@ export default function PricingPage() {
             />
           </Link>
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/">
+            <Link href="/app">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to app
             </Link>
@@ -216,7 +216,7 @@ export default function PricingPage() {
             </ul>
 
             <Button variant="outline" size="lg" asChild className="w-full">
-              <Link href="/">Use for free</Link>
+              <Link href="/app">Use for free</Link>
             </Button>
             <p className="text-xs text-muted-foreground text-center mt-2">
               No signup, no credit card
@@ -365,7 +365,7 @@ export default function PricingPage() {
             Upgrade when it earns its place in your workflow.
           </p>
           <Button size="lg" asChild>
-            <Link href="/">Start using RegexLens</Link>
+            <Link href="/app">Start using RegexLens</Link>
           </Button>
         </div>
       </main>

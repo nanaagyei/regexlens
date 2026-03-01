@@ -34,6 +34,14 @@ interface DiffResult {
     flagsChanged: boolean;
     patternDiff: { added: string[]; removed: string[] };
     flagsDiff: { added: string[]; removed: string[] };
+    explanationDiff?: {
+      addedSteps: { label: string; kind: string; detail?: string }[];
+      removedSteps: { label: string; kind: string; detail?: string }[];
+    };
+    warningsDiff?: {
+      added: { id: string; title: string; message: string; severity: string }[];
+      removed: { id: string; title: string; message: string; severity: string }[];
+    };
   };
 }
 
@@ -199,6 +207,7 @@ export function SnippetDetailModal({
           </TabsContent>
 
           <TabsContent value="diff" className="flex-1 mt-4 min-h-0">
+            <ScrollArea className="h-[320px] pr-4">
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -320,9 +329,72 @@ export function SnippetDetailModal({
                       <p className="text-muted-foreground">No changes.</p>
                     )}
                   </div>
+
+                  {diffResult.diff.explanationDiff &&
+                    (diffResult.diff.explanationDiff.addedSteps.length > 0 ||
+                      diffResult.diff.explanationDiff.removedSteps.length > 0) && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium">Explanation changes</h4>
+                        <div className="space-y-1.5 text-xs">
+                          {diffResult.diff.explanationDiff.addedSteps.map((s, i) => (
+                            <div
+                              key={`add-${i}`}
+                              className="flex items-start gap-2 rounded px-2 py-1.5 bg-emerald-500/10 border border-emerald-500/30"
+                            >
+                              <span className="text-emerald-600 font-medium shrink-0">+</span>
+                              <span>{s.label}</span>
+                            </div>
+                          ))}
+                          {diffResult.diff.explanationDiff.removedSteps.map((s, i) => (
+                            <div
+                              key={`rem-${i}`}
+                              className="flex items-start gap-2 rounded px-2 py-1.5 bg-red-500/10 border border-red-500/30"
+                            >
+                              <span className="text-red-500 font-medium shrink-0">−</span>
+                              <span>{s.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {diffResult.diff.warningsDiff &&
+                    (diffResult.diff.warningsDiff.added.length > 0 ||
+                      diffResult.diff.warningsDiff.removed.length > 0) && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium">Warnings changes</h4>
+                        <div className="space-y-1.5 text-xs">
+                          {diffResult.diff.warningsDiff.added.map((w, i) => (
+                            <div
+                              key={`w-add-${i}`}
+                              className="flex items-start gap-2 rounded px-2 py-1.5 bg-emerald-500/10 border border-emerald-500/30"
+                            >
+                              <span className="text-emerald-600 font-medium shrink-0">+</span>
+                              <Badge variant="secondary" className="text-[9px] px-1 py-0">
+                                {w.severity}
+                              </Badge>
+                              <span>{w.title}</span>
+                            </div>
+                          ))}
+                          {diffResult.diff.warningsDiff.removed.map((w, i) => (
+                            <div
+                              key={`w-rem-${i}`}
+                              className="flex items-start gap-2 rounded px-2 py-1.5 bg-red-500/10 border border-red-500/30"
+                            >
+                              <span className="text-red-500 font-medium shrink-0">−</span>
+                              <Badge variant="secondary" className="text-[9px] px-1 py-0">
+                                {w.severity}
+                              </Badge>
+                              <span>{w.title}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                 </div>
               )}
             </div>
+            </ScrollArea>
           </TabsContent>
         </Tabs>
       </DialogContent>

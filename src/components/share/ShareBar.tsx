@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ExportModal } from "@/components/export/ExportModal";
+import { Kbd } from "@/components/ui/kbd";
 import { Share2, Check, FileDown } from "lucide-react";
 
 interface ShareBarProps {
@@ -71,10 +72,15 @@ export function ShareBar({ state, steps = [], warnings = [] }: ShareBarProps) {
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
-            {canShare
-              ? "Copy shareable link"
-              : "Enter a pattern to share"}
+          <TooltipContent className="flex items-center gap-2">
+            {canShare ? (
+              <>
+                Copy shareable link
+                <Kbd keys={["mod", "Shift", "C"]} />
+              </>
+            ) : (
+              "Enter a pattern to share"
+            )}
           </TooltipContent>
         </Tooltip>
 

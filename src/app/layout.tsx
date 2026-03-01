@@ -1,8 +1,15 @@
 import type { Metadata, Viewport } from "next";
+import { Playfair_Display } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import "./globals.css";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
+});
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://regexlens.dev";
 const siteName = "RegexLens";
@@ -172,7 +179,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`dark ${playfair.variable}`}>
       <head>
         {/* Structured Data - JSON-LD for rich search results */}
         <script

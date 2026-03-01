@@ -2,6 +2,10 @@
 
 import { useState, useRef, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  SegmentedControl,
+  SegmentedControlTrigger,
+} from "@/components/ui/segmented-control";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -25,6 +29,7 @@ import { TestTextEditor, TestTextEditorRef } from "@/components/testbench/TestTe
 import { MatchList } from "@/components/testbench/MatchList";
 import { ExplanationPanel } from "@/components/explain/ExplanationPanel";
 import { AstPanel } from "@/components/structure/AstPanel";
+import { RailroadDiagramPanel } from "@/components/structure/RailroadDiagramPanel";
 import { WarningsPanel } from "@/components/warnings/WarningsPanel";
 import { AnalysisPanel } from "@/components/analysis/AnalysisPanel";
 import { TemplatePicker } from "@/components/templates/TemplatePicker";
@@ -53,6 +58,7 @@ import {
   Share2,
   MoreHorizontal,
   Search,
+  Route,
 } from "lucide-react";
 import type { FixtureSuite } from "@/lib/fixtures/types";
 import Link from "next/link";
@@ -182,14 +188,16 @@ function AppShellContent() {
           {/* Header */}
           <header className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-border">
             <div className="flex items-center">
-              <Image
-                src="/regexlens-logo.png"
-                alt="RegexLens"
-                width={100}
-                height={100}
-                className="rounded-lg w-[80px] sm:w-[100px]"
-                priority
-              />
+              <Link href="/app" className="flex items-center">
+                <Image
+                  src="/regexlens-logo.png"
+                  alt="RegexLens"
+                  width={100}
+                  height={100}
+                  className="rounded-lg w-[80px] sm:w-[100px]"
+                  priority
+                />
+              </Link>
             </div>
 
             {/* Desktop/Tablet Navigation - Show on md (768px+) */}
@@ -400,7 +408,36 @@ function AppShellContent() {
                 onValueChange={setActiveTab}
                 className="h-full flex flex-col"
               >
-                <TabsList className="w-full grid grid-cols-4 h-9">
+                {/* Mobile: pill-style segmented control */}
+                <SegmentedControl className="md:hidden w-full">
+                  <SegmentedControlTrigger value="explanation" className="gap-1.5">
+                    <FileText className="h-3.5 w-3.5 shrink-0" />
+                    <span>Explain</span>
+                  </SegmentedControlTrigger>
+                  <SegmentedControlTrigger value="structure" className="gap-1.5">
+                    <TreeDeciduous className="h-3.5 w-3.5 shrink-0" />
+                    <span>Structure</span>
+                  </SegmentedControlTrigger>
+                  <SegmentedControlTrigger value="railroad" className="gap-1.5">
+                    <Route className="h-3.5 w-3.5 shrink-0" />
+                    <span>Railroad</span>
+                  </SegmentedControlTrigger>
+                  <SegmentedControlTrigger value="analysis" className="gap-1.5">
+                    <Search className="h-3.5 w-3.5 shrink-0" />
+                    <span>Analysis</span>
+                  </SegmentedControlTrigger>
+                  <SegmentedControlTrigger value="warnings" className="gap-1.5 relative">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                    <span>Warnings</span>
+                    {warningsResult.warnings.length > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-warning-warn text-[10px] font-medium flex items-center justify-center text-black">
+                        {warningsResult.warnings.length}
+                      </span>
+                    )}
+                  </SegmentedControlTrigger>
+                </SegmentedControl>
+                {/* Desktop: grid tabs */}
+                <TabsList className="hidden md:grid w-full grid-cols-5 h-9">
                   <TabsTrigger value="explanation" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
                     <FileText className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">Explain</span>
@@ -410,6 +447,11 @@ function AppShellContent() {
                     <TreeDeciduous className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">Structure</span>
                     <span className="sm:hidden">AST</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="railroad" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
+                    <Route className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Railroad</span>
+                    <span className="sm:hidden">RR</span>
                   </TabsTrigger>
                   <TabsTrigger value="analysis" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
                     <Search className="h-3.5 w-3.5" />
@@ -444,6 +486,14 @@ function AppShellContent() {
                     <Panel className="h-full">
                       <PanelContent>
                         <AstPanel parseResult={parseResult} />
+                      </PanelContent>
+                    </Panel>
+                  </TabsContent>
+
+                  <TabsContent value="railroad" className="h-full m-0">
+                    <Panel className="h-full">
+                      <PanelContent className="p-0">
+                        <RailroadDiagramPanel parseResult={parseResult} className="h-full" />
                       </PanelContent>
                     </Panel>
                   </TabsContent>

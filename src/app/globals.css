@@ -41,6 +41,8 @@
     /* Font variables */
     --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Cascadia Code", monospace;
+    /* Accent for section labels (magenta/pink) */
+    --accent-label: 340 75% 55%;
   }
 
   * {
@@ -53,6 +55,15 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+}
+
+/* Seamless section transitions - no hard borders, soft gradient blend */
+.section-fade {
+  position: relative;
+}
+.section-fade > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Custom scrollbar styling */
@@ -194,4 +205,19 @@
   .tablet-compact {
     gap: 0.5rem;
   }
+}
+
+/* Railroad diagram styles (regex visualization) */
+.railroad-diagram-wrapper svg.railroad-diagram {
+  background-color: transparent;
+}
+.railroad-diagram-wrapper svg.railroad-diagram path {
+  stroke: hsl(var(--foreground) / 0.8);
+}
+.railroad-diagram-wrapper svg.railroad-diagram text {
+  fill: hsl(var(--foreground));
+}
+.railroad-diagram-wrapper svg.railroad-diagram rect {
+  stroke: hsl(var(--foreground) / 0.8);
+  fill: hsl(var(--muted));
 }
