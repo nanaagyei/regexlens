@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="public/regexlens-logo.png" width="80" height="80" alt="RegexLens Logo" />
+  <img src="public/regexlens-logo.png" width="100" height="100" alt="RegexLens Logo" />
 </p>
-
-<h1 align="center">RegexLens</h1>
 
 <p align="center">
   <strong>Understand, test, and visualize regex instantly</strong>
