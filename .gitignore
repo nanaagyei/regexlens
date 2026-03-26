@@ -7,6 +7,10 @@
 
 # Testing
 /coverage
+/playwright-report/
+/test-results/
+/.playwright/
+vitest.config.ts.timestamp-*
 
 # Next.js
 /.next/
@@ -19,6 +23,9 @@
 # Misc
 .DS_Store
 *.pem
+*.log
+.turbo
+Thumbs.db
 
 # Debug
 npm-debug.log*
@@ -43,5 +50,6 @@ next-env.d.ts
 initial_prds/
 .cursor/
 .cursor/debug.log
+.husky/_/
 
 IMPLEMENTATION_STATUS.md
