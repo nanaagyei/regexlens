@@ -140,7 +140,7 @@ function findGroupStart(
   matchStart: number,
   groupText: string,
   match: RegExpExecArray,
-  groupIndex: number
+  _groupIndex: number
 ): number {
   if (!groupText) return matchStart;
 

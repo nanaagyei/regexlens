@@ -160,7 +160,7 @@ function handleGroup(
 ): void {
   const range = getNodeRange(node);
   let label: string;
-  let kind: ExplanationKind = "group";
+  const kind: ExplanationKind = "group";
   let detail: string | undefined;
 
   if (node.capturing === false) {

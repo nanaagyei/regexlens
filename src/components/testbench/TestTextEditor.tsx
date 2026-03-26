@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useCallback, useRef, useImperativeHandle, forwardRef } from "react";
-import { MatchResult, MatchSpan } from "@/types";
+import { MatchResult } from "@/types";
 import { useHoverSync } from "@/hooks/useHoverSync";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ const HIGHLIGHT_CLASSES = [
 ];
 
 export const TestTextEditor = forwardRef<TestTextEditorRef, TestTextEditorProps>(
-  function TestTextEditor({ value, onChange, matches, pattern, flags }, ref) {
+  function TestTextEditor({ value, onChange, matches, pattern, flags: _flags }, ref) {
   const { hoverState, setHoveredMatchIndex } = useHoverSync();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 

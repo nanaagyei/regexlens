@@ -48,7 +48,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      * JWT callback - runs when JWT is created or updated
      * Add user ID and other data to the token
      */
-    async jwt({ token, user, account, trigger }) {
+    async jwt({ token, user, account, trigger: _trigger }) {
       // Initial sign in
       if (user) {
         token.id = user.id;
@@ -83,7 +83,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      * Sign in callback - runs on every sign in attempt
      * Can be used to block certain users or log sign ins
      */
-    async signIn({ user, account, profile }) {
+    async signIn({ user: _user, account: _account, profile: _profile }) {
       // Allow all sign ins for now
       // Could add email domain restrictions here
       return true;

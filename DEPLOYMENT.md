@@ -19,12 +19,14 @@ This document covers cloud database setup (Neon Postgres), branch strategy, CI/C
 
 ## GitHub Branch Protection (main)
 
-Configure in **Settings → Branches → Add branch protection rule** for `main`:
+Configure in **Settings → Branches → Add branch protection rules** for **`main`** and (recommended) **`dev`**:
 
-- **Require a pull request before merging**
-- **Require status checks to pass:** `lint`, `typecheck`, `build` (from `ci.yml`)
+- **Require a pull request before merging** (at least for `main`)
+- **Require status checks to pass** before merge (from workflow **CI** / `ci.yml`): `lint`, `typecheck`, `test`, `build`, `e2e`, and optionally `security`
 - **Require branches to be up to date** before merging
-- **Restrict who can push** (or require PR from dev)
+- **Restrict who can push** to `main` (or require PR only from `dev`)
+
+Enable **Secret scanning** and **Push protection** for the repository under **Settings → Code security and analysis**.
 
 ---
 
@@ -53,9 +55,9 @@ RegexLens uses PostgreSQL via `pg` and `@auth/pg-adapter`. For Vercel deployment
 
 ### CI (`ci.yml`)
 
-**Triggers:** Push to `dev`, pull requests targeting `dev` or `main`
+**Triggers:** Push to `dev` or `main`, and pull requests targeting `dev` or `main`
 
-**Jobs:** lint, typecheck, build, security (`npm audit --audit-level=high`)
+**Jobs:** `lint`, `typecheck`, `test` (Vitest + coverage), `build`, `e2e` (Playwright), `security` (`npm audit --audit-level=high`)
 
 **Database in CI:** A placeholder `DATABASE_URL` is used (`postgresql://user:pass@localhost:5432/db`) since the build may import server modules. Vercel build uses the real env from project settings.
 
@@ -80,8 +82,17 @@ RegexLens uses PostgreSQL via `pg` and `@auth/pg-adapter`. For Vercel deployment
 ## Vercel Project Settings
 
 - **Production branch:** `main`
-- **Preview branches:** `dev` (optional)
-- **Environment variables:** `DATABASE_URL` (from Neon), `AUTH_*`, `STRIPE_*`, etc.
+- **Preview deployments:** All Git branches, or treat **`dev`** as the primary staging branch (merge previews before promoting to `main`)
+- **Environment variables:** `DATABASE_URL` (from Neon), `AUTH_*`, `STRIPE_*`, `KV_*`, `NEXT_PUBLIC_SITE_URL`, observability flags (`NEXT_PUBLIC_VERCEL_ANALYTICS`, optional ad flags), etc.
+
+### Vercel + GitHub checklist (manual)
+
+1. **Connect the GitHub repo** to a Vercel project and import this Next.js app root.
+2. **Set Production branch** to `main` (Project → Settings → Git).
+3. **Attach Neon** via Vercel Marketplace or paste `DATABASE_URL` for Preview and Production (use separate Neon branches if you want isolated preview data).
+4. **Copy env vars** from `.env.example` into Vercel (Production + Preview); never commit real secrets.
+5. **Protect `main`** in GitHub as above so only green CI can merge.
+6. After connect, confirm **Preview** URL for `dev` and **Production** URL for `main` behave as expected.
 
 ---
 

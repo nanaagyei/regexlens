@@ -22,6 +22,8 @@ cd regexlens
 # 2. Install dependencies
 npm install
 
+# This installs Git hooks (Husky) via the `prepare` script so pre-commit runs lint-staged.
+
 # 3. Start the database
 npm run db:start
 
@@ -264,6 +266,16 @@ KV_REST_API_TOKEN=
 
 ## Troubleshooting
 
+### Docker: `docker-credential-desktop: executable file not found`
+
+When running `docker compose up` or `npm run db:start`, Docker may try to use the **Docker Desktop** credential helper (`docker-credential-desktop`). If that binary is not on your `PATH` (for example you use Colima, Rancher Desktop, OrbStack, or removed Docker Desktop but kept its config), pulls can fail.
+
+**Fix one of these ways:**
+
+1. **Use Docker Desktop** and ensure it is running so the credential helper is available, or  
+2. **Edit `~/.docker/config.json`:** remove the `"credsStore": "desktop"` line (or set `"credsStore"` to a helper you have, e.g. `"osxkeychain"` on macOS), then retry the pull.  
+3. Public image pulls often work without any credential helper once the invalid `credsStore` entry is cleared.
+
 ### Database connection failed
 
 ```bash
@@ -292,6 +304,19 @@ Another PostgreSQL instance may be running. Either stop it or change the port in
 1. Make sure `stripe listen` is running
 2. Check the webhook signing secret matches
 3. Verify the endpoint URL is correct
+
+---
+
+## Pre-commit checks
+
+After `npm install`, [Husky](https://typicode.github.io/husky/) runs **lint-staged** on each commit: staged `*.{js,jsx,ts,tsx,mjs}` files are linted with ESLint. Fix reported issues before committing, or run `npm run lint` locally.
+
+---
+
+## Automated tests
+
+- **Unit / integration (Vitest):** `npm run test` (with coverage: `npm run test:coverage`)
+- **Browser (Playwright):** First time only, install browsers: `npx playwright install chromium`, then `npm run test:e2e`
 
 ---
 

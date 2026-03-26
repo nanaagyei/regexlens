@@ -267,7 +267,7 @@ export default function PricingPage() {
             ) : isPro ? (
               <Button size="lg" variant="outline" disabled className="w-full">
                 <Check className="h-4 w-4 mr-2" />
-                You're on Pro
+                {"You're on Pro"}
               </Button>
             ) : (
               <Button

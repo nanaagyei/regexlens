@@ -22,6 +22,7 @@ import {
 import { useEntitlement } from "@/hooks/useEntitlement";
 import { AuthExplainerModal, AuthProvider } from "./AuthExplainerModal";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import {
   User,
   LogOut,
@@ -48,11 +49,11 @@ function GoogleIcon({ className }: { className?: string }) {
 }
 
 export function UserMenu() {
-  const { user, entitlement, isPro, isLoading, refresh } = useEntitlement();
+  const { user, isPro, isLoading } = useEntitlement();
   const [selectedProvider, setSelectedProvider] = useState<AuthProvider | null>(
     null
   );
-  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [, setShowPricingModal] = useState(false);
   const [showPlanSelector, setShowPlanSelector] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly">("yearly");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -265,10 +266,13 @@ export function UserMenu() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative rounded-full">
             {user.image ? (
-              <img
+              <Image
                 src={user.image}
                 alt={user.name || "User avatar"}
+                width={32}
+                height={32}
                 className="h-8 w-8 rounded-full"
+                unoptimized
               />
             ) : (
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">

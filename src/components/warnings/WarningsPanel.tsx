@@ -2,7 +2,7 @@
 
 import { WarningsResult } from "@/types";
 import { WarningCard } from "./WarningCard";
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 interface WarningsPanelProps {
   warnings: WarningsResult;

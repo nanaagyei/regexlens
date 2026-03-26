@@ -4,8 +4,6 @@ import { useRef, useCallback, useImperativeHandle, forwardRef } from "react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import { ParseResult } from "@/types";
-import { useHoverSync } from "@/hooks/useHoverSync";
-import { cn } from "@/lib/utils";
 
 interface RegexEditorProps {
   value: string;
@@ -18,10 +16,9 @@ export interface RegexEditorRef {
 }
 
 export const RegexEditor = forwardRef<RegexEditorRef, RegexEditorProps>(
-  function RegexEditor({ value, onChange, parseResult }, ref) {
+  function RegexEditor({ value, onChange, parseResult: _parseResult }, ref) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
-  const { hoverState, setHoveredRange } = useHoverSync();
 
   // Expose focus method via ref
   useImperativeHandle(ref, () => ({
@@ -84,48 +81,6 @@ export const RegexEditor = forwardRef<RegexEditorRef, RegexEditorProps>(
     },
     [onChange]
   );
-
-  // Update error decorations when parse result changes
-  const decorations = useCallback(() => {
-    if (!editorRef.current || !monacoRef.current) return [];
-
-    const decorationsList: editor.IModelDeltaDecoration[] = [];
-
-    // Error decoration
-    if (!parseResult.ok && parseResult.errorRange) {
-      decorationsList.push({
-        range: new monacoRef.current.Range(
-          1,
-          parseResult.errorRange.start + 1,
-          1,
-          parseResult.errorRange.end + 1
-        ),
-        options: {
-          className: "regex-error-decoration",
-          inlineClassName: "regex-error-inline",
-          hoverMessage: { value: parseResult.errorMessage },
-        },
-      });
-    }
-
-    // Hover highlight decoration
-    if (hoverState.hoveredRange) {
-      decorationsList.push({
-        range: new monacoRef.current.Range(
-          1,
-          hoverState.hoveredRange.start + 1,
-          1,
-          hoverState.hoveredRange.end + 1
-        ),
-        options: {
-          className: "regex-hover-decoration",
-          inlineClassName: "regex-hover-inline",
-        },
-      });
-    }
-
-    return decorationsList;
-  }, [parseResult, hoverState.hoveredRange]);
 
   return (
     <div className="h-full min-h-[80px] relative">

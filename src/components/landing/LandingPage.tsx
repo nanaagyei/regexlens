@@ -707,7 +707,7 @@ export function LandingPage() {
                           <span className="text-foreground">\d{`{4}`}</span>
                           <span className="text-primary">/</span>
                           <span className="text-muted-foreground ml-2">
-                            // Phone pattern
+                            {"// Phone pattern"}
                           </span>
                         </div>
                       </div>

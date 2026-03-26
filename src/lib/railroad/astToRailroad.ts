@@ -125,6 +125,13 @@ function toNode(node: AstNode | AstNode[] | undefined): unknown[] {
   }
 }
 
+function charToText(node: AstNode): string {
+  if (node.type === "Char") {
+    return escapeForDisplay(node.value ?? node.symbol ?? "");
+  }
+  return "";
+}
+
 function classExprToText(node: AstNode): string {
   if (node.type === "Char") {
     return escapeForDisplay(node.value ?? node.symbol ?? "");
