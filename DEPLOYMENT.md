@@ -103,3 +103,77 @@ RegexLens uses PostgreSQL via `pg` and `@auth/pg-adapter`. For Vercel deployment
 | **Major** (X.0.0) | Breaking changes | 1.0.0 → 2.0.0 |
 | **Minor** (0.X.0) | New features, non-breaking | 1.0.0 → 1.1.0 |
 | **Patch** (0.0.X) | Bug fixes, small updates | 1.0.0 → 1.0.1 |
+
+---
+
+## Next Steps: Getting to Production
+
+Follow these steps in order once the codebase is committed and CI is green on `dev`.
+
+### 1. Vercel — Connect and Configure
+
+1. Go to [vercel.com/new](https://vercel.com/new) and **Import** the `regexlens` GitHub repository.
+2. Framework preset will auto-detect **Next.js** — accept defaults.
+3. **Settings → Git:** set **Production Branch** to `main`.
+4. **Settings → Environment Variables:** copy every key from `.env.example` into Vercel. Set values for **Production** and **Preview** scopes separately (preview can use test/dev credentials).
+5. Push `dev` and confirm a **Preview deployment** builds successfully. Create a PR `dev → main`, merge, and confirm the **Production deployment** is live.
+
+### 2. Neon — Free-Tier Database
+
+1. Sign up at [neon.tech](https://neon.tech) and create a new project (region: closest to your users).
+2. **Option A (recommended):** Install the **Neon** integration from the [Vercel Marketplace](https://vercel.com/integrations/neon) — this auto-sets `DATABASE_URL` in Vercel env vars.
+3. **Option B:** Copy the connection string manually from the Neon dashboard and paste it into Vercel env vars for both Production and Preview.
+4. Run the schema against the remote database:
+   ```bash
+   psql "$DATABASE_URL" -f docker/init.sql
+   ```
+5. (Optional) Create a separate Neon **branch** for Preview deployments so preview data is isolated from production.
+
+### 3. GitHub — Branch Protection
+
+1. Go to **Settings → Branches → Add rule** for `main`:
+   - Require pull request before merging
+   - Require status checks: `lint`, `typecheck`, `test`, `build`, `e2e`
+   - Require branches to be up to date before merging
+2. (Recommended) Add a similar rule for `dev` with the same checks.
+3. Enable **Settings → Code security and analysis → Secret scanning** and **Push protection**.
+
+### 4. Authentication — OAuth Providers
+
+1. **GitHub OAuth:** Create an OAuth App at [github.com/settings/developers](https://github.com/settings/developers).
+   - Production callback: `https://regexlens.dev/api/auth/callback/github`
+   - Set `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` in Vercel (Production).
+   - For Preview, use a separate OAuth app with callback URL matching the preview domain.
+2. **Google OAuth (optional):** Create credentials at [console.cloud.google.com](https://console.cloud.google.com/apis/credentials).
+   - Callback: `https://regexlens.dev/api/auth/callback/google`
+   - Set `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` in Vercel.
+3. **AUTH_SECRET:** Generate with `openssl rand -base64 32` and set in Vercel for both scopes.
+
+### 5. Stripe — Billing (optional for launch)
+
+1. Create products and prices in [Stripe Dashboard](https://dashboard.stripe.com) (test mode).
+2. Set `STRIPE_SECRET_KEY`, `STRIPE_PRO_MONTHLY_PRICE_ID`, `STRIPE_PRO_YEARLY_PRICE_ID` in Vercel env vars.
+3. Add a webhook endpoint in Stripe pointing to `https://regexlens.dev/api/billing/webhook` with events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`.
+4. Set `STRIPE_WEBHOOK_SECRET` in Vercel.
+
+### 6. Vercel KV — Rate Limiting (optional for launch)
+
+1. In the Vercel dashboard, go to **Storage → Create Database → KV**.
+2. This auto-sets `KV_REST_API_URL` and `KV_REST_API_TOKEN`. Rate limiting activates automatically when these are present.
+
+### 7. DNS / Custom Domain
+
+1. In Vercel **Settings → Domains**, add `regexlens.dev`.
+2. Update your domain registrar's DNS records to point to Vercel (typically an A record and/or CNAME as shown in the Vercel dashboard).
+3. Vercel provisions SSL automatically.
+4. Update `NEXT_PUBLIC_SITE_URL=https://regexlens.dev` in Vercel env vars (Production scope).
+
+### 8. Final Verification
+
+- [ ] `dev` branch Preview URL loads and works end-to-end
+- [ ] PR `dev → main` passes all CI checks (lint, typecheck, test, build, e2e)
+- [ ] Production URL loads after merge to `main`
+- [ ] Auth sign-in flow works (GitHub and/or Google)
+- [ ] Database tables exist and queries succeed
+- [ ] Vercel Web Analytics and Speed Insights show data
+- [ ] (If Stripe enabled) Checkout flow completes in test mode
