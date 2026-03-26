@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -306,12 +306,28 @@ export function LandingPage() {
     }
   }, [searchParams]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    e.currentTarget.style.setProperty("--mouse-x", `${x}%`);
-    e.currentTarget.style.setProperty("--mouse-y", `${y}%`);
+  const spotlightRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const spotlight = spotlightRef.current;
+    if (!spotlight) return;
+
+    const onMove = (e: MouseEvent) => {
+      spotlight.style.left = `${e.clientX}px`;
+      spotlight.style.top = `${e.clientY}px`;
+      spotlight.style.opacity = "1";
+    };
+
+    const onLeave = () => {
+      spotlight.style.opacity = "0";
+    };
+
+    window.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseleave", onLeave);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseleave", onLeave);
+    };
   }, []);
 
   /* ─── GSAP Animations ─── */
@@ -443,11 +459,10 @@ export function LandingPage() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen bg-background relative overflow-hidden landing-grain"
-      onMouseMove={handleMouseMove}
+      className="min-h-screen bg-background relative overflow-hidden landing-dots"
     >
-      {/* Mouse-follow glow */}
-      <div className="landing-glow fixed inset-0 pointer-events-none z-0" />
+      {/* Mouse-follow spotlight */}
+      <div ref={spotlightRef} className="landing-spotlight opacity-0" />
 
       {/* ─── Header ─── */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/40">
@@ -1000,7 +1015,7 @@ export function LandingPage() {
             <Button
               size="lg"
               asChild
-              className="text-base h-14 px-10 shadow-lg shadow-primary/20 text-lg"
+              className="h-14 px-10 shadow-lg shadow-primary/20 text-lg"
             >
               <Link href="/app">
                 Try RegexLens free

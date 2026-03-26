@@ -228,42 +228,31 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-12px); }
 }
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-@keyframes grain-drift {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-2%, -2%); }
-  30% { transform: translate(3%, 1%); }
-  50% { transform: translate(-1%, 3%); }
-  70% { transform: translate(2%, -1%); }
-  90% { transform: translate(-3%, 2%); }
-}
 
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-float-delayed { animation: float 6s ease-in-out 2s infinite; }
-.animate-shimmer {
-  background-size: 200% 100%;
-  animation: shimmer 3s linear infinite;
-}
 
-.landing-grain::before {
-  content: "";
-  position: absolute;
-  inset: -50%;
-  width: 200%;
-  height: 200%;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  animation: grain-drift 8s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.landing-glow {
-  background: radial-gradient(
-    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    hsl(var(--primary) / 0.06),
-    transparent 60%
+/* Static dot grid background — modern, non-animated texture */
+.landing-dots {
+  background-image: radial-gradient(
+    circle,
+    hsl(var(--foreground) / 0.07) 1px,
+    transparent 1px
   );
+  background-size: 24px 24px;
+}
+
+/* Mouse-follow spotlight — positioned via inline style with JS */
+.landing-spotlight {
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: hsl(var(--primary) / 0.06);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  transition: left 0.15s ease-out, top 0.15s ease-out, opacity 0.3s ease;
+  will-change: left, top;
 }
