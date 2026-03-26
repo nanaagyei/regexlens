@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display } from "next/font/google";
+import { Plus_Jakarta_Sans, Sora } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/providers/AuthProvider";
@@ -8,7 +8,13 @@ import { SiteAnalytics } from "@/components/observability/SiteAnalytics";
 import { SiteSpeedInsights } from "@/components/observability/SiteSpeedInsights";
 import "./globals.css";
 
-const playfair = Playfair_Display({
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const sora = Sora({
   subsets: ["latin"],
   variable: "--font-serif",
   display: "swap",
@@ -182,7 +188,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`dark ${playfair.variable}`}>
+    <html lang="en" className={`dark ${jakarta.variable} ${sora.variable}`}>
       <head>
         {/* Structured Data - JSON-LD for rich search results */}
         <script

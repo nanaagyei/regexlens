@@ -6,7 +6,7 @@ test.describe("smoke", () => {
     await expect(
       page.getByRole("heading", {
         level: 1,
-        name: /Understand Regular Expressions Instantly/i,
+        name: /Stop guessing.*Start understanding/i,
       })
     ).toBeVisible({ timeout: 20_000 });
 
