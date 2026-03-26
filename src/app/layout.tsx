@@ -3,6 +3,9 @@ import { Playfair_Display } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { OptionalAdScript } from "@/components/observability/OptionalAdScript";
+import { SiteAnalytics } from "@/components/observability/SiteAnalytics";
+import { SiteSpeedInsights } from "@/components/observability/SiteSpeedInsights";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -245,6 +248,9 @@ export default function RootLayout({
             },
           }}
         />
+        <SiteAnalytics />
+        <SiteSpeedInsights />
+        <OptionalAdScript />
       </body>
     </html>
   );
