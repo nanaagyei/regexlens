@@ -30,6 +30,11 @@ export const RATE_LIMITS = {
     windowMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 10,
   },
+  // AI chat endpoint - moderate to control costs
+  ai_chat: {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 10,
+  },
 } as const;
 
 export type RateLimitType = keyof typeof RATE_LIMITS;

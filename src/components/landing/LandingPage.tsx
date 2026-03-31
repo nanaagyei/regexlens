@@ -54,7 +54,7 @@ const HOW_IT_WORKS = [
       "Drop any regex pattern into the editor. Start from scratch or pick from built-in templates — email validators, URL parsers, log matchers, and more.",
     icon: Copy,
     image:
-      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&h=400&fit=crop&q=80",
+      "images/first.png",
     imageAlt: "Code editor showing regex pattern",
   },
   {
@@ -64,7 +64,7 @@ const HOW_IT_WORKS = [
       "See plain-English explanations, live match highlighting, and a visual AST tree — all updating in real time as you type.",
     icon: Sparkles,
     image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop&q=80",
+      "images/second.png",
     imageAlt: "Data visualization dashboard",
   },
   {
@@ -705,7 +705,7 @@ export function LandingPage() {
               <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-primary/30 via-violet-500/30 to-cyan-500/30 blur-lg opacity-50 group-hover:opacity-75 transition-opacity duration-500" />
               <div className="relative rounded-2xl border border-border/40 overflow-hidden bg-card shadow-2xl">
                 <Image
-                  src="https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=1200&h=675&fit=crop&q=80"
+                  src="images/main.png"
                   alt="RegexLens application interface showing pattern analysis"
                   width={1200}
                   height={675}
@@ -873,26 +873,26 @@ export function LandingPage() {
                 {
                   quote:
                     "I used to spend 20 minutes deciphering regex in code reviews. Now I paste it into RegexLens and understand it in seconds.",
-                  name: "Sarah Chen",
-                  role: "Senior Frontend Engineer",
+                  name: "Silas Bempong",
+                  role: "Machine Learning Engineer",
                   avatar:
-                    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&q=80",
+                    "https://avatars1.githubusercontent.com/u/19541446?v=4",
                 },
                 {
                   quote:
-                    "The safety warnings alone have saved us from two production incidents. The catastrophic backtracking detection is a game changer.",
-                  name: "Marcus Johnson",
-                  role: "DevOps Lead",
+                    "RegexLens has been a game-changer for my research. The visual AST explorer is perfect for explaining complex patterns to my students.",
+                  name: "Derrick Dwamena",
+                  role: "Cognitive Neuroscientist",
                   avatar:
-                    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&q=80",
+                    "https://i0.wp.com/sites.duke.edu/huettellab/files/2021/02/WhatsApp-Image-2021-02-07-at-1.44.19-PM.jpeg",
                 },
                 {
                   quote:
-                    "Finally, a regex tool built for real work, not demos. The shareable links make code reviews so much faster.",
-                  name: "Priya Sharma",
-                  role: "Full-Stack Developer",
+                    "Finally, a regex tool built for real work, not demos. The shareable links make code reviews so much faster. I can now review regex patterns in seconds instead of minutes.",
+                  name: "Sylvester Bempong",
+                  role: "Software Engineer",
                   avatar:
-                    "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&q=80",
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbF8Bzflr0P8YpDkpYZHKegScbpLpin2zxqg&s",
                 },
               ].map((t) => (
                 <div

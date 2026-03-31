@@ -1,27 +1,70 @@
 "use client";
 
-import { useState } from "react";
-import { ExplanationResult, ParseResult } from "@/types";
+import { useState, useEffect, useRef } from "react";
+import { ExplanationResult, ParseResult, AIContext } from "@/types";
 import { ExplanationSteps } from "./ExplanationSteps";
+import { useAIChat } from "@/hooks/useAIChat";
+import { useEntitlement } from "@/hooks/useEntitlement";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Sparkles } from "lucide-react";
+import { FileText, Sparkles, Lock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface ExplanationPanelProps {
   explanation: ExplanationResult;
   parseResult: ParseResult;
+  pattern?: string;
+  flags?: string;
 }
 
 export function ExplanationPanel({
   explanation,
   parseResult,
+  pattern,
+  flags,
 }: ExplanationPanelProps) {
   const [useAIPolish, setUseAIPolish] = useState(false);
+  const { isPro } = useEntitlement();
+  const { messages, isStreaming, sendMessage, clearHistory } = useAIChat();
+  const prevPatternRef = useRef<string>("");
+
+  // Reset AI polish when pattern changes
+  useEffect(() => {
+    if (pattern !== prevPatternRef.current) {
+      prevPatternRef.current = pattern || "";
+      if (useAIPolish && messages.length > 0) {
+        clearHistory();
+      }
+    }
+  }, [pattern, useAIPolish, messages.length, clearHistory]);
+
+  // Trigger AI polish when toggled on
+  useEffect(() => {
+    if (
+      useAIPolish &&
+      isPro &&
+      pattern &&
+      explanation.steps.length > 0 &&
+      messages.length === 0
+    ) {
+      const context: AIContext = {
+        pattern: pattern || "",
+        flags: flags || "",
+        explanationSteps: explanation.steps.map((s) => ({
+          label: s.label,
+          kind: s.kind,
+          detail: s.detail ?? undefined,
+        })),
+      };
+      sendMessage("polish", context);
+    }
+  }, [useAIPolish, isPro, pattern, flags, explanation.steps, messages.length, sendMessage]);
+
   // Empty state - no pattern
   if (!parseResult.ok && !parseResult.errorMessage) {
     return (
@@ -56,6 +99,14 @@ export function ExplanationPanel({
     );
   }
 
+  // Get polished content from AI messages
+  const polishedContent =
+    messages.length > 0
+      ? messages[messages.length - 1]?.role === "assistant"
+        ? messages[messages.length - 1].content
+        : null
+      : null;
+
   return (
     <div className="p-4">
       <div className="flex items-center justify-between gap-2 mb-3">
@@ -73,7 +124,11 @@ export function ExplanationPanel({
               <input
                 type="checkbox"
                 checked={useAIPolish}
-                onChange={(e) => setUseAIPolish(e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setUseAIPolish(checked);
+                  if (!checked) clearHistory();
+                }}
                 className="sr-only peer"
               />
               <span
@@ -95,18 +150,51 @@ export function ExplanationPanel({
             </label>
           </TooltipTrigger>
           <TooltipContent side="left" className="max-w-[200px]">
-            Optional: rewrites steps into smoother prose. Requires API key. Coming soon.
+            {isPro
+              ? "Rewrites the explanation into smooth, natural prose using AI."
+              : "Upgrade to Pro to unlock AI-polished explanations."}
           </TooltipContent>
         </Tooltip>
       </div>
-      {useAIPolish && (
-        <div className="mb-3">
-          <Badge variant="secondary" className="text-[10px] font-normal">
-            AI polish coming soon — showing deterministic explanation
+
+      {useAIPolish && !isPro && (
+        <div className="mb-3 flex items-center gap-2">
+          <Badge variant="secondary" className="text-[10px] font-normal gap-1">
+            <Lock className="h-2.5 w-2.5" />
+            Pro feature
           </Badge>
+          <Link
+            href="/pricing"
+            className="text-[10px] text-primary hover:underline"
+          >
+            Upgrade
+          </Link>
         </div>
       )}
-      <ExplanationSteps steps={explanation.steps} />
+
+      {useAIPolish && isPro && isStreaming && !polishedContent && (
+        <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          <span>Polishing explanation...</span>
+        </div>
+      )}
+
+      {useAIPolish && isPro && polishedContent ? (
+        <div className="text-sm leading-relaxed text-foreground/90 space-y-2">
+          {polishedContent.split("\n").map((line, i) =>
+            line.trim() ? (
+              <p key={i}>{line}</p>
+            ) : (
+              <div key={i} className="h-1" />
+            )
+          )}
+          {isStreaming && (
+            <span className="inline-block w-1.5 h-4 bg-primary/60 animate-pulse ml-0.5 align-text-bottom" />
+          )}
+        </div>
+      ) : (
+        <ExplanationSteps steps={explanation.steps} />
+      )}
     </div>
   );
 }

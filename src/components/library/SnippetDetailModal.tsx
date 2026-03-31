@@ -14,7 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Snippet } from "./types";
-import { History, GitCompare, Loader2, ExternalLink } from "lucide-react";
+import { History, GitCompare, Loader2, ExternalLink, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SnippetVersion {
@@ -50,6 +50,7 @@ interface SnippetDetailModalProps {
   onOpenChange: (open: boolean) => void;
   snippet: Snippet;
   onLoadVersion: (pattern: string, flags: string) => void;
+  onRestoreVersion?: (snippetId: string, pattern: string, flags: string) => Promise<void>;
 }
 
 function formatDate(dateString: string) {
@@ -67,9 +68,11 @@ export function SnippetDetailModal({
   onOpenChange,
   snippet,
   onLoadVersion,
+  onRestoreVersion,
 }: SnippetDetailModalProps) {
   const [versions, setVersions] = useState<SnippetVersion[]>([]);
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
+  const [restoringId, setRestoringId] = useState<string | null>(null);
   const [diffFrom, setDiffFrom] = useState<string | null>(null);
   const [diffTo, setDiffTo] = useState<string | null>(null);
   const [diffResult, setDiffResult] = useState<DiffResult | null>(null);
@@ -108,6 +111,22 @@ export function SnippetDetailModal({
       toast.success("Loaded version into editor");
     },
     [onLoadVersion, onOpenChange]
+  );
+
+  const handleRestoreVersion = useCallback(
+    async (v: SnippetVersion) => {
+      if (!onRestoreVersion) return;
+      setRestoringId(v.id);
+      try {
+        await onRestoreVersion(snippet.id, v.pattern, v.flags);
+        toast.success("Version restored as current snippet");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to restore version");
+      } finally {
+        setRestoringId(null);
+      }
+    },
+    [onRestoreVersion, snippet.id]
   );
 
   const handleFetchDiff = useCallback(async () => {
@@ -190,15 +209,33 @@ export function SnippetDetailModal({
                           <span>{formatDate(v.created_at)}</span>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="shrink-0 gap-1"
-                        onClick={() => handleLoadVersion(v)}
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        Load
-                      </Button>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {onRestoreVersion && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1"
+                            disabled={restoringId === v.id}
+                            onClick={() => handleRestoreVersion(v)}
+                          >
+                            {restoringId === v.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <RotateCcw className="h-3 w-3" />
+                            )}
+                            Restore
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => handleLoadVersion(v)}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Load
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>

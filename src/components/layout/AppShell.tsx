@@ -47,6 +47,7 @@ import { useUrlState } from "@/hooks/useUrlState";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { getShareUrl } from "@/hooks/useUrlState";
 import { SavedLibrary, SaveSnippetModal } from "@/components/library";
+import { RegexCopilot } from "@/components/ai/RegexCopilot";
 import {
   FileText,
   AlertTriangle,
@@ -59,6 +60,7 @@ import {
   MoreHorizontal,
   Search,
   Route,
+  Sparkles,
 } from "lucide-react";
 import type { FixtureSuite } from "@/lib/fixtures/types";
 import Link from "next/link";
@@ -435,9 +437,13 @@ function AppShellContent() {
                       </span>
                     )}
                   </SegmentedControlTrigger>
+                  <SegmentedControlTrigger value="copilot" className="gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                    <span>AI</span>
+                  </SegmentedControlTrigger>
                 </SegmentedControl>
                 {/* Desktop: grid tabs */}
-                <TabsList className="hidden md:grid w-full grid-cols-5 h-9">
+                <TabsList className="hidden md:grid w-full grid-cols-6 h-9">
                   <TabsTrigger value="explanation" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
                     <FileText className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">Explain</span>
@@ -468,6 +474,11 @@ function AppShellContent() {
                       </span>
                     )}
                   </TabsTrigger>
+                  <TabsTrigger value="copilot" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Copilot</span>
+                    <span className="sm:hidden">AI</span>
+                  </TabsTrigger>
                 </TabsList>
 
                 <div className="flex-1 mt-2 min-h-0">
@@ -477,6 +488,8 @@ function AppShellContent() {
                         <ExplanationPanel
                           explanation={explanationResult}
                           parseResult={parseResult}
+                          pattern={state.pattern}
+                          flags={state.flags}
                         />
                       </PanelContent>
                     </Panel>
@@ -510,6 +523,32 @@ function AppShellContent() {
                       <PanelContent>
                         <WarningsPanel warnings={warningsResult} />
                       </PanelContent>
+                    </Panel>
+                  </TabsContent>
+                  <TabsContent value="copilot" className="h-full m-0">
+                    <Panel className="h-full">
+                      <RegexCopilot
+                        pattern={state.pattern}
+                        flags={state.flags}
+                        testText={state.text}
+                        matchCount={matchResult.totalCount}
+                        matchTruncated={matchResult.truncated}
+                        warningCount={warningsResult.warnings.length}
+                        warnings={warningsResult.warnings.map((w) => ({
+                          severity: w.severity,
+                          title: w.title,
+                          message: w.message,
+                        }))}
+                        explanationSteps={explanationResult.steps.map((s) => ({
+                          label: s.label,
+                          kind: s.kind,
+                          detail: s.detail ?? undefined,
+                        }))}
+                        onApplyPattern={(pattern, flags) => {
+                          actions.setPattern(pattern);
+                          actions.setFlags(flags);
+                        }}
+                      />
                     </Panel>
                   </TabsContent>
                 </div>

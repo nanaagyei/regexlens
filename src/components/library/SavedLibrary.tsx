@@ -125,6 +125,25 @@ export function SavedLibrary({
     [onLoadSnippet, onOpenChange]
   );
 
+  const handleRestoreVersion = useCallback(
+    async (snippetId: string, pattern: string, flags: string) => {
+      const res = await fetch(`/api/snippets/${snippetId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pattern, flags }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to restore version");
+      }
+      const updated: Snippet = await res.json();
+      setSnippets((prev) =>
+        prev.map((s) => (s.id === snippetId ? updated : s))
+      );
+    },
+    []
+  );
+
   const handleDeleteSnippet = useCallback((deletedSnippet: Snippet) => {
     setSnippets((prev) => prev.filter((s) => s.id !== deletedSnippet.id));
   }, []);
@@ -299,6 +318,7 @@ export function SavedLibrary({
           onOpenChange={(open) => !open && setHistorySnippet(null)}
           snippet={historySnippet}
           onLoadVersion={handleLoadVersion}
+          onRestoreVersion={handleRestoreVersion}
         />
       )}
 

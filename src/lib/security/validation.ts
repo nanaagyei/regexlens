@@ -235,6 +235,68 @@ export const analyzeRequestSchema = z.object({
 export type AnalyzeRequestInput = z.infer<typeof analyzeRequestSchema>;
 
 // ============================================
+// AI Chat Schemas
+// ============================================
+
+/**
+ * AI chat request schema
+ */
+export const aiChatRequestSchema = z.object({
+  action: z.enum([
+    "polish",
+    "edge_cases",
+    "security_review",
+    "optimize",
+    "explain_simple",
+    "generate_tests",
+    "generate_pattern",
+    "fix_suggestions",
+    "freeform",
+  ]),
+  context: z.object({
+    pattern: z.string().max(LIMITS.PATTERN_MAX_LENGTH),
+    flags: z.string().max(LIMITS.FLAGS_MAX_LENGTH),
+    testText: z.string().max(LIMITS.TEXT_SAMPLE_MAX_SIZE).optional(),
+    matches: z
+      .object({
+        count: z.number().int().min(0),
+        truncated: z.boolean(),
+      })
+      .optional(),
+    warnings: z
+      .array(
+        z.object({
+          severity: z.string(),
+          title: z.string(),
+          message: z.string(),
+        })
+      )
+      .optional(),
+    explanationSteps: z
+      .array(
+        z.object({
+          label: z.string(),
+          kind: z.string(),
+          detail: z.string().optional(),
+        })
+      )
+      .optional(),
+  }),
+  message: z.string().max(2000).optional(),
+  conversationHistory: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().max(4000),
+      })
+    )
+    .max(20)
+    .optional(),
+});
+
+export type AIChatRequestInput = z.infer<typeof aiChatRequestSchema>;
+
+// ============================================
 // Billing Schemas
 // ============================================
 
