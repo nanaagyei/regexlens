@@ -1,6 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
+const isCI = !!process.env.CI;
+
+const webServerEnv = {
+  ...process.env,
+  DATABASE_URL:
+    process.env.DATABASE_URL || "postgresql://user:pass@localhost:5432/db",
+};
 
 export default defineConfig({
   testDir: "./e2e",
@@ -19,16 +26,21 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
-    command: "npm run dev",
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    env: {
-      ...process.env,
-      DATABASE_URL:
-        process.env.DATABASE_URL ||
-        "postgresql://user:pass@localhost:5432/db",
-    },
-  },
+  webServer: isCI
+    ? {
+        // Production server in CI avoids dev-only cross-origin chunk issues that keep
+        // Monaco stuck on "Loading editor..." in headless runners.
+        command: "npm run build && npm run start",
+        url: baseURL,
+        reuseExistingServer: false,
+        timeout: 180_000,
+        env: webServerEnv,
+      }
+    : {
+        command: "npm run dev",
+        url: baseURL,
+        reuseExistingServer: true,
+        timeout: 120_000,
+        env: webServerEnv,
+      },
 });
