@@ -1,0 +1,253 @@
+# Security Patterns
+
+Regex plays a crucial role in security—from input validation to detecting malicious patterns. These patterns help protect your applications from common attacks.
+
+## Input Validation
+
+### Alphanumeric Only
+
+Prevent special characters in usernames:
+
+```regex
+^[a-zA-Z0-9_]+$
+```
+
+[Try it →](https://regexlens.app/?p=XlthLXpBLVowLTlfXSsk&f=g&t=am9obl9kb2UxMjMKdmFsaWRfdXNlcgppbnZhbGlkPHVzZXI+CmRyb3AtLXRhYmxl)
+
+### Safe Filename
+
+Allow only safe characters in filenames:
+
+```regex
+^[\w.-]+$
+```
+
+**Rejects:**
+- `../../../etc/passwd` (path traversal)
+- `file;rm -rf /` (command injection)
+- `<script>` (XSS in filename)
+
+[Try it →](https://regexlens.app/?p=XltcXHcuLV0rJA==&f=g&t=ZG9jdW1lbnQucGRmCmltYWdlLTAxLnBuZwouLi8uLi9ldGMvcGFzc3dkCmZpbGU7cm0gLXJmIC8=)
+
+### Slug/URL-Safe String
+
+```regex
+^[a-z0-9]+(?:-[a-z0-9]+)*$
+```
+
+**Matches:**
+- `my-blog-post`
+- `article-123`
+
+**Rejects:**
+- `My Blog Post` (spaces, capitals)
+- `--double-dash` (consecutive dashes)
+
+[Try it →](https://regexlens.app/?p=XlthLXowLTldKyg/Oi1bYS16MC05XSspKiQ=&f=g&t=bXktYmxvZy1wb3N0CmFydGljbGUtMTIzCk15IEJsb2cgUG9zdAotLWRvdWJsZS1kYXNo)
+
+## SQL Injection Detection
+
+import { Callout } from 'nextra/components'
+
+<Callout type="warning">
+**Important:** Regex-based detection is a defense-in-depth measure, not a replacement for parameterized queries. Always use prepared statements!
+</Callout>
+
+### Common SQL Injection Patterns
+
+```regex
+(?:')|(?:--)|(?:;)|(?:\/\*)|(?:\*\/)|(?:xp_)|(?:UNION\s+SELECT)|(?:SELECT\s+.*\s+FROM)|(?:INSERT\s+INTO)|(?:DELETE\s+FROM)|(?:DROP\s+TABLE)|(?:UPDATE\s+.*\s+SET)
+```
+
+[Try it →](https://regexlens.app/?p=KD86Jyl8KD86LS0pfCg/OjspfCg/OlwvXCopfCg/OlwqXC8pfCg/OnhwXyl8KD86VU5JT05ccytTRUxFQ1QpfCg/OlNFTEVDVFxzKy4qXHMrRlJPTSl8KD86SU5TRVJUXHMrSU5UTyl8KD86REVMRVRFXHMRK0ZST00pfCg/OkRST1BccytUQUJMRSl8KD86VVBEQVRFXHMrLipccy1TRVQP&f=gi&t=Jyc7IERST1AgVEFCTEUgdXNlcnM7LS0KJyBPUiAnMSc9JzEKVU5JT04gU0VMRUNUICogRlJPTSBwYXNzd29yZHMKbm9ybWFsIHVzZXIgaW5wdXQ=)
+
+### Detect Comment Injection
+
+```regex
+(?:--|#|\/\*|\*\/)
+```
+
+### Detect String Termination
+
+```regex
+(?:'(?:[^']*')*)|(?:"(?:[^"]*")*)
+```
+
+## XSS (Cross-Site Scripting) Detection
+
+### Script Tag Detection
+
+```regex
+<script[^>]*>[\s\S]*?<\/script>
+```
+
+[Try it →](https://regexlens.app/?p=PHNjcmlwdFtePl0qPltcc1xTXSo/PFwvc2NyaXB0Pg==&f=gi&t=PHNjcmlwdD5hbGVydCgneHNzJyk8L3NjcmlwdD4KPHNjcmlwdCBzcmM9ImV2aWwuanMiPjwvc2NyaXB0Pg==)
+
+### Event Handler Detection
+
+```regex
+\bon\w+\s*=
+```
+
+**Detects:**
+- `onclick=`
+- `onerror=`
+- `onload=`
+- `onmouseover=`
+
+[Try it →](https://regexlens.app/?p=XGJvblx3K1xzKj0=&f=gi&t=PGltZyBzcmM9eCBvbmVycm9yPSJhbGVydCgxKSI+CjxkaXYgb25jbGljaz0ic3RlYWxDb29raWVzKCkiPgo8YSBocmVmPSIjIj5TYWZlIGxpbms8L2E+)
+
+### JavaScript Protocol Detection
+
+```regex
+javascript\s*:
+```
+
+[Try it →](https://regexlens.app/?p=amF2YXNjcmlwdFxzKjo=&f=gi&t=PGEgaHJlZj0iamF2YXNjcmlwdDphbGVydCgxKSI+Q2xpY2s8L2E+CjxhIGhyZWY9ImphdmFzY3JpcHQgOiBhbGVydCgxKSI+Q2xpY2s8L2E+)
+
+### Comprehensive XSS Pattern
+
+```regex
+(?:<script|javascript:|on\w+\s*=|<\s*img[^>]+onerror|<\s*svg[^>]+onload|expression\s*\(|vbscript:|data:text\/html)
+```
+
+## Path Traversal Detection
+
+### Directory Traversal
+
+```regex
+(?:\.\.\/|\.\.\\|%2e%2e%2f|%2e%2e\/|\.\.%2f|%2e%2e%5c)
+```
+
+[Try it →](https://regexlens.app/?p=KD86XC5cLlwvfFwuXC5cXHwlMmUlMmUlMmZ8JTJlJTJlXC98XC5cLiUyZnwlMmUlMmUlNWMp&f=gi&t=Li4vLi4vZXRjL3Bhc3N3ZAouLlwuLlx3aW5kb3dzXHN5c3RlbTMyCiUyZSUyZSUyZmV0Yy9wYXNzd2Q=)
+
+### Null Byte Injection
+
+```regex
+%00|\\x00|\\0
+```
+
+## Command Injection Detection
+
+### Shell Metacharacters
+
+```regex
+[;&|`$(){}[\]<>]
+```
+
+### Common Command Patterns
+
+```regex
+(?:;|\||`|\$\(|&&|\|\|)\s*(?:cat|ls|rm|wget|curl|nc|bash|sh|python|perl|ruby|php)
+```
+
+[Try it →](https://regexlens.app/?p=KD86O3xcfHxgfFwkXCh8JiZ8XHxcfClccyooPzpjYXR8bHN8cm18d2dldHxjdXJsfG5jfGJhc2h8c2h8cHl0aG9ufHBlcmx8cnVieXxwaHAp&f=gi&t=OyBjYXQgL2V0Yy9wYXNzd2QKfCBybSAtcmYgLwokKHdnZXQgZXZpbC5jb20vc2hlbGwuc2gp)
+
+## Password Strength Validation
+
+### Minimum Requirements
+
+At least 8 characters, one uppercase, one lowercase, one digit:
+
+```regex
+^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$
+```
+
+[Try it →](https://regexlens.app/?p=Xig/PS4qW2Etel0pKD89LipbQS1aXSkoPz0uKlxkKS57OCx9JA==&f=g&t=UGFzc3dvcmQxMjMKd2Vha3Bhc3MKU1RST05HUEFTU1dPUkQxMjM=)
+
+### Strong Password
+
+At least 12 characters, uppercase, lowercase, digit, and special character:
+
+```regex
+^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$
+```
+
+[Try it →](https://regexlens.app/?p=Xig/PS4qW2Etel0pKD89LipbQS1aXSkoPz0uKlxkKSg/PS4qW0AkISUqPyZdKVtBLVphLXpcZEAkISUqPyZdezEyLH0k&f=g&t=TXlTdHJvbmdQYXNzMTIzIQpXZWFrMTIzCk5vU3BlY2lhbENoYXIxMjM=)
+
+## API Key Detection
+
+### Generic API Key Pattern
+
+```regex
+(?:api[_-]?key|apikey|api[_-]?secret|api[_-]?token)\s*[:=]\s*['"]?([a-zA-Z0-9_-]{20,})['"]?
+```
+
+[Try it →](https://regexlens.app/?p=KD86YXBpW18tXT9rZXl8YXBpa2V5fGFwaVtfLV0/c2VjcmV0fGFwaVtfLV0/dG9rZW4pXHMqWzo9XVxzKlsnIl0/KFthLXpBLVowLTlfLV17MjAsfSlbJyJdPw==&f=gi&t=YXBpX2tleSA9ICdhYmNkMTIzNDU2Nzg5MGFiY2RlZjEyMzQ1NicKQVBJX1NFQ1JFVD0ieHl6OTg3NjU0MzIxMGZlZGNiYTk4NzY1Ig==)
+
+### AWS Access Key
+
+```regex
+(?:AKIA|ABIA|ACCA|ASIA)[A-Z0-9]{16}
+```
+
+### GitHub Token
+
+```regex
+gh[pousr]_[A-Za-z0-9_]{36,}
+```
+
+### JWT Token
+
+```regex
+eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*
+```
+
+## Security Best Practices
+
+<Callout type="info">
+**Defense in Depth:** Regex validation should be one layer of your security strategy, not the only one.
+</Callout>
+
+### 1. Whitelist Over Blacklist
+
+**Bad (blacklist):**
+```regex
+^(?!.*<script).*$
+```
+
+**Good (whitelist):**
+```regex
+^[a-zA-Z0-9\s.,!?]+$
+```
+
+### 2. Anchor Your Patterns
+
+Always use `^` and `$` for validation:
+
+```regex
+^[a-z]+$    // Validates entire string
+[a-z]+      // Matches anywhere in string
+```
+
+### 3. Limit Input Length
+
+Before regex validation, check string length to prevent ReDoS:
+
+```javascript
+if (input.length > 1000) {
+  throw new Error('Input too long');
+}
+if (!/^[a-z]+$/.test(input)) {
+  throw new Error('Invalid input');
+}
+```
+
+### 4. Use Non-Capturing Groups
+
+When you don't need captures, use `(?:...)` for better performance:
+
+```regex
+(?:https?|ftp)://    // Non-capturing
+(https?|ftp)://      // Capturing (slower)
+```
+
+## Security Pattern Cheatsheet
+
+| Threat | Detection Pattern |
+|--------|-------------------|
+| SQL Injection | `(?:')\|(?:--)\|(?:;)\|(?:UNION\s+SELECT)` |
+| XSS | `<script\|javascript:\|on\w+=` |
+| Path Traversal | `\.\./\|\.\.\\ ` |
+| Command Injection | `[;&\|$(){}]` |
+| SSRF | `(?:localhost\|127\.0\.0\.1\|0\.0\.0\.0)` |

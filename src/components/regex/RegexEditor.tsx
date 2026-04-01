@@ -1,11 +1,9 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useImperativeHandle, forwardRef } from "react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import { ParseResult } from "@/types";
-import { useHoverSync } from "@/hooks/useHoverSync";
-import { cn } from "@/lib/utils";
 
 interface RegexEditorProps {
   value: string;
@@ -13,10 +11,21 @@ interface RegexEditorProps {
   parseResult: ParseResult;
 }
 
-export function RegexEditor({ value, onChange, parseResult }: RegexEditorProps) {
+export interface RegexEditorRef {
+  focus: () => void;
+}
+
+export const RegexEditor = forwardRef<RegexEditorRef, RegexEditorProps>(
+  function RegexEditor({ value, onChange, parseResult: _parseResult }, ref) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
-  const { hoverState, setHoveredRange } = useHoverSync();
+
+  // Expose focus method via ref
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      editorRef.current?.focus();
+    },
+  }), []);
 
   const handleEditorMount: OnMount = useCallback((editor, monaco) => {
     editorRef.current = editor;
@@ -28,7 +37,7 @@ export function RegexEditor({ value, onChange, parseResult }: RegexEditorProps) 
       lineNumbers: "off",
       glyphMargin: false,
       folding: false,
-      lineDecorationsWidth: 0,
+      lineDecorationsWidth: 12,
       lineNumbersMinChars: 0,
       renderLineHighlight: "none",
       scrollBeyondLastLine: false,
@@ -73,48 +82,6 @@ export function RegexEditor({ value, onChange, parseResult }: RegexEditorProps) 
     [onChange]
   );
 
-  // Update error decorations when parse result changes
-  const decorations = useCallback(() => {
-    if (!editorRef.current || !monacoRef.current) return [];
-
-    const decorationsList: editor.IModelDeltaDecoration[] = [];
-
-    // Error decoration
-    if (!parseResult.ok && parseResult.errorRange) {
-      decorationsList.push({
-        range: new monacoRef.current.Range(
-          1,
-          parseResult.errorRange.start + 1,
-          1,
-          parseResult.errorRange.end + 1
-        ),
-        options: {
-          className: "regex-error-decoration",
-          inlineClassName: "regex-error-inline",
-          hoverMessage: { value: parseResult.errorMessage },
-        },
-      });
-    }
-
-    // Hover highlight decoration
-    if (hoverState.hoveredRange) {
-      decorationsList.push({
-        range: new monacoRef.current.Range(
-          1,
-          hoverState.hoveredRange.start + 1,
-          1,
-          hoverState.hoveredRange.end + 1
-        ),
-        options: {
-          className: "regex-hover-decoration",
-          inlineClassName: "regex-hover-inline",
-        },
-      });
-    }
-
-    return decorationsList;
-  }, [parseResult, hoverState.hoveredRange]);
-
   return (
     <div className="h-full min-h-[80px] relative">
       <Editor
@@ -132,6 +99,8 @@ export function RegexEditor({ value, onChange, parseResult }: RegexEditorProps) 
           fontSize: 14,
           fontFamily: "var(--font-mono)",
           scrollBeyondLastLine: false,
+          lineDecorationsWidth: 12,
+          padding: { top: 12, bottom: 12 },
         }}
         theme="vs-dark"
         loading={
@@ -141,7 +110,7 @@ export function RegexEditor({ value, onChange, parseResult }: RegexEditorProps) 
         }
       />
       {value === "" && (
-        <div className="absolute top-3 left-3 text-muted-foreground text-sm pointer-events-none">
+        <div className="absolute top-3 left-[22px] text-muted-foreground text-sm pointer-events-none">
           Type or paste a regex pattern...
         </div>
       )}
@@ -163,4 +132,4 @@ export function RegexEditor({ value, onChange, parseResult }: RegexEditorProps) 
       `}</style>
     </div>
   );
-}
+});

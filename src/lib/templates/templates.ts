@@ -180,18 +180,89 @@ bad-key==oops`,
   },
   {
     id: "danger-demo",
-    name: "Danger: Nested quantifiers",
-    description: "Demonstrates catastrophic backtracking risk",
+    name: "Danger: Catastrophic backtracking",
+    description: "Demonstrates catastrophic backtracking — matching may time out",
     pattern: "^(a+)+$",
     flags: "",
-    text: `aaaaaaaaaaaaaaaaaaaa
-aaaaaaaaaaaaaaaaaaab`,
+    text: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaX`,
     notes: [
-      "WARNING: This pattern can hang on non-matching input!",
-      "The second line may take very long to process",
-      "Demonstrates nested quantifier danger",
+      "WARNING: This pattern causes exponential backtracking on non-matching input",
+      "Matching will timeout after a few seconds (Web Worker protection)",
+      "Shows nested quantifier danger — use atomic groups or rewrite in PCRE",
     ],
-    tags: ["danger", "performance"],
+    tags: ["danger", "performance", "stress-test"],
+  },
+  {
+    id: "brutal-email",
+    name: "Brutal email validator",
+    description: "RFC-style email validation with length checks",
+    pattern:
+      "^(?=.{1,254}$)(?=.{1,64}@)[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+[A-Za-z]{2,}$",
+    flags: "",
+    text: `test@example.com
+first.last@sub.domain.com
+user+tag@domain.co
+a_b-c.d+e@long-domain-name.org
+user123@school.edu
+plainaddress
+@no-local-part.com
+user@.com
+user@domain
+user..double@dot.com
+user@domain..com
+user@-domain.com
+user@domain-.com
+a@b.co
+verylonglocalpartaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com
+user_name@sub.sub.sub.domain.com`,
+    notes: [
+      "Should match: valid emails (top block)",
+      "Should NOT match: plainaddress, @no-local-part.com, etc.",
+      "Edge: a@b.co, very long local part, multiple subdomains",
+    ],
+    tags: ["validation", "email", "stress-test"],
+  },
+  {
+    id: "ipv6-validator",
+    name: "IPv6 validator",
+    description: "Comprehensive IPv6 address validation",
+    pattern:
+      "^((?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}|(?:[0-9A-Fa-f]{1,4}:){1,7}:|(?:[0-9A-Fa-f]{1,4}:){1,6}:[0-9A-Fa-f]{1,4}|(?:[0-9A-Fa-f]{1,4}:){1,5}(?::[0-9A-Fa-f]{1,4}){1,2}|(?:[0-9A-Fa-f]{1,4}:){1,4}(?::[0-9A-Fa-f]{1,4}){1,3}|(?:[0-9A-Fa-f]{1,3}:){1,3}(?::[0-9A-Fa-f]{1,4}){1,4}|(?:[0-9A-Fa-f]{1,2}:){1,2}(?::[0-9A-Fa-f]{1,4}){1,5}|[0-9A-Fa-f]{1,4}:(?:(?::[0-9A-Fa-f]{1,4}){1,6})|:(?:(?::[0-9A-Fa-f]{1,4}){1,7}|:))$",
+    flags: "",
+    text: `2001:0db8:85a3:0000:0000:8a2e:0370:7334
+2001:db8:85a3::8a2e:370:7334
+::1
+::
+fe80::1ff:fe23:4567:890a
+2001:db8::
+2001:::7334
+2001:db8:85a3::8a2e::7334
+12345::abcd
+2001:db8:85a3:8a2e:370:7334
+2001:dg8::1
+0:0:0:0:0:0:0:1`,
+    notes: [
+      "Should match: full, compressed, ::1, ::, link-local",
+      "Should NOT match: triple colon, double ::, invalid hex, too few groups",
+      "Edge: 0:0:0:0:0:0:0:1 (long form of ::1)",
+    ],
+    tags: ["validation", "ipv6", "stress-test"],
+  },
+  {
+    id: "pcre-recursion-unsupported",
+    name: "PCRE recursion (unsupported)",
+    description: "Recursive HTML tag matcher — JavaScript cannot run this",
+    pattern:
+      "<([A-Za-z][A-Za-z0-9:-]*)\\b[^>]*>(?:(?:(?!</\\1>).)*|(?R))*</\\1>",
+    flags: "",
+    text: `<div>Hello</div>
+<div><span>Nested</span></div>`,
+    notes: [
+      "Uses (?R) — PCRE recursion. JavaScript does not support this.",
+      "Expected: parse error with helpful message about PCRE limitation",
+      "Use a PCRE-compatible tool (PHP, Perl, PCRE2) for recursive patterns",
+    ],
+    tags: ["html", "stress-test", "unsupported"],
   },
 ];
 

@@ -1,0 +1,152 @@
+# Email Validation
+
+Email validation is one of the most common regex use cases—and one of the most misunderstood. Let's explore practical patterns from simple to comprehensive.
+
+## The Problem
+
+You need to validate that a user's input looks like an email address before:
+- Sending a verification email
+- Storing in a database
+- Displaying in a UI
+
+## Common Mistakes
+
+### Too Simple
+
+```regex
+.+@.+
+```
+
+**Problem:** Matches `@@@`, `hello@`, and other invalid strings.
+
+[Try it →](https://regexlens.app/?p=ListALis=&f=g&t=dGVzdEBleGFtcGxlLmNvbQpAQEAKaGVsbG9ACm5vdCBhbiBlbWFpbA==)
+
+### Too Strict
+
+```regex
+^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$
+```
+
+**Problem:** Rejects valid emails like:
+- `john.doe@example.com` (dots in local part)
+- `user+tag@gmail.com` (plus addressing)
+- `name@sub.domain.co.uk` (multiple domain parts)
+- `user@example.museum` (TLDs longer than 3 chars)
+
+## Practical Solutions
+
+### Basic Validation (Recommended for Most Cases)
+
+```regex
+^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$
+```
+
+**What it matches:**
+- `john.doe@example.com` ✓
+- `user+newsletter@gmail.com` ✓
+- `admin@sub.domain.co.uk` ✓
+- `test@localhost` ✗ (no TLD)
+- `@example.com` ✗ (no local part)
+
+[Try this pattern →](https://regexlens.app/?p=XltcXHcuKy1dK0BbXHcuLV0rXC5bYS16QS1aXXsyLH0k&f=gi&t=am9obi5kb2VAZXhhbXBsZS5jb20KdXNlcituZXdzbGV0dGVyQGdtYWlsLmNvbQphZG1pbkBzdWIuZG9tYWluLmNvLnVrCnRlc3RAbG9jYWxob3N0CkBleGFtcGxlLmNvbQppbnZhbGlkLWVtYWls)
+
+**Breakdown:**
+
+| Part | Meaning |
+|------|---------|
+| `^` | Start of string |
+| `[\w.+-]+` | Local part: word chars, dots, plus, hyphen |
+| `@` | Literal @ symbol |
+| `[\w.-]+` | Domain: word chars, dots, hyphens |
+| `\.` | Literal dot before TLD |
+| `[a-zA-Z]{2,}` | TLD: 2+ letters |
+| `$` | End of string |
+
+### Extracting Emails from Text
+
+When you need to find emails in a larger text (not validate a single input):
+
+```regex
+[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}
+```
+
+Note: No anchors (`^` and `$`) so it matches emails anywhere in text.
+
+[Try extraction →](https://regexlens.app/?p=W1x3ListXStAW1x3Li1dK1wuW2EtekEtWl17Mix9&f=gi&t=Q29udGFjdCB1cyBhdCBzdXBwb3J0QGV4YW1wbGUuY29tIG9yIHNhbGVzQGNvbXBhbnkuaW8uCkZvciBwcmVzcywgZW1haWwgcHJlc3NAZXhhbXBsZS5vcmc=)
+
+### With Named Capture Groups
+
+For parsing email parts:
+
+```regex
+^(?<local>[\w.+-]+)@(?<domain>[\w.-]+)\.(?<tld>[a-zA-Z]{2,})$
+```
+
+This captures:
+- `local` — The part before @
+- `domain` — The domain name
+- `tld` — The top-level domain
+
+[Try with groups →](https://regexlens.app/?p=Xig/PGxvY2FsPltcXHcuKy1dKylAKD88ZG9tYWluPltcXHcuLV0rKVwuKD88dGxkPltBLVphLXpdezIsfSkk&f=gi&t=am9obi5kb2VAZXhhbXBsZS5jb20=)
+
+## Edge Cases to Consider
+
+### Valid but Unusual
+
+These are technically valid email addresses:
+
+```
+"john doe"@example.com     // Quoted local part
+user@[192.168.1.1]         // IP address domain
+admin@localhost            // No TLD (internal)
+```
+
+Most practical applications don't need to support these.
+
+### International Emails
+
+With internationalized domain names (IDN):
+
+```
+用户@例子.广告
+user@münchen.de
+```
+
+Supporting these requires Unicode-aware patterns or the `u` flag.
+
+## Best Practices
+
+import { Callout } from 'nextra/components'
+
+<Callout type="info">
+**Don't over-validate!** The only way to truly validate an email is to send a verification message. Use regex for basic format checking, not RFC compliance.
+</Callout>
+
+1. **Use a simple pattern** — Catch obvious typos, not edge cases
+2. **Send verification** — The real validation is a confirmation email
+3. **Be permissive** — Better to accept a weird-but-valid email than reject a customer
+4. **Trim whitespace** — Users often paste emails with leading/trailing spaces
+
+## Real-World Implementation
+
+```javascript
+// Simple validation function
+function isValidEmail(email) {
+  const pattern = /^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$/i;
+  return pattern.test(email.trim());
+}
+
+// Usage
+isValidEmail('user@example.com');  // true
+isValidEmail('invalid');           // false
+```
+
+## RFC 5322 Compliance
+
+If you truly need RFC-compliant validation (you probably don't), the full pattern is over 6,000 characters. Use a library instead:
+
+- JavaScript: `email-validator`, `validator.js`
+- Python: `email-validator`
+- Go: `net/mail` package
+
+For 99% of use cases, the basic pattern above is sufficient.

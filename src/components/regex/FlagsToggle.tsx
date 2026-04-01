@@ -48,34 +48,36 @@ const FLAG_INFO = [
 
 export function FlagsToggle({ flags, onToggle }: FlagsToggleProps) {
   return (
-    <div className="flex items-center gap-1">
-      <span className="text-xs text-muted-foreground mr-2">Flags:</span>
-      {FLAG_INFO.map(({ flag, name, description }) => {
-        const isActive = flags.includes(flag);
-        return (
-          <Tooltip key={flag}>
-            <TooltipTrigger asChild>
-              <Button
-                variant={isActive ? "default" : "outline"}
-                size="sm"
-                onClick={() => onToggle(flag)}
-                className={cn(
-                  "h-7 w-7 p-0 font-mono text-xs",
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {flag}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p className="font-medium">{name}</p>
-              <p className="text-xs text-muted-foreground">{description}</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      })}
+    <div className="flex items-center gap-1 flex-wrap">
+      <span className="text-xs text-muted-foreground mr-1">Flags:</span>
+      <div className="flex items-center gap-0.5 sm:gap-1">
+        {FLAG_INFO.map(({ flag, name, description }) => {
+          const isActive = flags.includes(flag);
+          return (
+            <Tooltip key={flag}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={isActive ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onToggle(flag)}
+                  className={cn(
+                    "h-7 w-7 p-0 font-mono text-xs touch-manipulation tap-highlight-none select-none-touch",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {flag}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="font-medium">{name}</p>
+                <p className="text-xs text-muted-foreground">{description}</p>
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </div>
     </div>
   );
 }

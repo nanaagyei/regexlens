@@ -1,0 +1,32 @@
+# RegexLens Robots.txt
+# https://regexlens.dev
+
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow API routes from indexing
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Sitemap location
+Sitemap: https://regexlens.dev/sitemap.xml
+
+# Crawl delay (optional, helps prevent overloading)
+Crawl-delay: 1
+
+# Google-specific
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+
+# Bing-specific
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /api/

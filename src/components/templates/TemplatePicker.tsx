@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { TEMPLATES } from "@/lib/templates/templates";
 import { RegexTemplate } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -17,20 +18,34 @@ import { BookOpen, ChevronDown, AlertTriangle } from "lucide-react";
 
 interface TemplatePickerProps {
   onSelect: (template: RegexTemplate) => void;
+  onAfterSelect?: () => void;
 }
 
-export function TemplatePicker({ onSelect }: TemplatePickerProps) {
+export function TemplatePicker({ onSelect, onAfterSelect }: TemplatePickerProps) {
   const [open, setOpen] = useState(false);
 
   const handleSelect = (template: RegexTemplate) => {
     onSelect(template);
     setOpen(false);
+    
+    // Show toast notification
+    toast.success(`Loaded template: ${template.name}`, {
+      description: template.description,
+      duration: 3000,
+    });
+    
+    // Focus editor after selection (with small delay to allow state update)
+    if (onAfterSelect) {
+      setTimeout(() => {
+        onAfterSelect();
+      }, 100);
+    }
   };
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5">
+        <Button variant="outline" size="sm" className="gap-1.5 h-8 sm:h-9">
           <BookOpen className="h-4 w-4" />
           <span className="hidden sm:inline">Examples</span>
           <ChevronDown className="h-3 w-3 opacity-50" />
@@ -38,7 +53,7 @@ export function TemplatePicker({ onSelect }: TemplatePickerProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-[320px] max-h-[400px] overflow-auto"
+        className="w-[280px] sm:w-[320px] max-h-[60vh] sm:max-h-[400px] overflow-auto"
       >
         <DropdownMenuLabel className="text-xs text-muted-foreground">
           Select a template to load
@@ -48,7 +63,7 @@ export function TemplatePicker({ onSelect }: TemplatePickerProps) {
           <DropdownMenuItem
             key={template.id}
             onClick={() => handleSelect(template)}
-            className="flex flex-col items-start gap-1 py-2 cursor-pointer"
+            className="flex flex-col items-start gap-1 py-2.5 sm:py-2 cursor-pointer touch-manipulation"
           >
             <div className="flex items-center gap-2 w-full">
               <span className="font-medium text-sm">{template.name}</span>
@@ -56,7 +71,7 @@ export function TemplatePicker({ onSelect }: TemplatePickerProps) {
                 <AlertTriangle className="h-3 w-3 text-amber-400" />
               )}
             </div>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground line-clamp-2">
               {template.description}
             </span>
             {template.tags && template.tags.length > 0 && (

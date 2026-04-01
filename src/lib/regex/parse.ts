@@ -2,6 +2,22 @@ import regexpTree from "regexp-tree";
 import { ParseResult, AstNode, REGEX_CONFIG } from "@/types";
 
 /**
+ * Detect PCRE recursion constructs (?R) or (?n) for n=0..9
+ */
+function detectPcreRecursion(
+  pattern: string
+): { found: boolean; range?: { start: number; end: number } } {
+  const match = pattern.match(/\(\?(?:R|[0-9])\)/);
+  if (match && match.index !== undefined) {
+    return {
+      found: true,
+      range: { start: match.index, end: match.index + match[0].length },
+    };
+  }
+  return { found: false };
+}
+
+/**
  * Parse a regex pattern into an AST using regexp-tree
  */
 export function parseRegex(pattern: string, flags: string): ParseResult {
@@ -23,6 +39,17 @@ export function parseRegex(pattern: string, flags: string): ParseResult {
     return {
       ok: false,
       errorMessage: `Pattern exceeds maximum length of ${REGEX_CONFIG.MAX_PATTERN_LENGTH} characters`,
+    };
+  }
+
+  // Detect PCRE recursion - JavaScript does not support (?R) or (?n)
+  const pcreRecursion = detectPcreRecursion(pattern);
+  if (pcreRecursion.found) {
+    return {
+      ok: false,
+      errorMessage:
+        "This pattern uses PCRE recursion (?R), which JavaScript regex does not support. Use a PCRE-compatible tool (e.g. PHP, Perl, PCRE2) or rewrite without recursion.",
+      errorRange: pcreRecursion.range,
     };
   }
 

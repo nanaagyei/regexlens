@@ -46,6 +46,7 @@ export interface MatchResult {
   spans: MatchSpan[];
   truncated: boolean;
   totalCount: number;
+  error?: string;
 }
 
 // AST Node types from regexp-tree
@@ -109,4 +110,5 @@ export const REGEX_CONFIG = {
   MAX_TEXT_LENGTH: 50000,
   MAX_MATCHES: 1000,
   DEBOUNCE_MS: 150,
+  MATCH_TIMEOUT_MS: 3000,
 } as const;

@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/regex.svg" width="80" height="80" alt="RegexLens Logo" />
+  <img src="public/regexlens-logo.png" width="100" height="100" alt="RegexLens Logo" />
 </p>
-
-<h1 align="center">RegexLens</h1>
 
 <p align="center">
   <strong>Understand, test, and visualize regex instantly</strong>
@@ -14,7 +12,8 @@
   <a href="#getting-started">Getting Started</a> •
   <a href="#usage">Usage</a> •
   <a href="#architecture">Architecture</a> •
-  <a href="#contributing">Contributing</a>
+  <a href="#contributing">Contributing</a> •
+  <a href="DEPLOYMENT.md">Deployment</a>
 </p>
 
 <p align="center">
@@ -206,6 +205,8 @@ STRIPE_PRO_PRICE_ID=price_...
 | `npm run build` | Build for production |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
+| `npm run typecheck` | Run TypeScript check |
+| `npm run ci` | Run lint, typecheck, and build |
 
 ---
 

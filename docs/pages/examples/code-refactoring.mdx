@@ -1,0 +1,206 @@
+# Code Refactoring
+
+Regex is invaluable for large-scale code refactoring. Whether you're renaming variables, updating import statements, or migrating APIs, these patterns will help.
+
+## Variable and Function Renaming
+
+### Simple Rename
+
+Find all occurrences of a variable name (as a whole word):
+
+```regex
+\boldName\b
+```
+
+The `\b` word boundaries ensure you match `oldName` but not `oldNameSuffix` or `prefixOldName`.
+
+[Try it →](https://regexlens.app/?p=XGJvbGROYW1lXGI=&f=g&t=Y29uc3Qgb2xkTmFtZSA9IDU7CmNvbnN0IG9sZE5hbWVTdWZmaXggPSAxMDsKY29uc29sZS5sb2cob2xkTmFtZSk7)
+
+### Rename with Context
+
+Find variable declarations specifically:
+
+```regex
+\b(const|let|var)\s+oldName\b
+```
+
+[Try it →](https://regexlens.app/?p=XGIoY29uc3R8bGV0fHZhcilccytvbGROYW1lXGI=&f=g&t=Y29uc3Qgb2xkTmFtZSA9IDU7CmxldCBvbGROYW1lID0gMTA7CmNvbnNvbGUubG9nKG9sZE5hbWUpOw==)
+
+### Rename Object Property Access
+
+```regex
+\.oldProperty\b
+```
+
+[Try it →](https://regexlens.app/?p=XC5vbGRQcm9wZXJ0eVxi&f=g&t=dXNlci5vbGRQcm9wZXJ0eSA9IDU7CmNvbnNvbGUubG9nKG9iai5vbGRQcm9wZXJ0eSk7)
+
+## Import Statement Updates
+
+### ES6 Import Refactoring
+
+Find imports from a specific module:
+
+```regex
+import\s+(?:{[^}]+}|\w+)\s+from\s+['"]@old-package['"]
+```
+
+[Try it →](https://regexlens.app/?p=aW1wb3J0XHMrKD86e1tefV0rfHxcdyspXHMrZnJvbVxzK1snIl1Ab2xkLXBhY2thZ2VbJyJd&f=g&t=aW1wb3J0IHsgZm9vLCBiYXIgfSBmcm9tICdAb2xkLXBhY2thZ2UnOwppbXBvcnQgZGVmYXVsdEV4cG9ydCBmcm9tICdAb2xkLXBhY2thZ2UnOwppbXBvcnQgeyBiYXogfSBmcm9tICdAb3RoZXItcGFja2FnZSc7)
+
+### Extract Named Imports
+
+```regex
+import\s+{\s*(?<imports>[^}]+)\s*}\s+from\s+['"](?<module>[^'"]+)['"]
+```
+
+[Try it →](https://regexlens.app/?p=aW1wb3J0XHMre1xzKig/PGltcG9ydHM+W159XSspXHMqfVxzK2Zyb21ccytbJyJdKD88bW9kdWxlPltdJyJdKylbJyJd&f=g&t=aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JzsKaW1wb3J0IHsgQnV0dG9uLCBJbnB1dCB9IGZyb20gJ0AvY29tcG9uZW50cy91aSc7)
+
+### CommonJS to ES6
+
+Find `require` statements to convert:
+
+```regex
+const\s+(?<name>\w+)\s*=\s*require\(['"](?<module>[^'"]+)['"]\)
+```
+
+[Try it →](https://regexlens.app/?p=Y29uc3RccysoPzxuYW1lPlx3Kylccyo9XHMqcmVxdWlyZVwoWyciXSg/PG1vZHVsZT5bXiciXSspWyciXVwp&f=g&t=Y29uc3QgZnMgPSByZXF1aXJlKCdmcycpOwpjb25zdCBwYXRoID0gcmVxdWlyZSgncGF0aCcpOwpjb25zdCB7IGZvbyB9ID0gcmVxdWlyZSgnLi91dGlscycpOw==)
+
+## API Migration
+
+### Update Method Calls
+
+Migrate from old API to new:
+
+```regex
+oldApi\.oldMethod\(([^)]*)\)
+```
+
+Replace with: `newApi.newMethod($1)`
+
+[Try it →](https://regexlens.app/?p=b2xkQXBpXC5vbGRNZXRob2RcKChbXildKilcKQ==&f=g&t=b2xkQXBpLm9sZE1ldGhvZCgpOwpvbGRBcGkub2xkTWV0aG9kKGFyZzEsIGFyZzIpOwpuZXdBcGkub3RoZXJNZXRob2QoKTs=)
+
+### Update Callback to Promise
+
+Find callback-style code:
+
+```regex
+(\w+)\(([^,]+),\s*function\s*\((?:err,\s*)?(\w+)\)\s*{
+```
+
+[Try it →](https://regexlens.app/?p=KFx3KylcKChbXixdKyksXHMqZnVuY3Rpb25ccypcKCg/OmVycixccyopPyhcdyspXClccyp7&f=g&t=ZnMucmVhZEZpbGUoJ2ZpbGUudHh0JywgZnVuY3Rpb24oZXJyLCBkYXRhKSB7CiAgY29uc29sZS5sb2coZGF0YSk7Cn0pOw==)
+
+### React Class to Hooks
+
+Find `this.state` references:
+
+```regex
+this\.state\.(\w+)
+```
+
+Find `this.setState`:
+
+```regex
+this\.setState\(\{([^}]+)\}\)
+```
+
+[Try it →](https://regexlens.app/?p=dGhpc1wuc2V0U3RhdGVcKFx7KFtefV0rKVx9XCk=&f=g&t=dGhpcy5zZXRTdGF0ZSh7IGNvdW50OiB0aGlzLnN0YXRlLmNvdW50ICsgMSB9KTsKdGhpcy5zZXRTdGF0ZSh7IGxvYWRpbmc6IHRydWUgfSk7)
+
+## String and Comment Updates
+
+### Update String Literals
+
+Find strings containing specific text:
+
+```regex
+(['"`])([^'"`]*old-text[^'"`]*)\1
+```
+
+[Try it →](https://regexlens.app/?p=KFsnImBdKShbXiciYF0qb2xkLXRleHRbXiciYF0qKVwx&f=g&t=Y29uc3QgbXNnID0gJ1RoaXMgaXMgb2xkLXRleHQgaGVyZSc7CmNvbnN0IG90aGVyID0gIkFub3RoZXIgb2xkLXRleHQgZXhhbXBsZSI7)
+
+### Find TODO Comments
+
+```regex
+\/\/\s*TODO:?\s*(.*)
+```
+
+[Try it →](https://regexlens.app/?p=XC9cL1xzKlRPRE86P1xzKiguKik=&f=gi&t=Ly8gVE9ETzogRml4IHRoaXMgbGF0ZXIKLy8gVE9ETyBSZWZhY3RvciB0aGlzIGZ1bmN0aW9uCi8vIFRoaXMgaXMgYSByZWd1bGFyIGNvbW1lbnQ=)
+
+### Find FIXME and HACK Comments
+
+```regex
+\/\/\s*(TODO|FIXME|HACK|XXX):?\s*(.*)
+```
+
+## Type Annotations
+
+### TypeScript Type Updates
+
+Find type annotations:
+
+```regex
+:\s*OldType\b
+```
+
+Find generic type parameters:
+
+```regex
+<OldType(?:\s*,\s*\w+)*>
+```
+
+[Try it →](https://regexlens.app/?p=PE9sZFR5cGUoPzpccyosXHMqXHcrKSo+&f=g&t=Y29uc3QgaXRlbXM6IEFycmF5PE9sZFR5cGU+ID0gW107CmNvbnN0IG1hcDogTWFwPHN0cmluZywgT2xkVHlwZT4gPSBuZXcgTWFwKCk7)
+
+### Find Interface Properties
+
+```regex
+(\w+):\s*OldType;
+```
+
+## Practical Workflow
+
+import { Callout } from 'nextra/components'
+
+<Callout type="warning">
+**Always use version control!** Before running find-and-replace across your codebase, commit your changes so you can easily revert if something goes wrong.
+</Callout>
+
+### Step-by-Step Refactoring
+
+1. **Write the pattern** in RegexLens
+2. **Test with samples** from your actual codebase
+3. **Check the explanation** to ensure it matches what you expect
+4. **Review warnings** for potential issues
+5. **Run find-and-replace** in your IDE
+6. **Run tests** to verify the refactoring
+
+### IDE Integration
+
+Most IDEs support regex find-and-replace:
+
+- **VS Code:** `Ctrl/Cmd + H`, click `.*` to enable regex
+- **IntelliJ:** `Ctrl/Cmd + R`, check "Regex" checkbox
+- **Sublime Text:** `Ctrl/Cmd + H`, enable regex mode
+
+### Capture Groups for Replacement
+
+Use capture groups to preserve parts of the match:
+
+**Find:**
+```regex
+console\.log\((['"`][^'"`]+['"`])\)
+```
+
+**Replace:**
+```
+logger.info($1)
+```
+
+This converts `console.log('message')` to `logger.info('message')`.
+
+## Common Refactoring Patterns
+
+| Task | Find Pattern | Replace |
+|------|--------------|---------|
+| Rename variable | `\boldName\b` | `newName` |
+| Update import path | `from ['"]@old/` | `from '@new/` |
+| Add prefix to function | `\bfunctionName\(` | `prefix_functionName(` |
+| Convert var to const | `\bvar\s+` | `const ` |
+| Remove console.log | `console\.log\([^)]*\);?\n?` | (empty) |

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 interface MatchListProps {
   matches: MatchResult;
+  onMatchClick?: (index: number, start: number, end: number) => void;
 }
 
 const BADGE_VARIANTS = [
@@ -18,8 +19,18 @@ const BADGE_VARIANTS = [
   "match6",
 ] as const;
 
-export function MatchList({ matches }: MatchListProps) {
+export function MatchList({ matches, onMatchClick }: MatchListProps) {
   const { hoverState, setHoveredMatchIndex } = useHoverSync();
+
+  if (matches.error) {
+    return (
+      <div className="flex items-center justify-center h-full p-4">
+        <p className="text-sm text-amber-600 dark:text-amber-500 text-center">
+          {matches.error}
+        </p>
+      </div>
+    );
+  }
 
   if (matches.matches.length === 0) {
     return (
@@ -39,6 +50,7 @@ export function MatchList({ matches }: MatchListProps) {
           isHovered={hoverState.hoveredMatchIndex === index}
           onMouseEnter={() => setHoveredMatchIndex(index)}
           onMouseLeave={() => setHoveredMatchIndex(null)}
+          onClick={() => onMatchClick?.(index, match.full.start, match.full.end)}
         />
       ))}
       {matches.truncated && (
@@ -56,6 +68,7 @@ interface MatchItemProps {
   isHovered: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  onClick?: () => void;
 }
 
 function MatchItem({
@@ -64,18 +77,24 @@ function MatchItem({
   isHovered,
   onMouseEnter,
   onMouseLeave,
+  onClick,
 }: MatchItemProps) {
   const colorIndex = index % BADGE_VARIANTS.length;
   const badgeVariant = BADGE_VARIANTS[colorIndex];
 
   return (
     <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
       className={cn(
         "p-2 rounded-md border border-border transition-colors duration-150",
-        isHovered ? "bg-accent" : "bg-card hover:bg-accent/50"
+        isHovered ? "bg-accent" : "bg-card hover:bg-accent/50",
+        onClick && "cursor-pointer"
       )}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onClick={onClick}
+      onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}
     >
       <div className="flex items-center gap-2 mb-1">
         <Badge variant={badgeVariant} className="text-[10px]">

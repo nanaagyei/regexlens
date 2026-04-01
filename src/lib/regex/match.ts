@@ -122,9 +122,12 @@ export function computeMatches(
       totalCount: matchCount,
     };
   } catch (error) {
-    // Invalid regex - return empty result
     console.warn("Match error:", error);
-    return emptyResult;
+    return {
+      ...emptyResult,
+      error:
+        error instanceof Error ? error.message : "Invalid pattern or matching error",
+    };
   }
 }
 
@@ -137,7 +140,7 @@ function findGroupStart(
   matchStart: number,
   groupText: string,
   match: RegExpExecArray,
-  groupIndex: number
+  _groupIndex: number
 ): number {
   if (!groupText) return matchStart;
 
@@ -156,6 +159,46 @@ function findGroupStart(
   }
 
   return matchStart;
+}
+
+/**
+ * Run single exec at given lastIndex (for sticky y flag tests).
+ * Used when Worker is unavailable; prefer worker path for fixture runs.
+ */
+export function computeSingleExecWithLastIndex(
+  pattern: string,
+  flags: string,
+  text: string,
+  initialLastIndex: number
+): MatchResult {
+  const emptyResult: MatchResult = {
+    matches: [],
+    spans: [],
+    truncated: false,
+    totalCount: 0,
+  };
+  try {
+    const regex = new RegExp(pattern, flags);
+    regex.lastIndex = initialLastIndex;
+    const match = regex.exec(text);
+    if (!match) return emptyResult;
+    const start = match.index;
+    const end = start + match[0].length;
+    return {
+      matches: [
+        {
+          index: 0,
+          full: { groupIndex: 0, start, end, text: match[0] },
+          groups: [],
+        },
+      ],
+      spans: [{ start, end, matchIndex: 0 }],
+      truncated: false,
+      totalCount: 1,
+    };
+  } catch {
+    return { ...emptyResult, error: "Invalid pattern" };
+  }
 }
 
 /**

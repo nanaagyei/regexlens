@@ -1,0 +1,401 @@
+# API Reference
+
+RegexLens provides a REST API for Pro users to integrate regex functionality into their workflows.
+
+import { Callout } from 'nextra/components'
+
+<Callout type="info">
+**Authentication Required:** All API endpoints (except `/api/me`) require authentication via session cookie or API token.
+</Callout>
+
+## Base URL
+
+```
+https://regexlens.app/api
+```
+
+For local development:
+```
+http://localhost:3000/api
+```
+
+## Authentication
+
+### Session Cookie
+
+When signed in via the web interface, your session cookie is automatically included in API requests.
+
+### API Token (Coming Soon)
+
+Pro users will be able to generate API tokens for programmatic access.
+
+## Endpoints
+
+### User & Entitlement
+
+#### GET /api/me
+
+Get current user and subscription status.
+
+**Authentication:** Optional (returns null for unauthenticated)
+
+**Response:**
+```json
+{
+  "user": {
+    "id": "user_123",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "image": "https://..."
+  },
+  "entitlement": {
+    "plan": "PRO",
+    "status": "active",
+    "current_period_end": "2024-01-15T00:00:00Z",
+    "is_pro": true,
+    "is_past_due": false
+  }
+}
+```
+
+**Unauthenticated response:**
+```json
+{
+  "user": null,
+  "entitlement": null
+}
+```
+
+---
+
+### Snippets (Pro)
+
+#### GET /api/snippets
+
+List saved regex patterns.
+
+**Authentication:** Required (Pro)
+
+**Query Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `query` | string | Search by name or pattern |
+| `tag` | string | Filter by tag |
+| `limit` | number | Results per page (default: 20, max: 100) |
+| `cursor` | string | Pagination cursor |
+
+**Response:**
+```json
+{
+  "items": [
+    {
+      "id": "snippet_123",
+      "name": "Email Validation",
+      "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+      "flags": "gi",
+      "description": "Basic email format validation",
+      "tags": ["validation", "email"],
+      "created_at": "2023-10-15T10:30:00Z",
+      "updated_at": "2023-10-15T10:30:00Z"
+    }
+  ],
+  "next_cursor": "cursor_abc123"
+}
+```
+
+#### POST /api/snippets
+
+Create a new saved pattern.
+
+**Authentication:** Required (Pro)
+
+**Request Body:**
+```json
+{
+  "name": "Phone Number",
+  "pattern": "\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}",
+  "flags": "g",
+  "description": "US phone number format",
+  "tags": ["validation", "phone"]
+}
+```
+
+**Response:** `201 Created`
+```json
+{
+  "id": "snippet_456",
+  "name": "Phone Number",
+  "pattern": "\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}",
+  "flags": "g",
+  "description": "US phone number format",
+  "tags": ["validation", "phone"],
+  "created_at": "2023-10-15T11:00:00Z",
+  "updated_at": "2023-10-15T11:00:00Z"
+}
+```
+
+#### GET /api/snippets/:id
+
+Get a specific pattern.
+
+**Authentication:** Required (Pro)
+
+**Response:**
+```json
+{
+  "id": "snippet_123",
+  "name": "Email Validation",
+  "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+  "flags": "gi",
+  "description": "Basic email format validation",
+  "tags": ["validation", "email"],
+  "created_at": "2023-10-15T10:30:00Z",
+  "updated_at": "2023-10-15T10:30:00Z"
+}
+```
+
+#### PATCH /api/snippets/:id
+
+Update a pattern.
+
+**Authentication:** Required (Pro)
+
+**Request Body:** (all fields optional)
+```json
+{
+  "name": "Email Validation (Updated)",
+  "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+  "flags": "gi",
+  "description": "Updated description",
+  "tags": ["validation", "email", "updated"],
+  "notes": "Added support for plus addressing"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "snippet_123",
+  "name": "Email Validation (Updated)",
+  ...
+}
+```
+
+#### DELETE /api/snippets/:id
+
+Delete a pattern.
+
+**Authentication:** Required (Pro)
+
+**Response:** `204 No Content`
+
+#### GET /api/snippets/:id/versions
+
+Get version history for a pattern.
+
+**Authentication:** Required (Pro)
+
+**Response:**
+```json
+{
+  "items": [
+    {
+      "id": "version_789",
+      "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+      "flags": "gi",
+      "notes": "Added plus addressing support",
+      "created_at": "2023-10-15T11:00:00Z"
+    },
+    {
+      "id": "version_456",
+      "pattern": "^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+      "flags": "gi",
+      "notes": null,
+      "created_at": "2023-10-15T10:30:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### Export (Pro)
+
+#### POST /api/export
+
+Export explanation in various formats.
+
+**Authentication:** Required (Pro)
+
+**Request Body:**
+```json
+{
+  "format": "markdown",
+  "title": "Email Validation",
+  "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+  "flags": "gi",
+  "steps": [
+    { "label": "Start of string", "depth": 0 },
+    { "label": "One or more word characters...", "depth": 0, "detail": "Local part" }
+  ],
+  "warnings": [
+    {
+      "severity": "info",
+      "title": "Unescaped dot",
+      "message": "The dot matches any character",
+      "hint": "Use \\. for literal dot"
+    }
+  ]
+}
+```
+
+**Formats:** `markdown`, `plain`, `pr_comment`, `notion`
+
+**Response:**
+```json
+{
+  "content": "# Email Validation\n\n## Pattern\n\n..."
+}
+```
+
+---
+
+### Analyze (Pro)
+
+#### POST /api/analyze
+
+Perform advanced pattern analysis.
+
+**Authentication:** Required (Pro)
+
+**Request Body:**
+```json
+{
+  "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+  "flags": "gi"
+}
+```
+
+**Response:**
+```json
+{
+  "complexity": {
+    "score": 5,
+    "level": "moderate",
+    "nodes": 15,
+    "depth": 3
+  },
+  "performance": {
+    "bestCase": "O(n)",
+    "worstCase": "O(n)",
+    "redosRisk": "low"
+  },
+  "suggestions": []
+}
+```
+
+---
+
+### Billing
+
+#### POST /api/billing/checkout
+
+Create a Stripe checkout session.
+
+**Authentication:** Required
+
+**Request Body:**
+```json
+{
+  "priceId": "price_xxx",
+  "returnUrl": "https://regexlens.app/?checkout=success"
+}
+```
+
+**Response:**
+```json
+{
+  "url": "https://checkout.stripe.com/..."
+}
+```
+
+#### GET /api/billing/checkout
+
+Get available prices.
+
+**Authentication:** None
+
+**Response:**
+```json
+{
+  "prices": {
+    "monthly": {
+      "id": "price_xxx",
+      "amount": 800,
+      "currency": "usd",
+      "interval": "month"
+    },
+    "yearly": {
+      "id": "price_yyy",
+      "amount": 4900,
+      "currency": "usd",
+      "interval": "year",
+      "savings": "Save ~40%"
+    }
+  }
+}
+```
+
+---
+
+## Error Responses
+
+All errors follow this format:
+
+```json
+{
+  "error": "error_code",
+  "message": "Human-readable message",
+  "details": {}
+}
+```
+
+### Common Error Codes
+
+| Code | Status | Description |
+|------|--------|-------------|
+| `unauthorized` | 401 | Not signed in |
+| `pro_required` | 402 | Pro subscription required |
+| `not_found` | 404 | Resource not found |
+| `rate_limited` | 429 | Too many requests |
+| `invalid_json` | 400 | Malformed JSON body |
+| `validation_error` | 400 | Invalid input |
+| `internal_error` | 500 | Server error |
+
+---
+
+## Rate Limits
+
+| Endpoint | Free | Pro |
+|----------|------|-----|
+| `/api/me` | 60/min | 300/min |
+| `/api/snippets` | N/A | 300/min |
+| `/api/export` | N/A | 10/hour |
+| `/api/analyze` | N/A | 60/min |
+
+Rate limit headers are included in responses:
+
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 59
+X-RateLimit-Reset: 1697376000
+```
+
+---
+
+## Webhooks (Coming Soon)
+
+Pro users will be able to configure webhooks for:
+- Pattern created/updated/deleted
+- Subscription status changes

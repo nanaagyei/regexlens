@@ -1,23 +1,22 @@
 import { Suspense } from "react";
-import { AppShell } from "@/components/layout/AppShell";
-
-function LoadingFallback() {
-  return (
-    <div className="h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <div className="animate-pulse">
-          <div className="h-8 w-32 bg-muted rounded mb-2 mx-auto" />
-          <div className="h-4 w-48 bg-muted rounded mx-auto" />
-        </div>
-      </div>
-    </div>
-  );
-}
+import { LandingPage } from "@/components/landing/LandingPage";
 
 export default function Home() {
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <AppShell />
+    <Suspense fallback={<LandingSkeleton />}>
+      <LandingPage />
     </Suspense>
+  );
+}
+
+function LandingSkeleton() {
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="h-16 border-b border-border animate-pulse" />
+      <div className="max-w-4xl mx-auto px-4 py-24">
+        <div className="h-12 w-3/4 bg-muted rounded mb-4 animate-pulse" />
+        <div className="h-6 w-1/2 bg-muted rounded animate-pulse" />
+      </div>
+    </div>
   );
 }

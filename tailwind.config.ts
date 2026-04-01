@@ -58,6 +58,8 @@ export default {
           warn: "hsl(var(--warning-warn))",
           danger: "hsl(var(--warning-danger))",
         },
+        // Accent for section labels (magenta/pink)
+        "accent-label": "hsl(var(--accent-label))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -66,6 +68,7 @@ export default {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
         mono: ["var(--font-mono)", "JetBrains Mono", "SF Mono", "monospace"],
       },
       animation: {

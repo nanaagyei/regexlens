@@ -1,0 +1,165 @@
+# Log Parsing
+
+Parsing log files is a daily task for many developers. Whether you're debugging production issues or building monitoring tools, regex is essential for extracting structured data from log lines.
+
+## Apache/Nginx Access Logs
+
+### Combined Log Format
+
+A typical Apache/Nginx access log line:
+
+```
+192.168.1.1 - john [10/Oct/2023:13:55:36 -0700] "GET /api/users HTTP/1.1" 200 2326 "https://example.com" "Mozilla/5.0"
+```
+
+**Pattern to parse it:**
+
+```regex
+^(?<ip>[\d.]+)\s+-\s+(?<user>\S+)\s+\[(?<timestamp>[^\]]+)\]\s+"(?<method>\w+)\s+(?<path>\S+)\s+(?<protocol>[^"]+)"\s+(?<status>\d+)\s+(?<bytes>\d+)
+```
+
+[Try this pattern →](https://regexlens.app/?p=Xig/PGlwPltcZC5dKylccystXHMrKD88dXNlcj5cUyspXHMrXFsoPzx0aW1lc3RhbXA+W15cXV0rKVxdXHMrIig/PG1ldGhvZD5cdyspXHMrKD88cGF0aD5cUyspXHMrKD88cHJvdG9jb2w+W14iXSspIlxzKyg/PHN0YXR1cz5cZCspXHMrKD88Ynl0ZXM+XGQrKQ==&f=g&t=MTkyLjE2OC4xLjEgLSBqb2huIFsxMC9PY3QvMjAyMzoxMzo1NTozNiAtMDcwMF0gIkdFVCAvYXBpL3VzZXJzIEhUVFAvMS4xIiAyMDAgMjMyNiAiaHR0cHM6Ly9leGFtcGxlLmNvbSIgIk1vemlsbGEvNS4wIg==)
+
+**Captured groups:**
+- `ip` — Client IP address
+- `user` — Authenticated user (or `-`)
+- `timestamp` — Request timestamp
+- `method` — HTTP method (GET, POST, etc.)
+- `path` — Requested URL path
+- `protocol` — HTTP protocol version
+- `status` — Response status code
+- `bytes` — Response size
+
+### Extract Just Status Codes
+
+Quick pattern to find all HTTP status codes:
+
+```regex
+"\s(\d{3})\s
+```
+
+[Try it →](https://regexlens.app/?p=IlxzKFxkezN9KVxz&f=g&t=IkdFVCAvYXBpIEhUVFAvMS4xIiAyMDAgMTIzNAoiUE9TVCAvbG9naW4gSFRUUC8xLjEiIDQwMSA1NgoiR0VUIC9oZWFsdGggSFRUUC8xLjEiIDUwMCA3OA==)
+
+### Find Error Responses (4xx and 5xx)
+
+```regex
+"\s([45]\d{2})\s
+```
+
+[Try it →](https://regexlens.app/?p=IlxzKFs0NV1cZHsyfSlccw==&f=g&t=IkdFVCAvYXBpIEhUVFAvMS4xIiAyMDAgMTIzNAoiUE9TVCAvbG9naW4gSFRUUC8xLjEiIDQwMSA1NgoiR0VUIC9oZWFsdGggSFRUUC8xLjEiIDUwMCA3OA==)
+
+## Application Logs
+
+### Timestamp Extraction
+
+Common timestamp formats:
+
+**ISO 8601:**
+```regex
+\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?
+```
+
+[Try it →](https://regexlens.app/?p=XGR7NH0tXGR7Mn0tXGR7Mn1UXGR7Mn06XGR7Mn06XGR7Mn0oPzpcLlxkKyk/KD86WnxbKy1dXGR7Mn06XGR7Mn0pPw==&f=g&t=MjAyMy0xMC0xNVQxNDozMDowMFoKMjAyMy0xMC0xNVQxNDozMDowMC4xMjMrMDA6MDAKMjAyMy0xMC0xNVQxNDozMDowMC0wNTowMA==)
+
+**Common log format:**
+```regex
+\d{2}/\w{3}/\d{4}:\d{2}:\d{2}:\d{2}\s[+-]\d{4}
+```
+
+### Log Levels
+
+Extract log level from structured logs:
+
+```regex
+\b(DEBUG|INFO|WARN|ERROR|FATAL)\b
+```
+
+[Try it →](https://regexlens.app/?p=XGIoREVCVUd8SU5GT3xXQVJOfEVSUk9SfEZBVEFMKVxi&f=gi&t=MjAyMy0xMC0xNSBJTkZPIFVzZXIgbG9nZ2VkIGluCjIwMjMtMTAtMTUgRVJST1IgRGF0YWJhc2UgY29ubmVjdGlvbiBmYWlsZWQKMjAyMy0xMC0xNSBERUJVRyBQcm9jZXNzaW5nIHJlcXVlc3QKMjAyMy0xMC0xNSBXQVJOIE1lbW9yeSB1c2FnZSBoaWdo)
+
+### JSON Log Parsing
+
+For JSON-structured logs, extract specific fields:
+
+**Extract error messages:**
+```regex
+"error":\s*"([^"]+)"
+```
+
+**Extract request IDs:**
+```regex
+"request_id":\s*"([a-f0-9-]+)"
+```
+
+[Try JSON parsing →](https://regexlens.app/?p=InJlcXVlc3RfaWQiOlxzKiIoW2EtZjAtOS1dKyki&f=g&t=eyJyZXF1ZXN0X2lkIjogImFiYzEyMy00NTYtZGVmIiwgInN0YXR1cyI6ICJvayJ9CnsicmVxdWVzdF9pZCI6ICI3ODktZ2hpLTAxMiIsICJlcnJvciI6ICJ0aW1lb3V0In0=)
+
+## Stack Traces
+
+### Java Stack Trace
+
+Extract class and line number from Java exceptions:
+
+```regex
+at\s+(?<class>[\w.$]+)\.(?<method>\w+)\((?<file>\w+\.java):(?<line>\d+)\)
+```
+
+[Try it →](https://regexlens.app/?p=YXRccysoPzxjbGFzcz5bXHcuJF0rKVwuKD88bWV0aG9kPlx3KylcKCg/PGZpbGU+XHcrXC5qYXZhKTooPzxsaW5lPlxkKylcKQ==&f=g&t=amF2YS5sYW5nLk51bGxQb2ludGVyRXhjZXB0aW9uCglhdCBjb20uZXhhbXBsZS5TZXJ2aWNlLnByb2Nlc3MoU2VydmljZS5qYXZhOjQyKQoJYXQgY29tLmV4YW1wbGUuQ29udHJvbGxlci5oYW5kbGUoQ29udHJvbGxlci5qYXZhOjE1KQ==)
+
+### Python Traceback
+
+```regex
+File "(?<file>[^"]+)", line (?<line>\d+), in (?<function>\w+)
+```
+
+### JavaScript Stack Trace
+
+```regex
+at\s+(?:(?<function>\w+)\s+\()?(?<file>[^:]+):(?<line>\d+):(?<column>\d+)\)?
+```
+
+## Practical Tips
+
+import { Callout } from 'nextra/components'
+
+<Callout type="warning">
+**Performance Warning:** When parsing large log files, compile your regex once and reuse it. Creating a new RegExp for each line is slow.
+</Callout>
+
+### Use Named Groups
+
+Named groups make your code self-documenting:
+
+```javascript
+const pattern = /^(?<ip>[\d.]+)\s.*?"(?<method>\w+)\s(?<path>\S+)/;
+const match = line.match(pattern);
+if (match) {
+  console.log(match.groups.ip);     // "192.168.1.1"
+  console.log(match.groups.method); // "GET"
+  console.log(match.groups.path);   // "/api/users"
+}
+```
+
+### Handle Variations
+
+Real logs have inconsistencies. Use optional groups:
+
+```regex
+(?:ERROR|Error|error):\s*(.+)
+```
+
+### Test with Real Data
+
+Always test your patterns with actual log samples, including edge cases:
+- Empty fields
+- Special characters in paths
+- Multiline log entries
+- Malformed entries
+
+## Common Log Patterns Cheatsheet
+
+| Log Type | Pattern |
+|----------|---------|
+| IP Address | `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}` |
+| ISO Timestamp | `\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}` |
+| UUID | `[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}` |
+| HTTP Status | `[1-5]\d{2}` |
+| Log Level | `(DEBUG\|INFO\|WARN\|ERROR\|FATAL)` |

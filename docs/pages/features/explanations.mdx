@@ -1,0 +1,103 @@
+# Plain-English Explanations
+
+One of RegexLens's most powerful features is its ability to break down any regex into human-readable steps. No more deciphering cryptic patterns—every component is explained clearly.
+
+## How It Works
+
+RegexLens parses your regex into an Abstract Syntax Tree (AST), then traverses each node to generate a natural language explanation. This is **deterministic**, not AI-generated, so you get consistent, accurate explanations every time.
+
+## Example Breakdown
+
+Let's look at a password validation regex:
+
+```regex
+^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$
+```
+
+RegexLens explains this as:
+
+| Step | Explanation |
+|------|-------------|
+| 1 | Start of string |
+| 2 | Positive lookahead: requires at least one uppercase letter (A-Z) |
+| 3 | Positive lookahead: requires at least one lowercase letter (a-z) |
+| 4 | Positive lookahead: requires at least one digit |
+| 5 | Positive lookahead: requires at least one special character (@$!%*?&) |
+| 6 | Match 8 or more characters from: letters, digits, or special characters |
+| 7 | End of string |
+
+[Try this pattern →](https://regexlens.app/?p=Xig/PS4qW0EtWl0pKD89LipbYS16XSkoPz0uKlxkKSg/PS4qW0AkISUqPyZdKVtBLVphLXpcZEAkISUqPyZdezgsfSQ=&f=)
+
+## Explanation Depth
+
+Explanations are hierarchical, showing nested structures clearly:
+
+```regex
+(foo|bar)+
+```
+
+Explanation:
+```
+1. Capture group #1
+   └─ Alternation: "foo" OR "bar"
+2. One or more times
+```
+
+## Hover Synchronization
+
+**Hover over any explanation step** to highlight the corresponding part of your regex pattern. This bidirectional sync helps you understand exactly which part of the pattern each explanation refers to.
+
+You can also:
+- **Click to lock** a highlight so it stays visible
+- **Hover over the pattern** to highlight the corresponding explanation
+
+## Supported Constructs
+
+RegexLens explains all JavaScript regex features:
+
+### Basic Patterns
+- Literal characters
+- Character classes `[abc]` and `[^abc]`
+- Predefined classes `\d`, `\w`, `\s`, `.`
+- Anchors `^`, `$`, `\b`, `\B`
+
+### Quantifiers
+- `*` (zero or more)
+- `+` (one or more)
+- `?` (zero or one)
+- `{n}` (exactly n)
+- `{n,}` (n or more)
+- `{n,m}` (between n and m)
+- Lazy variants `*?`, `+?`, `??`, `{n,m}?`
+
+### Groups
+- Capture groups `(...)` with numbered references
+- Named groups `(?<name>...)` with name display
+- Non-capturing groups `(?:...)`
+- Backreferences `\1`, `\k<name>`
+
+### Lookarounds
+- Positive lookahead `(?=...)`
+- Negative lookahead `(?!...)`
+- Positive lookbehind `(?<=...)`
+- Negative lookbehind `(?<!...)`
+
+### Alternation
+- Simple alternation `foo|bar`
+- Grouped alternation `(foo|bar|baz)`
+
+## Tips for Reading Explanations
+
+1. **Read top to bottom** — Explanations follow the regex from left to right
+2. **Check indentation** — Nested items are children of the parent construct
+3. **Look for quantifiers** — They always follow what they quantify
+4. **Watch for anchors** — `^` and `$` define boundaries
+
+## Explanation Quality
+
+RegexLens aims for explanations that are:
+
+- **Accurate** — Every explanation matches the actual regex behavior
+- **Concise** — No unnecessary verbosity
+- **Actionable** — You understand what the regex does, not just what it is
+- **Educational** — Learn regex concepts as you use the tool

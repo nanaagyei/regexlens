@@ -1,0 +1,258 @@
+# Data Extraction
+
+Extracting structured data from unstructured text is a core regex use case. From parsing CSV files to extracting phone numbers, these patterns will help you pull data from any source.
+
+## Phone Numbers
+
+### US Phone Numbers (Flexible)
+
+```regex
+(?:\+?1[-.\s]?)?\(?(\d{3})\)?[-.\s]?(\d{3})[-.\s]?(\d{4})
+```
+
+**Matches:**
+- `(555) 123-4567`
+- `555-123-4567`
+- `555.123.4567`
+- `5551234567`
+- `+1 555 123 4567`
+
+[Try it →](https://regexlens.app/?p=KD86XCs/MVstLlxzXT8pP1woPyhcZHszfSlcKT9bLS5cc10/KFxkezN9KVstLlxzXT8oXGR7NH0p&f=g&t=Q2FsbCB1cyBhdCAoNTU1KSAxMjMtNDU2NyBvciA1NTUtMTIzLTQ1NjcKSW50ZXJuYXRpb25hbDogKzEgNTU1IDEyMyA0NTY3ClNpbXBsZTogNTU1MTIzNDU2Nw==)
+
+### International Phone Numbers
+
+```regex
+\+?\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}
+```
+
+### With Named Groups
+
+```regex
+\(?(?<area>\d{3})\)?[-.\s]?(?<exchange>\d{3})[-.\s]?(?<subscriber>\d{4})
+```
+
+[Try it →](https://regexlens.app/?p=XCg/KD88YXJlYT5cZHszfSlcKT9bLS5cc10/KD88ZXhjaGFuZ2U+XGR7M30pWy0uXHNdPyg/PHN1YnNjcmliZXI+XGR7NH0p&f=g&t=KDU1NSkgMTIzLTQ1Njc=)
+
+## Dates
+
+### ISO 8601 Date
+
+```regex
+(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})
+```
+
+[Try it →](https://regexlens.app/?p=KD88eWVhcj5cZHs0fSktKD88bW9udGg+XGR7Mn0pLSg/PGRheT5cZHsyfSk=&f=g&t=MjAyMy0xMC0xNQoyMDI0LTAxLTAx)
+
+### US Date Format (MM/DD/YYYY)
+
+```regex
+(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{4})
+```
+
+### European Date Format (DD/MM/YYYY)
+
+```regex
+(?<day>\d{1,2})/(?<month>\d{1,2})/(?<year>\d{4})
+```
+
+### Multiple Formats
+
+```regex
+\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|\d{4}[-/]\d{2}[-/]\d{2}
+```
+
+[Try it →](https://regexlens.app/?p=XGR7MSwyfVstL11cZHsxLDJ9Wy0vXVxkezIsNH18XGR7NH1bLS9dXGR7Mn1bLS9dXGR7Mn0=&f=g&t=MTAvMTUvMjAyMwoxNS0xMC0yMwoyMDIzLTEwLTE1)
+
+## Currency and Prices
+
+### US Dollar Amounts
+
+```regex
+\$\d{1,3}(?:,\d{3})*(?:\.\d{2})?
+```
+
+**Matches:**
+- `$5.99`
+- `$1,234.56`
+- `$1,000,000.00`
+
+[Try it →](https://regexlens.app/?p=XCRcZHsxLDN9KD86LFxkezN9KSooPzpcLlxkezJ9KT8=&f=g&t=UHJpY2U6ICQ1Ljk5ClRvdGFsOiAkMSwyMzQuNTYKQnVkZ2V0OiAkMSwwMDAsMDAwLjAw)
+
+### Multiple Currencies
+
+```regex
+(?<currency>[€£$¥])(?<amount>\d{1,3}(?:[,.\s]\d{3})*(?:[.,]\d{2})?)
+```
+
+### Extract Price from Text
+
+```regex
+(?:price|cost|total):\s*\$?(?<amount>[\d,.]+)
+```
+
+[Try it →](https://regexlens.app/?p=KD86cHJpY2V8Y29zdHx0b3RhbCk6XHMqXCQ/KD88YW1vdW50PltcZCwuXSsp&f=gi&t=UHJpY2U6ICQxOS45OQpDb3N0OiA0OS45OQpUb3RhbDogJDEsMjM0LjU2)
+
+## CSV Parsing
+
+### Simple CSV Fields
+
+```regex
+(?:^|,)(?:"([^"]*(?:""[^"]*)*)"|([^,]*))
+```
+
+This handles:
+- Unquoted fields
+- Quoted fields
+- Escaped quotes (`""` inside quoted fields)
+
+### Extract Specific Column
+
+For the 3rd column (0-indexed as column 2):
+
+```regex
+^(?:[^,]*,){2}([^,]*)
+```
+
+[Try it →](https://regexlens.app/?p=Xig/OlteLF0qLCl7Mn0oW14sXSop&f=gm&t=bmFtZSxhZ2UsY2l0eSxjb3VudHJ5CkpvaG4sMzAsTmV3IFlvcmssVVNBCkphbmUsMjUsUGFyaXMsRnJhbmNl)
+
+## JSON Key-Value Extraction
+
+### Extract Specific Key
+
+```regex
+"username":\s*"([^"]+)"
+```
+
+[Try it →](https://regexlens.app/?p=InVzZXJuYW1lIjpccyoiKFteIl0rKSI=&f=g&t=eyJ1c2VybmFtZSI6ICJqb2huX2RvZSIsICJlbWFpbCI6ICJqb2huQGV4YW1wbGUuY29tIn0=)
+
+### Extract All String Values
+
+```regex
+"(\w+)":\s*"([^"]+)"
+```
+
+[Try it →](https://regexlens.app/?p=IihcdyspIjpccyoiKFteIl0rKSI=&f=g&t=eyJuYW1lIjogIkpvaG4iLCAiY2l0eSI6ICJOZXcgWW9yayIsICJhZ2UiOiAzMH0=)
+
+### Extract Numeric Values
+
+```regex
+"(\w+)":\s*(\d+(?:\.\d+)?)
+```
+
+## Addresses
+
+### US ZIP Codes
+
+```regex
+\b\d{5}(?:-\d{4})?\b
+```
+
+**Matches:**
+- `12345`
+- `12345-6789`
+
+[Try it →](https://regexlens.app/?p=XGJcZHs1fSg/Oi1cZHs0fSk/XGI=&f=g&t=MTIzIE1haW4gU3QsIE5ldyBZb3JrLCBOWSAxMjM0NQo0NTYgT2FrIEF2ZSwgTG9zIEFuZ2VsZXMsIENBIDkwMjEwLTEyMzQ=)
+
+### US State Abbreviations
+
+```regex
+\b[A-Z]{2}\b
+```
+
+### Street Addresses
+
+```regex
+\d+\s+[\w\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Way|Court|Ct)\.?
+```
+
+[Try it →](https://regexlens.app/?p=XGQrXHMrW1x3XHNdKyg/OlN0cmVldHxTdHxBdmVudWV8QXZlfFJvYWR8UmR8Qm91bGV2YXJkfEJsdmR8RHJpdmV8RHJ8TGFuZXxMbnxXYXl8Q291cnR8Q3QpXC4/&f=gi&t=MTIzIE1haW4gU3RyZWV0CjQ1NiBPYWsgQXZlCjc4OSBQYXJrIEJsdmQu)
+
+## Social Security Numbers
+
+import { Callout } from 'nextra/components'
+
+<Callout type="error">
+**Security Warning:** Be extremely careful when handling SSNs. Never log them, and always mask them in displays.
+</Callout>
+
+```regex
+\b\d{3}-\d{2}-\d{4}\b
+```
+
+### Masked SSN (for display)
+
+Find and replace to mask:
+
+**Find:** `\b(\d{3})-(\d{2})-(\d{4})\b`
+**Replace:** `XXX-XX-$3`
+
+## Credit Card Numbers
+
+<Callout type="error">
+**PCI Compliance:** Never store or log full credit card numbers. Use this only for format validation before sending to a payment processor.
+</Callout>
+
+### Basic Format (with spaces or dashes)
+
+```regex
+\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b
+```
+
+### By Card Type
+
+**Visa:**
+```regex
+\b4\d{3}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b
+```
+
+**Mastercard:**
+```regex
+\b5[1-5]\d{2}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b
+```
+
+**American Express:**
+```regex
+\b3[47]\d{2}[-\s]?\d{6}[-\s]?\d{5}\b
+```
+
+## Practical Tips
+
+### Handling Optional Parts
+
+Use `?` for optional elements:
+
+```regex
+\+?1?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}
+```
+
+### Non-Capturing Groups for Structure
+
+Use `(?:...)` when you need grouping but don't need to capture:
+
+```regex
+(?:\d{1,3}\.){3}\d{1,3}
+```
+
+This matches IP addresses without creating 3 capture groups.
+
+### Greedy vs Lazy
+
+For extracting quoted strings, use lazy quantifiers:
+
+```regex
+"[^"]*"     // Greedy but limited by [^"]
+".*?"       // Lazy - stops at first quote
+```
+
+## Common Extraction Patterns
+
+| Data Type | Pattern |
+|-----------|---------|
+| Email | `[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}` |
+| Phone (US) | `\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}` |
+| Date (ISO) | `\d{4}-\d{2}-\d{2}` |
+| Time (24h) | `\d{2}:\d{2}(?::\d{2})?` |
+| IP Address | `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}` |
+| ZIP Code | `\d{5}(?:-\d{4})?` |
+| UUID | `[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}` |
+| Hex Color | `#[a-fA-F0-9]{6}\|#[a-fA-F0-9]{3}` |

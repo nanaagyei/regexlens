@@ -1,0 +1,101 @@
+# Sharing & Templates
+
+RegexLens makes it easy to share your regex patterns and learn from pre-built templates.
+
+## Shareable Links
+
+Every regex state in RegexLens can be shared via URL. The pattern, flags, and test text are encoded in the URL parameters.
+
+### How to Share
+
+1. Click the **Share** button in the header
+2. Click **Copy Link** to copy the URL to your clipboard
+3. Share the link with teammates, in documentation, or in code reviews
+
+### URL Structure
+
+```
+https://regexlens.app/?p=BASE64_PATTERN&f=FLAGS&t=BASE64_TEXT
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `p` | Base64-encoded regex pattern |
+| `f` | Flags string (e.g., "gi") |
+| `t` | Base64-encoded test text |
+
+### Benefits
+
+- **No login required** — Anyone can view shared patterns
+- **No data stored** — Everything is in the URL
+- **Permanent links** — Links never expire
+- **Full state** — Pattern, flags, and test text are all preserved
+
+### Use Cases
+
+- **Code reviews** — Share a regex with your PR for explanation
+- **Documentation** — Link to interactive examples
+- **Bug reports** — Show exactly what you're testing
+- **Teaching** — Share patterns with students or teammates
+
+## Built-in Templates
+
+RegexLens includes 15 real-world regex patterns to learn from. Access them via the **Examples** dropdown in the header.
+
+### Available Templates
+
+| Template | Description | Pattern |
+|----------|-------------|---------|
+| **A/B + digits** | Match sequences like AB12, AAA99 | `^[A-Z]+\d{2,4}$` |
+| **Email (basic)** | Simple email validation | `^[\w.-]+@[\w.-]+\.\w{2,}$` |
+| **US Phone** | Flexible phone number formats | `\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}` |
+| **ISO Date** | YYYY-MM-DD validation | `^\d{4}-\d{2}-\d{2}$` |
+| **Quoted strings** | Extract strings with escapes | `"(?:[^"\\]|\\.)*"` |
+| **URL (HTTP/S)** | Match web URLs | `https?://[\w.-]+(?:/[\w./-]*)?` |
+| **TODO comments** | Find TODO in code | `//\s*TODO:?\s*(.*)` |
+| **Multiple spaces** | Detect extra whitespace | `\s{2,}` |
+| **Markdown headings** | Parse # headings | `^(#{1,6})\s+(.+)$` |
+| **Word boundaries** | Capture whole words | `\b\w+\b` |
+| **Password policy** | Complexity requirements | `^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$` |
+| **Named groups** | Phone with named captures | `(?<area>\d{3})-(?<exchange>\d{3})-(?<subscriber>\d{4})` |
+| **Key=value pairs** | Config file parsing | `^(\w+)=(.*)$` |
+| **HTML tags** | Simple tag matching | `<(\w+)[^>]*>.*?</\1>` |
+| **Danger demo** | Catastrophic backtracking | `(a+)+$` |
+
+### Using Templates
+
+1. Click **Examples** in the header
+2. Select a template from the dropdown
+3. The pattern, flags, and sample test text are loaded
+4. Modify as needed for your use case
+
+### Learning from Templates
+
+Each template demonstrates different regex concepts:
+
+- **Basic matching** — Email, phone, date patterns
+- **Quantifiers** — Various repetition strategies
+- **Groups** — Capturing, non-capturing, named groups
+- **Lookaheads** — Password validation with multiple requirements
+- **Character classes** — Custom and predefined classes
+- **Anchors** — Start/end of string matching
+- **Backreferences** — HTML tag matching with `\1`
+
+## Copy Pattern
+
+The **Copy** button copies just the regex pattern (without flags or test text) to your clipboard. Useful when you need to paste the pattern into code.
+
+## Export (Pro)
+
+Pro users can export explanations in multiple formats:
+
+- **Markdown** — For documentation
+- **PR Comment** — GitHub-friendly collapsible format
+- **Notion** — Notion-compatible blocks
+- **Plain Text** — Simple text format
+
+See [Export Formats](/pro/export-formats) for details.
+
+## Keyboard Shortcut
+
+Press `Cmd/Ctrl + Shift + C` to quickly copy the share link without clicking.

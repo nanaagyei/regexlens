@@ -1,0 +1,8 @@
+{
+  "email-validation": "Email Validation",
+  "log-parsing": "Log Parsing",
+  "url-extraction": "URL Extraction",
+  "code-refactoring": "Code Refactoring",
+  "data-extraction": "Data Extraction",
+  "security-patterns": "Security Patterns"
+}

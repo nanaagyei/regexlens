@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser, AuthedUser } from "@/lib/auth/getUser";
+import { queryOne } from "@/lib/db/pool";
 
 type Plan = "FREE" | "PRO";
 type Status = "active" | "inactive" | "past_due" | "canceled";
@@ -7,7 +8,7 @@ type Status = "active" | "inactive" | "past_due" | "canceled";
 export type Entitlement = {
   plan: Plan;
   status: Status;
-  currentPeriodEnd?: string;
+  currentPeriodEnd?: string | null;
 };
 
 type ProGuardOk = {
@@ -17,6 +18,41 @@ type ProGuardOk = {
 };
 
 type ProGuardFail = NextResponse;
+
+interface EntitlementRow {
+  plan: string;
+  status: string;
+  current_period_end: Date | null;
+}
+
+/**
+ * Fetch entitlement from database for a user
+ */
+async function getEntitlementFromDB(userId: string): Promise<Entitlement> {
+  try {
+    const row = await queryOne<EntitlementRow>(
+      `SELECT plan::text, status::text, current_period_end
+       FROM entitlements
+       WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (!row) {
+      // No entitlement row - return default FREE
+      return { plan: "FREE", status: "inactive" };
+    }
+
+    return {
+      plan: (row.plan as Plan) || "FREE",
+      status: (row.status as Status) || "inactive",
+      currentPeriodEnd: row.current_period_end?.toISOString() || null,
+    };
+  } catch (error) {
+    console.error("Failed to fetch entitlement:", error);
+    // On error, default to FREE for safety
+    return { plan: "FREE", status: "inactive" };
+  }
+}
 
 /**
  * Require authentication only (any user)
@@ -34,16 +70,19 @@ export async function requireAuth(): Promise<ProGuardOk | ProGuardFail> {
     );
   }
 
+  // Fetch actual entitlement from database
+  const entitlement = await getEntitlementFromDB(user.id);
+
   return {
     ok: true,
     user,
-    entitlement: { plan: "FREE", status: "inactive" },
+    entitlement,
   };
 }
 
 /**
  * Require Pro subscription
- * Currently returns 402 for all users since Pro is not implemented
+ * Checks database for active Pro entitlement
  */
 export async function requirePro(): Promise<ProGuardOk | ProGuardFail> {
   const user = await getAuthedUser();
@@ -58,26 +97,40 @@ export async function requirePro(): Promise<ProGuardOk | ProGuardFail> {
     );
   }
 
-  // For now, all users are FREE
-  // In production, this would query the entitlements table
-  const entitlement: Entitlement = {
-    plan: "FREE",
-    status: "inactive",
-  };
+  // Fetch actual entitlement from database
+  const entitlement = await getEntitlementFromDB(user.id);
 
-  // Pro features are coming soon - always return 402
-  return NextResponse.json(
-    {
-      error: "pro_required",
-      message: "Upgrade to RegexLens Pro to access this feature.",
-      details: {
-        plan: entitlement.plan,
-        status: entitlement.status,
-        upgrade_url: "/pricing",
+  // Check if user has active Pro subscription
+  const isProActive = entitlement.plan === "PRO" && entitlement.status === "active";
+
+  if (!isProActive) {
+    // Check if subscription is past due (give grace period)
+    const isPastDue = entitlement.plan === "PRO" && entitlement.status === "past_due";
+    
+    if (isPastDue) {
+      // Allow access but warn about payment issue
+      return {
+        ok: true,
+        user,
+        entitlement,
+      };
+    }
+
+    return NextResponse.json(
+      {
+        error: "pro_required",
+        message: "Upgrade to RegexLens Pro to access this feature.",
+        details: {
+          plan: entitlement.plan,
+          status: entitlement.status,
+          upgrade_url: "/pricing",
+        },
       },
-    },
-    { status: 402 }
-  );
+      { status: 402 }
+    );
+  }
+
+  return { ok: true, user, entitlement };
 }
 
 /**
@@ -87,4 +140,12 @@ export function isGuardOk(
   result: ProGuardOk | ProGuardFail
 ): result is ProGuardOk {
   return "ok" in result && result.ok === true;
+}
+
+/**
+ * Get entitlement for a user without requiring authentication
+ * Useful for /api/me endpoint
+ */
+export async function getEntitlement(userId: string): Promise<Entitlement> {
+  return getEntitlementFromDB(userId);
 }
