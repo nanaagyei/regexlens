@@ -11,7 +11,6 @@ import {
   ZeroOrMore,
   Group as RailroadGroup,
   Terminal,
-  NonTerminal,
 } from "@prantlf/railroad-diagrams";
 import type { AstNode } from "@/types";
 
@@ -60,7 +59,7 @@ function toNode(node: AstNode | AstNode[] | undefined): unknown[] {
 
       if (!quantifier) return [item];
 
-      const kind = quantifier.kind_;
+      const kind = quantifier.kind ?? quantifier.kind_;
       if (kind === "*") return [new ZeroOrMore(item)];
       if (kind === "+") return [new OneOrMore(item)];
       if (kind === "?") return [new Optional(item)];
@@ -73,12 +72,12 @@ function toNode(node: AstNode | AstNode[] | undefined): unknown[] {
           return [new OneOrMore(item)];
         }
         if (from === to) {
-          return [new NonTerminal(`{${from}}`)];
+          return [new RailroadGroup(item, `exactly ${from}`)];
         }
         if (from === 0 && to === 1) {
           return [new Optional(item)];
         }
-        return [new NonTerminal(`{${from}${to !== undefined ? `,${to}` : ","}}`)];
+        return [new RailroadGroup(item, `${from}..${to}`)];
       }
 
       return [item];

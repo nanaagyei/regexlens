@@ -213,13 +213,45 @@
   background-color: transparent;
 }
 .railroad-diagram-wrapper svg.railroad-diagram path {
-  stroke: hsl(var(--foreground) / 0.8);
+  stroke-width: 2;
+  stroke: hsl(var(--foreground) / 0.7);
+  fill: rgba(0, 0, 0, 0);
 }
 .railroad-diagram-wrapper svg.railroad-diagram text {
+  font: bold 14px monospace;
+  text-anchor: middle;
+  white-space: pre;
   fill: hsl(var(--foreground));
 }
+.railroad-diagram-wrapper svg.railroad-diagram text.diagram-text {
+  font-size: 12px;
+}
+.railroad-diagram-wrapper svg.railroad-diagram text.diagram-arrow {
+  font-size: 16px;
+}
+.railroad-diagram-wrapper svg.railroad-diagram text.label {
+  text-anchor: start;
+}
+.railroad-diagram-wrapper svg.railroad-diagram text.comment {
+  font: italic 12px monospace;
+}
 .railroad-diagram-wrapper svg.railroad-diagram rect {
-  stroke: hsl(var(--foreground) / 0.8);
+  stroke-width: 2;
+  stroke: hsl(var(--foreground) / 0.5);
+  fill: hsl(var(--muted));
+}
+.railroad-diagram-wrapper svg.railroad-diagram rect.group-box {
+  stroke: hsl(var(--foreground) / 0.3);
+  stroke-dasharray: 10 5;
+  fill: hsl(var(--foreground) / 0.03);
+}
+.railroad-diagram-wrapper svg.railroad-diagram path.diagram-text {
+  stroke-width: 2;
+  stroke: hsl(var(--foreground) / 0.7);
+  fill: hsl(var(--background));
+  cursor: help;
+}
+.railroad-diagram-wrapper svg.railroad-diagram g.diagram-text:hover path.diagram-text {
   fill: hsl(var(--muted));
 }
 
