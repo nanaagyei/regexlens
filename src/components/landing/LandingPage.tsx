@@ -8,6 +8,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Button } from "@/components/ui/button";
+import { DOCS_URL } from "@/lib/site";
 import {
   Collapsible,
   CollapsibleContent,
@@ -190,7 +191,7 @@ const TRUST_ITEMS = [
 const NAV_LINKS = [
   { href: "/app", label: "Try it" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/docs", label: "Docs", external: true },
+  { href: DOCS_URL, label: "Docs", external: true },
 ];
 
 const BROWSER_LOGOS = [
@@ -842,6 +843,15 @@ export function LandingPage() {
               <p className="text-muted-foreground">
                 Your regex stays yours. Always.
               </p>
+              <p className="text-sm text-muted-foreground mt-4">
+                <Link href="/privacy" className="text-primary hover:underline underline-offset-4">
+                  Privacy Policy
+                </Link>
+                <span className="mx-2 text-border">·</span>
+                <Link href="/terms" className="text-primary hover:underline underline-offset-4">
+                  Terms of Service
+                </Link>
+              </p>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {TRUST_ITEMS.map((item) => (
@@ -1066,7 +1076,7 @@ export function LandingPage() {
                 </li>
                 <li>
                   <a
-                    href="/docs"
+                    href={DOCS_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-foreground transition-colors"
@@ -1081,19 +1091,21 @@ export function LandingPage() {
               <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li>
                   <a
-                    href="#"
+                    href="https://github.com/nanaagyei"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="hover:text-foreground transition-colors"
                   >
                     GitHub
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/changelog"
                     className="hover:text-foreground transition-colors"
                   >
                     Changelog
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -1101,20 +1113,20 @@ export function LandingPage() {
               <h4 className="font-semibold text-sm mb-4">Legal</h4>
               <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/privacy"
                     className="hover:text-foreground transition-colors"
                   >
                     Privacy
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/terms"
                     className="hover:text-foreground transition-colors"
                   >
                     Terms
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -1122,7 +1134,9 @@ export function LandingPage() {
               <h4 className="font-semibold text-sm mb-4">Connect</h4>
               <div className="flex gap-2">
                 <a
-                  href="#"
+                  href="https://github.com/nanaagyei"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="p-2 rounded-lg bg-card/50 border border-border/30 hover:border-primary/30 hover:bg-primary/10 transition-colors duration-200"
                   aria-label="GitHub"
                 >

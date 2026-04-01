@@ -14,7 +14,7 @@ Find all occurrences of a variable name (as a whole word):
 
 The `\b` word boundaries ensure you match `oldName` but not `oldNameSuffix` or `prefixOldName`.
 
-[Try it →](https://regexlens.app/?p=XGJvbGROYW1lXGI=&f=g&t=Y29uc3Qgb2xkTmFtZSA9IDU7CmNvbnN0IG9sZE5hbWVTdWZmaXggPSAxMDsKY29uc29sZS5sb2cob2xkTmFtZSk7)
+[Try it →](https://regexlens.dev/app?p=XGJvbGROYW1lXGI=&f=g&t=Y29uc3Qgb2xkTmFtZSA9IDU7CmNvbnN0IG9sZE5hbWVTdWZmaXggPSAxMDsKY29uc29sZS5sb2cob2xkTmFtZSk7)
 
 ### Rename with Context
 
@@ -24,7 +24,7 @@ Find variable declarations specifically:
 \b(const|let|var)\s+oldName\b
 ```
 
-[Try it →](https://regexlens.app/?p=XGIoY29uc3R8bGV0fHZhcilccytvbGROYW1lXGI=&f=g&t=Y29uc3Qgb2xkTmFtZSA9IDU7CmxldCBvbGROYW1lID0gMTA7CmNvbnNvbGUubG9nKG9sZE5hbWUpOw==)
+[Try it →](https://regexlens.dev/app?p=XGIoY29uc3R8bGV0fHZhcilccytvbGROYW1lXGI=&f=g&t=Y29uc3Qgb2xkTmFtZSA9IDU7CmxldCBvbGROYW1lID0gMTA7CmNvbnNvbGUubG9nKG9sZE5hbWUpOw==)
 
 ### Rename Object Property Access
 
@@ -32,7 +32,7 @@ Find variable declarations specifically:
 \.oldProperty\b
 ```
 
-[Try it →](https://regexlens.app/?p=XC5vbGRQcm9wZXJ0eVxi&f=g&t=dXNlci5vbGRQcm9wZXJ0eSA9IDU7CmNvbnNvbGUubG9nKG9iai5vbGRQcm9wZXJ0eSk7)
+[Try it →](https://regexlens.dev/app?p=XC5vbGRQcm9wZXJ0eVxi&f=g&t=dXNlci5vbGRQcm9wZXJ0eSA9IDU7CmNvbnNvbGUubG9nKG9iai5vbGRQcm9wZXJ0eSk7)
 
 ## Import Statement Updates
 
@@ -44,7 +44,7 @@ Find imports from a specific module:
 import\s+(?:{[^}]+}|\w+)\s+from\s+['"]@old-package['"]
 ```
 
-[Try it →](https://regexlens.app/?p=aW1wb3J0XHMrKD86e1tefV0rfHxcdyspXHMrZnJvbVxzK1snIl1Ab2xkLXBhY2thZ2VbJyJd&f=g&t=aW1wb3J0IHsgZm9vLCBiYXIgfSBmcm9tICdAb2xkLXBhY2thZ2UnOwppbXBvcnQgZGVmYXVsdEV4cG9ydCBmcm9tICdAb2xkLXBhY2thZ2UnOwppbXBvcnQgeyBiYXogfSBmcm9tICdAb3RoZXItcGFja2FnZSc7)
+[Try it →](https://regexlens.dev/app?p=aW1wb3J0XHMrKD86e1tefV0rfHxcdyspXHMrZnJvbVxzK1snIl1Ab2xkLXBhY2thZ2VbJyJd&f=g&t=aW1wb3J0IHsgZm9vLCBiYXIgfSBmcm9tICdAb2xkLXBhY2thZ2UnOwppbXBvcnQgZGVmYXVsdEV4cG9ydCBmcm9tICdAb2xkLXBhY2thZ2UnOwppbXBvcnQgeyBiYXogfSBmcm9tICdAb3RoZXItcGFja2FnZSc7)
 
 ### Extract Named Imports
 
@@ -52,7 +52,7 @@ import\s+(?:{[^}]+}|\w+)\s+from\s+['"]@old-package['"]
 import\s+{\s*(?<imports>[^}]+)\s*}\s+from\s+['"](?<module>[^'"]+)['"]
 ```
 
-[Try it →](https://regexlens.app/?p=aW1wb3J0XHMre1xzKig/PGltcG9ydHM+W159XSspXHMqfVxzK2Zyb21ccytbJyJdKD88bW9kdWxlPltdJyJdKylbJyJd&f=g&t=aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JzsKaW1wb3J0IHsgQnV0dG9uLCBJbnB1dCB9IGZyb20gJ0AvY29tcG9uZW50cy91aSc7)
+[Try it →](https://regexlens.dev/app?p=aW1wb3J0XHMre1xzKig/PGltcG9ydHM+W159XSspXHMqfVxzK2Zyb21ccytbJyJdKD88bW9kdWxlPltdJyJdKylbJyJd&f=g&t=aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JzsKaW1wb3J0IHsgQnV0dG9uLCBJbnB1dCB9IGZyb20gJ0AvY29tcG9uZW50cy91aSc7)
 
 ### CommonJS to ES6
 
@@ -62,7 +62,7 @@ Find `require` statements to convert:
 const\s+(?<name>\w+)\s*=\s*require\(['"](?<module>[^'"]+)['"]\)
 ```
 
-[Try it →](https://regexlens.app/?p=Y29uc3RccysoPzxuYW1lPlx3Kylccyo9XHMqcmVxdWlyZVwoWyciXSg/PG1vZHVsZT5bXiciXSspWyciXVwp&f=g&t=Y29uc3QgZnMgPSByZXF1aXJlKCdmcycpOwpjb25zdCBwYXRoID0gcmVxdWlyZSgncGF0aCcpOwpjb25zdCB7IGZvbyB9ID0gcmVxdWlyZSgnLi91dGlscycpOw==)
+[Try it →](https://regexlens.dev/app?p=Y29uc3RccysoPzxuYW1lPlx3Kylccyo9XHMqcmVxdWlyZVwoWyciXSg/PG1vZHVsZT5bXiciXSspWyciXVwp&f=g&t=Y29uc3QgZnMgPSByZXF1aXJlKCdmcycpOwpjb25zdCBwYXRoID0gcmVxdWlyZSgncGF0aCcpOwpjb25zdCB7IGZvbyB9ID0gcmVxdWlyZSgnLi91dGlscycpOw==)
 
 ## API Migration
 
@@ -76,7 +76,7 @@ oldApi\.oldMethod\(([^)]*)\)
 
 Replace with: `newApi.newMethod($1)`
 
-[Try it →](https://regexlens.app/?p=b2xkQXBpXC5vbGRNZXRob2RcKChbXildKilcKQ==&f=g&t=b2xkQXBpLm9sZE1ldGhvZCgpOwpvbGRBcGkub2xkTWV0aG9kKGFyZzEsIGFyZzIpOwpuZXdBcGkub3RoZXJNZXRob2QoKTs=)
+[Try it →](https://regexlens.dev/app?p=b2xkQXBpXC5vbGRNZXRob2RcKChbXildKilcKQ==&f=g&t=b2xkQXBpLm9sZE1ldGhvZCgpOwpvbGRBcGkub2xkTWV0aG9kKGFyZzEsIGFyZzIpOwpuZXdBcGkub3RoZXJNZXRob2QoKTs=)
 
 ### Update Callback to Promise
 
@@ -86,7 +86,7 @@ Find callback-style code:
 (\w+)\(([^,]+),\s*function\s*\((?:err,\s*)?(\w+)\)\s*{
 ```
 
-[Try it →](https://regexlens.app/?p=KFx3KylcKChbXixdKyksXHMqZnVuY3Rpb25ccypcKCg/OmVycixccyopPyhcdyspXClccyp7&f=g&t=ZnMucmVhZEZpbGUoJ2ZpbGUudHh0JywgZnVuY3Rpb24oZXJyLCBkYXRhKSB7CiAgY29uc29sZS5sb2coZGF0YSk7Cn0pOw==)
+[Try it →](https://regexlens.dev/app?p=KFx3KylcKChbXixdKyksXHMqZnVuY3Rpb25ccypcKCg/OmVycixccyopPyhcdyspXClccyp7&f=g&t=ZnMucmVhZEZpbGUoJ2ZpbGUudHh0JywgZnVuY3Rpb24oZXJyLCBkYXRhKSB7CiAgY29uc29sZS5sb2coZGF0YSk7Cn0pOw==)
 
 ### React Class to Hooks
 
@@ -102,7 +102,7 @@ Find `this.setState`:
 this\.setState\(\{([^}]+)\}\)
 ```
 
-[Try it →](https://regexlens.app/?p=dGhpc1wuc2V0U3RhdGVcKFx7KFtefV0rKVx9XCk=&f=g&t=dGhpcy5zZXRTdGF0ZSh7IGNvdW50OiB0aGlzLnN0YXRlLmNvdW50ICsgMSB9KTsKdGhpcy5zZXRTdGF0ZSh7IGxvYWRpbmc6IHRydWUgfSk7)
+[Try it →](https://regexlens.dev/app?p=dGhpc1wuc2V0U3RhdGVcKFx7KFtefV0rKVx9XCk=&f=g&t=dGhpcy5zZXRTdGF0ZSh7IGNvdW50OiB0aGlzLnN0YXRlLmNvdW50ICsgMSB9KTsKdGhpcy5zZXRTdGF0ZSh7IGxvYWRpbmc6IHRydWUgfSk7)
 
 ## String and Comment Updates
 
@@ -114,7 +114,7 @@ Find strings containing specific text:
 (['"`])([^'"`]*old-text[^'"`]*)\1
 ```
 
-[Try it →](https://regexlens.app/?p=KFsnImBdKShbXiciYF0qb2xkLXRleHRbXiciYF0qKVwx&f=g&t=Y29uc3QgbXNnID0gJ1RoaXMgaXMgb2xkLXRleHQgaGVyZSc7CmNvbnN0IG90aGVyID0gIkFub3RoZXIgb2xkLXRleHQgZXhhbXBsZSI7)
+[Try it →](https://regexlens.dev/app?p=KFsnImBdKShbXiciYF0qb2xkLXRleHRbXiciYF0qKVwx&f=g&t=Y29uc3QgbXNnID0gJ1RoaXMgaXMgb2xkLXRleHQgaGVyZSc7CmNvbnN0IG90aGVyID0gIkFub3RoZXIgb2xkLXRleHQgZXhhbXBsZSI7)
 
 ### Find TODO Comments
 
@@ -122,7 +122,7 @@ Find strings containing specific text:
 \/\/\s*TODO:?\s*(.*)
 ```
 
-[Try it →](https://regexlens.app/?p=XC9cL1xzKlRPRE86P1xzKiguKik=&f=gi&t=Ly8gVE9ETzogRml4IHRoaXMgbGF0ZXIKLy8gVE9ETyBSZWZhY3RvciB0aGlzIGZ1bmN0aW9uCi8vIFRoaXMgaXMgYSByZWd1bGFyIGNvbW1lbnQ=)
+[Try it →](https://regexlens.dev/app?p=XC9cL1xzKlRPRE86P1xzKiguKik=&f=gi&t=Ly8gVE9ETzogRml4IHRoaXMgbGF0ZXIKLy8gVE9ETyBSZWZhY3RvciB0aGlzIGZ1bmN0aW9uCi8vIFRoaXMgaXMgYSByZWd1bGFyIGNvbW1lbnQ=)
 
 ### Find FIXME and HACK Comments
 
@@ -146,7 +146,7 @@ Find generic type parameters:
 <OldType(?:\s*,\s*\w+)*>
 ```
 
-[Try it →](https://regexlens.app/?p=PE9sZFR5cGUoPzpccyosXHMqXHcrKSo+&f=g&t=Y29uc3QgaXRlbXM6IEFycmF5PE9sZFR5cGU+ID0gW107CmNvbnN0IG1hcDogTWFwPHN0cmluZywgT2xkVHlwZT4gPSBuZXcgTWFwKCk7)
+[Try it →](https://regexlens.dev/app?p=PE9sZFR5cGUoPzpccyosXHMqXHcrKSo+&f=g&t=Y29uc3QgaXRlbXM6IEFycmF5PE9sZFR5cGU+ID0gW107CmNvbnN0IG1hcDogTWFwPHN0cmluZywgT2xkVHlwZT4gPSBuZXcgTWFwKCk7)
 
 ### Find Interface Properties
 

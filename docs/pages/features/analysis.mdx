@@ -1,0 +1,32 @@
+# Analysis (Pro)
+
+import { Callout } from 'nextra/components'
+
+<Callout type="info">
+**Pro:** The Analysis tab and `POST /api/analyze` require an active Pro entitlement on the main app.
+</Callout>
+
+The **Analysis** tab runs **server-side advanced analysis** on your pattern and flags. It complements the **Warnings** tab:
+
+- **Warnings** (all tiers) — Fast, client-side heuristics you see while typing.
+- **Analysis** (Pro) — Aggregated **risk score** (0–100), **complexity** level (`low` → `extreme`), extra structured warnings, short **notes**, and **safe rewrite suggestions** where applicable.
+
+## What you see in the UI
+
+- Risk score gauge / summary
+- Complexity factors (e.g. nested quantifiers, alternation depth, lookarounds)
+- List of issues with severity, hints, and optional code-oriented suggestions
+- Link to upgrade or sign in if you are not Pro
+
+## API
+
+The same logic is exposed as `POST /api/analyze` with JSON body `{ "pattern": "...", "flags": "g" }`. The response includes:
+
+- `riskScore` — number capped at 100  
+- `warnings` — id, severity (`info` | `warn` | `danger`), title, message, optional `hint` / `range`  
+- `notes` — short bullet strings  
+- `suggestions` — optional `{ id, title, description, caveat? }` entries  
+- `complexity` — `{ level, factors[] }`  
+
+See [API Reference](/reference/api#post-apianalyze) for status codes and auth.
+

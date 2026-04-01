@@ -1,0 +1,22 @@
+# Regex Copilot (Pro)
+
+import { Callout } from 'nextra/components'
+
+<Callout type="info">
+**Pro:** Copilot uses `POST /api/ai/chat` and requires Pro plus server configuration (`ANTHROPIC_API_KEY`). Content is processed by **Anthropic**—do not send secrets or regulated data.
+</Callout>
+
+**Regex Copilot** is a streaming AI assistant embedded in the **Copilot** tab. It receives **context** from your current pattern, flags, sample test text (when present), match counts, and summarized warnings/explanation steps so answers stay grounded in what you are actually editing.
+
+## Capabilities
+
+- Ask for pattern rewrites, explanations in different words, edge-case checks, or debugging help.
+- Use structured **actions** from the UI (e.g. pattern generation helpers) where implemented.
+- **Apply** suggested patterns back into the editor when the UI offers an apply control.
+
+## Guardrails
+
+- **Rate limits** apply (`ai_chat` tier on the server).
+- **Pro guard** — unauthenticated or non-Pro users see a lock state with link to pricing/sign-in.
+- Treat Copilot output as **advisory**; always validate against real data and your engine.
+

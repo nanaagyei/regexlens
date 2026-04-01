@@ -1,10 +1,10 @@
-# Sharing & Templates
+# Sharing & URLs
 
-RegexLens makes it easy to share your regex patterns and learn from pre-built templates.
+RegexLens makes it easy to **share exact editor state** via URL query parameters. For **templates** and **fixture suites**, use the header menus—see [Fixtures & Templates](/features/fixtures-and-templates).
 
 ## Shareable Links
 
-Every regex state in RegexLens can be shared via URL. The pattern, flags, and test text are encoded in the URL parameters.
+Every regex state in RegexLens can be shared via URL. The main Next.js app uses the **`nuqs`** helper to read and write `p`, `f`, and `t` on `/app`. Values are **base64-encoded** (UTF-8 → base64, then URI-friendly use in query strings) so arbitrary Unicode in patterns/text round-trips. The pattern, flags, and test text are encoded in the URL parameters.
 
 ### How to Share
 
@@ -15,7 +15,7 @@ Every regex state in RegexLens can be shared via URL. The pattern, flags, and te
 ### URL Structure
 
 ```
-https://regexlens.app/?p=BASE64_PATTERN&f=FLAGS&t=BASE64_TEXT
+https://regexlens.dev/app?p=BASE64_PATTERN&f=FLAGS&t=BASE64_TEXT
 ```
 
 | Parameter | Description |

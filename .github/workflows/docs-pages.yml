@@ -1,0 +1,56 @@
+# Optional: deploy the Nextra site in docs/ to GitHub Pages (static export).
+# Requires: Repo Settings → Pages → Source: GitHub Actions.
+# Custom subdomain: no basePath (see docs/next.config.mjs + DEPLOYMENT.md §7b).
+
+name: Deploy docs to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/docs-pages.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Install and build docs
+        working-directory: docs
+        env:
+          GITHUB_PAGES: "1"
+          # Custom subdomain (docs.regexlens.dev): leave GH_PAGES_BASEPATH unset — see DEPLOYMENT.md
+        run: |
+          npm ci
+          npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

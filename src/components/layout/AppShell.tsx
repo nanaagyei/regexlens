@@ -61,8 +61,10 @@ import {
   Search,
   Route,
   Sparkles,
+  Home,
 } from "lucide-react";
 import type { FixtureSuite } from "@/lib/fixtures/types";
+import { DOCS_URL } from "@/lib/site";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -189,8 +191,8 @@ function AppShellContent() {
         <div className="h-screen flex flex-col bg-background">
           {/* Header */}
           <header className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-border">
-            <div className="flex items-center">
-              <Link href="/app" className="flex items-center">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <Link href="/app" className="flex items-center shrink-0">
                 <Image
                   src="/regexlens-logo.png"
                   alt="RegexLens"
@@ -200,6 +202,17 @@ function AppShellContent() {
                   priority
                 />
               </Link>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 gap-1.5 px-2 sm:px-3 shrink-0" asChild>
+                    <Link href="/">
+                      <Home className="h-4 w-4" />
+                      <span className="hidden sm:inline">Homepage</span>
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Back to marketing homepage</TooltipContent>
+              </Tooltip>
             </div>
 
             {/* Desktop/Tablet Navigation - Show on md (768px+) */}
@@ -207,10 +220,10 @@ function AppShellContent() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-1.5" asChild>
-                    <Link href="/docs" target="_blank">
+                    <a href={DOCS_URL} target="_blank" rel="noopener noreferrer">
                       <BookText className="h-4 w-4" />
                       <span className="hidden lg:inline">Docs</span>
-                    </Link>
+                    </a>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>View documentation</TooltipContent>
@@ -291,9 +304,15 @@ function AppShellContent() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
-                    <Link href="/docs" target="_blank" className="flex items-center">
+                    <a href={DOCS_URL} target="_blank" rel="noopener noreferrer" className="flex items-center">
                       <BookText className="mr-2 h-4 w-4" />
                       Documentation
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/" className="flex items-center">
+                      <Home className="mr-2 h-4 w-4" />
+                      Homepage
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

@@ -3,11 +3,17 @@ function shellQuote(path) {
   return `'${path.replace(/'/g, `'\\''`)}'`;
 }
 
+const ignoredDirs = ["docs/", "e2e/", "node_modules/", ".next/", "out/", "build/", "coverage/"];
+
 const lintStagedConfig = {
-  "*.{js,jsx,ts,tsx,mjs}": (filenames) =>
-    filenames.length > 0
-      ? `eslint --max-warnings 0 ${filenames.map((f) => shellQuote(f)).join(" ")}`
-      : "true",
+  "*.{js,jsx,ts,tsx,mjs}": (filenames) => {
+    const filtered = filenames.filter(
+      (f) => !ignoredDirs.some((dir) => f.includes(`/${dir}`))
+    );
+    return filtered.length > 0
+      ? `eslint --max-warnings 0 ${filtered.map((f) => shellQuote(f)).join(" ")}`
+      : "true";
+  },
 };
 
 export default lintStagedConfig;
