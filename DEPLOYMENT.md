@@ -6,10 +6,12 @@ This document covers cloud database setup (Neon Postgres), branch strategy, CI/C
 
 ## Branch Strategy
 
-| Branch | Purpose |
-|--------|---------|
-| **dev** | Default branch for feature work. All CI checks run on every push and on PRs. |
+
+| Branch   | Purpose                                                                              |
+| -------- | ------------------------------------------------------------------------------------ |
+| **dev**  | Default branch for feature work. All CI checks run on every push and on PRs.         |
 | **main** | Protected. Only merge from dev after checks pass. Production deploys only from main. |
+
 
 **Flow:** `dev` → Pull Request (checks pass) → `main` → Vercel Production
 
@@ -19,7 +21,7 @@ This document covers cloud database setup (Neon Postgres), branch strategy, CI/C
 
 ## GitHub Branch Protection (main)
 
-Configure in **Settings → Branches → Add branch protection rules** for **`main`** and (recommended) **`dev`**:
+Configure in **Settings → Branches → Add branch protection rules** for `**main`** and (recommended) `**dev**`:
 
 - **Require a pull request before merging** (at least for `main`)
 - **Require status checks to pass** before merge (from workflow **CI** / `ci.yml`): `lint`, `typecheck`, `test`, `build`, `e2e`, and optionally `security`
@@ -39,7 +41,7 @@ RegexLens uses PostgreSQL via `pg` and `@auth/pg-adapter`. For Vercel deployment
 1. **Create Neon project** at [neon.tech](https://neon.tech)
 2. **Install "Neon" from Vercel Marketplace** — links project automatically and sets `DATABASE_URL`
 3. **Run schema:** In Neon SQL Editor, execute the contents of `docker/init.sql`
-   - Or from local: `psql $DATABASE_URL -f docker/init.sql`
+  - Or from local: `psql $DATABASE_URL -f docker/init.sql`
 4. **Environment variables** — `DATABASE_URL` is auto-set by the Vercel integration; add `AUTH_*`, `STRIPE_*` as needed
 
 ### Why Neon
@@ -82,7 +84,7 @@ RegexLens uses PostgreSQL via `pg` and `@auth/pg-adapter`. For Vercel deployment
 ## Vercel Project Settings
 
 - **Production branch:** `main`
-- **Preview deployments:** All Git branches, or treat **`dev`** as the primary staging branch (merge previews before promoting to `main`)
+- **Preview deployments:** All Git branches, or treat `**dev`** as the primary staging branch (merge previews before promoting to `main`)
 - **Environment variables:** `DATABASE_URL` (from Neon), `AUTH_*`, `STRIPE_*`, `KV_*`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_DOCS_URL`, observability flags (`NEXT_PUBLIC_VERCEL_ANALYTICS`, optional ad flags), etc.
 
 ### Vercel + GitHub checklist (manual)
@@ -98,11 +100,13 @@ RegexLens uses PostgreSQL via `pg` and `@auth/pg-adapter`. For Vercel deployment
 
 ## SemVer Rules
 
-| Bump | When | Example |
-|------|------|---------|
-| **Major** (X.0.0) | Breaking changes | 1.0.0 → 2.0.0 |
+
+| Bump              | When                       | Example       |
+| ----------------- | -------------------------- | ------------- |
+| **Major** (X.0.0) | Breaking changes           | 1.0.0 → 2.0.0 |
 | **Minor** (0.X.0) | New features, non-breaking | 1.0.0 → 1.1.0 |
-| **Patch** (0.0.X) | Bug fixes, small updates | 1.0.0 → 1.0.1 |
+| **Patch** (0.0.X) | Bug fixes, small updates   | 1.0.0 → 1.0.1 |
+
 
 ---
 
@@ -124,29 +128,29 @@ Follow these steps in order once the codebase is committed and CI is green on `d
 2. **Option A (recommended):** Install the **Neon** integration from the [Vercel Marketplace](https://vercel.com/integrations/neon) — this auto-sets `DATABASE_URL` in Vercel env vars.
 3. **Option B:** Copy the connection string manually from the Neon dashboard and paste it into Vercel env vars for both Production and Preview.
 4. Run the schema against the remote database:
-   ```bash
+  ```bash
    psql "$DATABASE_URL" -f docker/init.sql
-   ```
+  ```
 5. (Optional) Create a separate Neon **branch** for Preview deployments so preview data is isolated from production.
 
 ### 3. GitHub — Branch Protection
 
 1. Go to **Settings → Branches → Add rule** for `main`:
-   - Require pull request before merging
-   - Require status checks: `lint`, `typecheck`, `test`, `build`, `e2e`
-   - Require branches to be up to date before merging
+  - Require pull request before merging
+  - Require status checks: `lint`, `typecheck`, `test`, `build`, `e2e`
+  - Require branches to be up to date before merging
 2. (Recommended) Add a similar rule for `dev` with the same checks.
 3. Enable **Settings → Code security and analysis → Secret scanning** and **Push protection**.
 
 ### 4. Authentication — OAuth Providers
 
 1. **GitHub OAuth:** Create an OAuth App at [github.com/settings/developers](https://github.com/settings/developers).
-   - Production callback: `https://regexlens.dev/api/auth/callback/github`
-   - Set `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` in Vercel (Production).
-   - For Preview, use a separate OAuth app with callback URL matching the preview domain.
+  - Production callback: `https://regexlens.dev/api/auth/callback/github`
+  - Set `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` in Vercel (Production).
+  - For Preview, use a separate OAuth app with callback URL matching the preview domain.
 2. **Google OAuth (optional):** Create credentials at [console.cloud.google.com](https://console.cloud.google.com/apis/credentials).
-   - Callback: `https://regexlens.dev/api/auth/callback/google`
-   - Set `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` in Vercel.
+  - Callback: `https://regexlens.dev/api/auth/callback/google`
+  - Set `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` in Vercel.
 3. **AUTH_SECRET:** Generate with `openssl rand -base64 32` and set in Vercel for both scopes.
 
 ### 5. Stripe — Billing (optional for launch)
@@ -168,7 +172,6 @@ Follow these steps in order once the codebase is committed and CI is green on `d
 3. Vercel provisions SSL automatically.
 4. Update `NEXT_PUBLIC_SITE_URL=https://regexlens.dev` and `NEXT_PUBLIC_DOCS_URL=https://docs.regexlens.dev` in Vercel env vars (Production scope).
 
-
 ### 7b. Documentation — GitHub Pages (`docs.regexlens.dev`)
 
 The Nextra site in `docs/` deploys separately to **GitHub Pages** on a subdomain. The main app uses `NEXT_PUBLIC_DOCS_URL` (default `https://docs.regexlens.dev`) for all “Docs” links and **301-redirects** `/docs` and `/docs/*` to that host.
@@ -185,9 +188,9 @@ GitHub may show the exact DNS targets under **Custom domain** (verify and troubl
 
 1. Namecheap → **Domain List** → **Manage** `regexlens.dev` → **Advanced DNS**.
 2. Add a **CNAME Record**:
-   - **Host:** `docs`
-   - **Value:** use the hostname GitHub shows (commonly `nanaagyei.github.io` for user/project Pages — **copy from GitHub’s Custom domain** panel after saving `docs.regexlens.dev`, or from [GitHub Pages custom domain docs](https://docs.github.com/pages/configuring-a-custom-domain-for-your-github-pages-site/about-custom-domains-and-github-pages)).
-   - **TTL:** Automatic or 30 min.
+  - **Host:** `docs`
+  - **Value:** use the hostname GitHub shows (commonly `nanaagyei.github.io` for user/project Pages — **copy from GitHub’s Custom domain** panel after saving `docs.regexlens.dev`, or from [GitHub Pages custom domain docs](https://docs.github.com/pages/configuring-a-custom-domain-for-your-github-pages-site/about-custom-domains-and-github-pages)).
+  - **TTL:** Automatic or 30 min.
 3. Remove conflicting records for the same host (e.g. another `docs` CNAME or redirect).
 4. Wait for propagation (often minutes to a few hours). In GitHub Pages settings, wait until the check shows **DNS valid**.
 
@@ -195,18 +198,18 @@ The repo includes `docs/public/CNAME` with `docs.regexlens.dev` so static export
 
 #### C. Application environment (Vercel)
 
-1. Set **`NEXT_PUBLIC_DOCS_URL=https://docs.regexlens.dev`** for **Production** (and Preview if you use a preview docs URL).
+1. Set `**NEXT_PUBLIC_DOCS_URL=https://docs.regexlens.dev`** for **Production** (and Preview if you use a preview docs URL).
 2. Redeploy the main app so links and redirects use the new value.
-
 
 ### 8. Final Verification
 
-- [ ] `dev` branch Preview URL loads and works end-to-end
-- [ ] PR `dev → main` passes all CI checks (lint, typecheck, test, build, e2e)
-- [ ] Production URL loads after merge to `main`
-- [ ] `https://docs.regexlens.dev` loads (GitHub Pages) and **HTTPS** is enforced
-- [ ] `https://regexlens.dev/docs` redirects to the docs subdomain
-- [ ] Auth sign-in flow works (GitHub and/or Google)
-- [ ] Database tables exist and queries succeed
-- [ ] Vercel Web Analytics and Speed Insights show data
-- [ ] (If Stripe enabled) Checkout flow completes in test mode
+- `dev` branch Preview URL loads and works end-to-end
+- PR `dev → main` passes all CI checks (lint, typecheck, test, build, e2e)
+- Production URL loads after merge to `main`
+- `https://docs.regexlens.dev` loads (GitHub Pages) and **HTTPS** is enforced
+- `https://regexlens.dev/docs` redirects to the docs subdomain
+- Auth sign-in flow works (GitHub and/or Google)
+- Database tables exist and queries succeed
+- Vercel Web Analytics and Speed Insights show data
+- (If Stripe enabled) Checkout flow completes in test mode
+
