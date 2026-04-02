@@ -46,6 +46,10 @@ export const RegexEditor = forwardRef<RegexEditorRef, RegexEditorProps>(
       fontFamily: "var(--font-mono)",
       padding: { top: 12, bottom: 12 },
       automaticLayout: true,
+      // Avoid auto-pairing `[` `]` etc.; paired brackets turn invalid test patterns like `[` into valid `[]`.
+      autoClosingBrackets: "never",
+      autoClosingQuotes: "never",
+      autoSurround: "never",
       scrollbar: {
         vertical: "hidden",
         horizontal: "hidden",
@@ -101,6 +105,9 @@ export const RegexEditor = forwardRef<RegexEditorRef, RegexEditorProps>(
           scrollBeyondLastLine: false,
           lineDecorationsWidth: 12,
           padding: { top: 12, bottom: 12 },
+          autoClosingBrackets: "never",
+          autoClosingQuotes: "never",
+          autoSurround: "never",
         }}
         theme="vs-dark"
         loading={
