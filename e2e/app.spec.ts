@@ -27,6 +27,70 @@ test.describe("smoke", () => {
   });
 });
 
+test.describe("workspace integration", () => {
+  test("typing regex updates explanation panel", async ({ page }) => {
+    await page.goto("/app");
+
+    // Wait for Monaco editor to load
+    const editor = page.locator(".monaco-editor").first();
+    await expect(editor).toBeVisible({ timeout: 30_000 });
+
+    // Type a regex pattern into the Monaco editor
+    await editor.click();
+    await page.keyboard.type("\\d+");
+
+    // Explanation panel should update with content about digits
+    await expect(
+      page.getByText(/one or more/i)
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("switching analysis tabs preserves workspace state", async ({ page }) => {
+    await page.goto("/app");
+
+    const editor = page.locator(".monaco-editor").first();
+    await expect(editor).toBeVisible({ timeout: 30_000 });
+
+    // Type a pattern
+    await editor.click();
+    await page.keyboard.type("abc");
+
+    // Click on the Structure tab
+    await page.getByRole("tab", { name: /Structure|AST/i }).click();
+    await expect(page.getByText(/how it.*built/i)).toBeVisible({ timeout: 5_000 });
+
+    // Click back to Explanation tab
+    await page.getByRole("tab", { name: /Explain|Exp/i }).click();
+
+    // Pattern should still be present - explanation content should still exist
+    await expect(
+      page.getByText(/what this pattern does/i)
+    ).toBeVisible({ timeout: 5_000 });
+  });
+
+  test("invalid regex shows guided fallback in panels", async ({ page }) => {
+    await page.goto("/app");
+
+    const editor = page.locator(".monaco-editor").first();
+    await expect(editor).toBeVisible({ timeout: 30_000 });
+
+    // Type an invalid regex
+    await editor.click();
+    await page.keyboard.type("[");
+
+    // Explanation panel should show an error state
+    await expect(
+      page.getByText(/fix the pattern/i)
+    ).toBeVisible({ timeout: 10_000 });
+
+    // Switch to Structure tab - should also show fallback
+    await page.getByRole("tab", { name: /Structure|AST/i }).click();
+    await expect(
+      page.getByText(/invalid pattern/i)
+    ).toBeVisible({ timeout: 5_000 });
+  });
+});
+
 test.describe("pricing", () => {
   test("pricing page loads", async ({ page }) => {
     await page.goto("/pricing");

@@ -4,6 +4,8 @@
 
 export type RegexFlavor = "javascript";
 
+export type ExplanationMode = "simple" | "technical";
+
 export interface Range {
   start: number;
   end: number;
@@ -14,6 +16,10 @@ export interface RegexState {
   flags: string;
   text: string;
   flavor: RegexFlavor;
+  comparisonPattern: string;
+  comparisonFlags: string;
+  explanationMode: ExplanationMode;
+  selectedTemplate: string | null;
 }
 
 export type ParseResult =

@@ -1,13 +1,17 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { RegexState, RegexTemplate } from "@/types";
+import { ExplanationMode, RegexState, RegexTemplate } from "@/types";
 
 const DEFAULT_STATE: RegexState = {
   pattern: "",
   flags: "g",
   text: "",
   flavor: "javascript",
+  comparisonPattern: "",
+  comparisonFlags: "",
+  explanationMode: "simple",
+  selectedTemplate: null,
 };
 
 /** Minimal shape for fixture suite/test application */
@@ -26,6 +30,10 @@ export interface RegexStateActions {
   setFlags: (flags: string) => void;
   toggleFlag: (flag: string) => void;
   setText: (text: string) => void;
+  setComparisonPattern: (pattern: string) => void;
+  setComparisonFlags: (flags: string) => void;
+  setExplanationMode: (mode: ExplanationMode) => void;
+  setSelectedTemplate: (templateId: string | null) => void;
   applyTemplate: (template: RegexTemplate) => void;
   applyFixtureSuite: (suite: FixtureApplySuite) => void;
   applyFixtureTest: (test: FixtureApplyTest, fallbackRegex?: { source: string; flags: string }) => void;
@@ -67,12 +75,29 @@ export function useRegexState(
     setState((prev) => ({ ...prev, text }));
   }, []);
 
+  const setComparisonPattern = useCallback((comparisonPattern: string) => {
+    setState((prev) => ({ ...prev, comparisonPattern }));
+  }, []);
+
+  const setComparisonFlags = useCallback((comparisonFlags: string) => {
+    setState((prev) => ({ ...prev, comparisonFlags }));
+  }, []);
+
+  const setExplanationMode = useCallback((explanationMode: ExplanationMode) => {
+    setState((prev) => ({ ...prev, explanationMode }));
+  }, []);
+
+  const setSelectedTemplate = useCallback((selectedTemplate: string | null) => {
+    setState((prev) => ({ ...prev, selectedTemplate }));
+  }, []);
+
   const applyTemplate = useCallback((template: RegexTemplate) => {
     setState((prev) => ({
       ...prev,
       pattern: template.pattern,
       flags: template.flags,
       text: template.text,
+      selectedTemplate: template.id,
     }));
   }, []);
 
@@ -106,6 +131,10 @@ export function useRegexState(
       setFlags,
       toggleFlag,
       setText,
+      setComparisonPattern,
+      setComparisonFlags,
+      setExplanationMode,
+      setSelectedTemplate,
       applyTemplate,
       applyFixtureSuite,
       applyFixtureTest,
@@ -116,6 +145,10 @@ export function useRegexState(
       setFlags,
       toggleFlag,
       setText,
+      setComparisonPattern,
+      setComparisonFlags,
+      setExplanationMode,
+      setSelectedTemplate,
       applyTemplate,
       applyFixtureSuite,
       applyFixtureTest,

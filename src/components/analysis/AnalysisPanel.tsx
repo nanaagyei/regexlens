@@ -4,15 +4,16 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEntitlement } from "@/hooks/useEntitlement";
-import { Warning } from "@/types";
+import { Warning, ParseResult } from "@/types";
 import { WarningCard } from "@/components/warnings/WarningCard";
-import { Lock, Loader2, Search } from "lucide-react";
+import { AlertTriangle, Lock, Loader2, Search } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface AnalysisPanelProps {
   pattern: string;
   flags: string;
+  parseResult?: ParseResult;
 }
 
 interface SafeRewriteSuggestion {
@@ -103,7 +104,7 @@ function RiskScoreBadge({
   );
 }
 
-export function AnalysisPanel({ pattern, flags }: AnalysisPanelProps) {
+export function AnalysisPanel({ pattern, flags, parseResult }: AnalysisPanelProps) {
   const { isPro, isLoading: isEntitlementLoading, user } = useEntitlement();
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -137,6 +138,21 @@ export function AnalysisPanel({ pattern, flags }: AnalysisPanelProps) {
       setIsLoading(false);
     }
   }, [isPro, pattern, flags]);
+
+  // Invalid pattern fallback
+  if (parseResult && !parseResult.ok && parseResult.errorMessage) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+        <div className="text-red-400 mb-3">
+          <AlertTriangle className="h-8 w-8" />
+        </div>
+        <h3 className="text-sm font-medium mb-1">Invalid pattern</h3>
+        <p className="text-xs text-red-400 max-w-[250px]">
+          Fix the pattern to run analysis
+        </p>
+      </div>
+    );
+  }
 
   const showUpgradePrompt = !isEntitlementLoading && !isPro;
 
