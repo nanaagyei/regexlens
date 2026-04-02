@@ -2,6 +2,10 @@
   "pattern-testing": "Pattern Testing",
   "explanations": "Explanations",
   "ast-viewer": "AST Viewer",
+  "railroad-diagram": "Railroad Diagram",
   "warnings": "Smart Warnings",
-  "sharing": "Sharing & Templates"
+  "analysis": "Analysis (Pro)",
+  "regex-copilot": "Regex Copilot (Pro)",
+  "fixtures-and-templates": "Fixtures & Templates",
+  "sharing": "Sharing & URLs"
 }

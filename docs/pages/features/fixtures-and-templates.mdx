@@ -1,0 +1,16 @@
+# Fixtures & Templates
+
+Two complementary ways to load realistic starting points from the header bar:
+
+## Templates
+
+**Templates** insert curated **patterns** (and associated flags / sample text where defined) for common tasks: validation, parsing, etc. Selecting a template focuses the pattern editor so you can iterate quickly.
+
+## Fixtures
+
+**Fixtures** load **fixture suites**: bundled regex + multi-line **test cases** (and categories such as performance/safety demos). Choosing a suite fills the pattern and tests; the **fixture panel** above the test editor lets you jump between cases while keeping context.
+
+### Performance / safety suites
+
+Some suites are designed to illustrate **catastrophic backtracking** or expensive behavior. The app may apply stricter **timeouts** for matching when those suites are active so the UI stays responsive—watch the **Warnings** tab for related guidance.
+

@@ -11,7 +11,7 @@ import { Callout } from 'nextra/components'
 ## Base URL
 
 ```
-https://regexlens.app/api
+https://regexlens.dev/api
 ```
 
 For local development:
@@ -265,37 +265,70 @@ Export explanation in various formats.
 
 #### POST /api/analyze
 
-Perform advanced pattern analysis.
+Run server-side advanced analysis (same engine as the **Analysis** tab). Returns a **risk score**, structured warnings, optional rewrite suggestions, and a **complexity** summary.
 
-**Authentication:** Required (Pro)
+**Authentication:** Required (Pro session cookie)
 
 **Request Body:**
 ```json
 {
-  "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+  "pattern": "^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$",
   "flags": "gi"
 }
 ```
 
-**Response:**
+**Success Response:**
 ```json
 {
+  "riskScore": 42,
+  "warnings": [
+    {
+      "id": "nested-quantifiers",
+      "severity": "danger",
+      "title": "Nested quantifiers",
+      "message": "May cause catastrophic backtracking on hostile input.",
+      "hint": "Prefer possessive/atomic groups where supported, or simplify repetition.",
+      "range": { "start": 0, "end": 5 }
+    }
+  ],
+  "notes": [
+    "Consider testing with long non-matching prefixes."
+  ],
+  "suggestions": [
+    {
+      "id": "rewrite-1",
+      "title": "Prefer explicit character class",
+      "description": "Replace alternation of single letters with `[abc]` when equivalent.",
+      "caveat": "Check readability vs. performance tradeoffs."
+    }
+  ],
   "complexity": {
-    "score": 5,
-    "level": "moderate",
-    "nodes": 15,
-    "depth": 3
-  },
-  "performance": {
-    "bestCase": "O(n)",
-    "worstCase": "O(n)",
-    "redosRisk": "low"
-  },
-  "suggestions": []
+    "level": "medium",
+    "factors": [
+      "Multiple quantifiers",
+      "Lookaround assertions"
+    ]
+  }
 }
 ```
 
+Fields may vary run-to-run; `warnings` / `suggestions` can be empty arrays. Severity uses `info`, `warn`, or `danger`.
+
 ---
+
+
+### AI chat (Pro)
+
+#### POST /api/ai/chat
+
+Streaming AI assistant used by **Regex Copilot**. **Pro**-only; requires server-side `ANTHROPIC_API_KEY`. Request and response bodies are versioned with the main app—use browser devtools or server logs while integrating. Typical body includes an `action`, user `message`, structured `context` (pattern, flags, warnings, explanation steps), and optional `conversationHistory`.
+
+**Authentication:** Required (Pro session cookie)
+
+**Errors:** `402` for non-Pro, `429` when rate-limited, `503` if the provider is not configured.
+
+---
+
 
 ### Billing
 
@@ -309,7 +342,7 @@ Create a Stripe checkout session.
 ```json
 {
   "priceId": "price_xxx",
-  "returnUrl": "https://regexlens.app/?checkout=success"
+  "returnUrl": "https://regexlens.dev/app?checkout=success"
 }
 ```
 

@@ -1,6 +1,8 @@
 import React from 'react'
 import { DocsThemeConfig } from 'nextra-theme-docs'
 
+const site = 'https://regexlens.dev'
+
 const config: DocsThemeConfig = {
   logo: (
     <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
@@ -12,9 +14,9 @@ const config: DocsThemeConfig = {
     </span>
   ),
   project: {
-    link: 'https://github.com/your-username/regexlens',
+    link: 'https://github.com/nanaagyei',
   },
-  docsRepositoryBase: 'https://github.com/your-username/regexlens/tree/main/docs',
+  docsRepositoryBase: 'https://github.com/nanaagyei/regexlens/tree/main/docs',
   footer: {
     text: (
       <span>
@@ -26,7 +28,7 @@ const config: DocsThemeConfig = {
     <>
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta property="og:title" content="RegexLens Documentation" />
-      <meta property="og:description" content="Comprehensive documentation for RegexLens - understand, test, and visualize regex instantly" />
+      <meta property="og:description" content="Documentation for RegexLens — test, explain, and visualize JavaScript regular expressions." />
       <link rel="icon" href="/favicon.ico" />
     </>
   ),
@@ -35,7 +37,7 @@ const config: DocsThemeConfig = {
       titleTemplate: '%s – RegexLens Docs'
     }
   },
-  primaryHue: 38, // Amber/orange to match the app branding
+  primaryHue: 38,
   sidebar: {
     defaultMenuCollapseLevel: 1,
     toggleButton: true,
@@ -47,7 +49,7 @@ const config: DocsThemeConfig = {
     text: 'Edit this page on GitHub',
   },
   feedback: {
-    content: 'Question? Give us feedback →',
+    content: 'Question? Open an issue on GitHub →',
     labels: 'feedback',
   },
   navigation: {
@@ -55,10 +57,10 @@ const config: DocsThemeConfig = {
     next: true,
   },
   banner: {
-    key: 'pro-launch',
+    key: 'regexlens-docs-2026',
     text: (
-      <a href="https://regexlens.app" target="_blank" rel="noreferrer">
-        🎉 RegexLens Pro is now available! Try it free →
+      <a href={site} target="_blank" rel="noreferrer">
+        Open the RegexLens app →
       </a>
     ),
   },

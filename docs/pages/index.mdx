@@ -1,87 +1,74 @@
-# Welcome to RegexLens
+# Getting Started
 
-**RegexLens** is a premium, UI-first developer tool for understanding, testing, and documenting regular expressions. Unlike traditional regex testers that only tell you *if* something matches, RegexLens shows you:
+**RegexLens** is a UI-first developer tool for **JavaScript regular expressions** (`RegExp`). It helps you see **what** matches, **why** it matches (plain-English steps), **how** the pattern is structured (AST + railroad diagram), and **where** it may be risky (smart warnings). Optional **Pro** adds a saved library, exports, deeper **Analysis**, and **Regex Copilot** (streaming AI).
 
-- **What it matches** — Live highlighting with color-coded capture groups
-- **Why it matches** — Plain-English, step-by-step explanations
-- **How it's structured** — Interactive syntax tree visualization
-- **Where it might fail** — Performance warnings and correctness gotchas
+## Where things live
 
-No AI fluff. No chat interfaces. Just clarity.
+| Surface | URL / path | Purpose |
+|--------|------------|---------|
+| Marketing site | `/` | Landing, sign-in, pricing entry |
+| Workbench | `/app` | Full editor: pattern, test text, matches, tabs |
+| Pricing | `/pricing` | Free vs Pro, Stripe checkout |
+| Docs (this site) | [docs.regexlens.dev](https://docs.regexlens.dev) — Nextra in `docs/`; local dev port `3002` | Long-form help |
+| Changelog (web) | [regexlens.dev/changelog](https://regexlens.dev/changelog) | High-level release notes |
 
-## Quick Start
+Set `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_DOCS_URL` in production so share links, metadata, and documentation links use your domains (defaults: `https://regexlens.dev` and `https://docs.regexlens.dev`).
 
-### Try it Online
+## Free vs Pro (at a glance)
 
-Visit [regexlens.app](https://regexlens.app) and start testing immediately. No signup required for core features.
+| Capability | Free | Pro |
+|------------|:----:|:---:|
+| Live matching, flags, templates, fixtures | Yes | Yes |
+| Explanations, AST, railroad, warnings | Yes | Yes |
+| Shareable URLs | Yes | Yes |
+| Saved library, versions, diff | — | Yes |
+| Export (Markdown, PR comment, Notion, plain) | — | Yes |
+| **Analysis** tab + `POST /api/analyze` | — | Yes |
+| **Regex Copilot** (`/api/ai/chat`) | — | Yes |
 
-### Basic Workflow
+Signing in is optional for core editing; OAuth (Google, GitHub) and magic links (Resend) are available via Auth.js on the main app.
 
-1. **Enter a regex pattern** in the left panel
-2. **Toggle flags** as needed (g, i, m, s, u, y)
-3. **Paste test text** in the center panel
-4. **View results** in the right panel:
-   - **Explanation tab** — Step-by-step breakdown
-   - **Structure tab** — AST tree view
-   - **Warnings tab** — Potential issues
+## Workbench layout
 
-## Example
+1. **Pattern** (left) — Edit regex, toggle flags (`g`, `i`, `m`, `s`, `u`, `y`), token toolbar, parse status.
+2. **Test text** + **Matches** (center) — Sample input, highlighted matches, capture groups; fixture suite panel when you load a suite.
+3. **Tabs** (right) on desktop; **segmented control** on small screens:
+   - **Explain** — Deterministic step-by-step explanation from the AST (not LLM output).
+   - **Structure** — Collapsible AST tree synced with hover elsewhere when applicable.
+   - **Railroad** — Syntax railroad diagram for the pattern.
+   - **Analysis** — Pro: risk score, complexity, extra warnings/suggestions via server analysis.
+   - **Warnings** — In-app static warnings (severity info / warn / danger).
+   - **Copilot** — Pro: streaming assistant (Anthropic) with actions like apply pattern; rate-limited.
 
-Let's say you want to validate email addresses. Enter this pattern:
+Header: **Docs** (opens documentation), **Templates**, **Fixtures**, **Save** / **Library** (Pro), **Share**, **Reset**, account menu, and **Homepage** returns to marketing `/`.
 
-```regex
-^[\w.-]+@[\w.-]+\.\w{2,}$
-```
+## Sharing & URL state
 
-RegexLens will immediately show you:
+The editor syncs pattern, flags, and test text into query parameters (`p`, `f`, `t`). Values are typically **base64**-encoded (with URI-safe handling) so links stay portable. Anyone with the link can load the same state—**do not put secrets** in pattern or test text if you share URLs.
 
-| Component | Explanation |
-|-----------|-------------|
-| `^` | Start of string |
-| `[\w.-]+` | One or more word characters, dots, or hyphens |
-| `@` | Literal @ symbol |
-| `[\w.-]+` | Domain name (word chars, dots, hyphens) |
-| `\.` | Literal dot |
-| `\w{2,}` | TLD with 2+ characters |
-| `$` | End of string |
+See [Sharing & URLs](/features/sharing).
 
-[Try this pattern in RegexLens →](https://regexlens.app/?p=XltcXHcuLV0rQFtcXHcuLV0rXC5cXHd7Mix9JA==&f=g)
-
-## Why RegexLens?
-
-### For Learning
-
-- See exactly how each part of a regex works
-- Understand quantifiers, groups, and lookaheads visually
-- Learn from 15+ built-in templates with real-world patterns
-
-### For Debugging
-
-- Instant match highlighting shows exactly what matches
-- Warnings catch catastrophic backtracking before production
-- AST view reveals how the regex engine interprets your pattern
-
-### For Documentation
-
-- Export explanations to Markdown, PR comments, or Notion (Pro)
-- Share patterns with teammates via URL
-- Save and organize your regex library (Pro)
-
-## Next Steps
+## Next steps
 
 import { Cards, Card } from 'nextra/components'
 
 <Cards>
-  <Card title="Features" href="/features/pattern-testing">
-    Learn about all RegexLens features
+  <Card title="Pattern testing" href="/features/pattern-testing">
+    Matching, flags, test text
   </Card>
-  <Card title="Examples" href="/examples/email-validation">
-    See real-world regex examples
+  <Card title="Explanations" href="/features/explanations">
+    How deterministic explanations work
   </Card>
-  <Card title="Pro Features" href="/pro/saved-library">
-    Unlock advanced capabilities
+  <Card title="AST & Railroad" href="/features/ast-viewer">
+    Structure tab + diagram tab
   </Card>
-  <Card title="Reference" href="/reference/flags">
-    Quick reference guides
+  <Card title="Regex Copilot (Pro)" href="/features/regex-copilot">
+    AI-assisted regex help
+  </Card>
+  <Card title="Pro features" href="/pro/saved-library">
+    Library, export, analysis API
+  </Card>
+  <Card title="API reference" href="/reference/api">
+    REST endpoints for automation
   </Card>
 </Cards>

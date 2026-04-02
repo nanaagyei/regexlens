@@ -83,7 +83,7 @@ RegexLens uses PostgreSQL via `pg` and `@auth/pg-adapter`. For Vercel deployment
 
 - **Production branch:** `main`
 - **Preview deployments:** All Git branches, or treat **`dev`** as the primary staging branch (merge previews before promoting to `main`)
-- **Environment variables:** `DATABASE_URL` (from Neon), `AUTH_*`, `STRIPE_*`, `KV_*`, `NEXT_PUBLIC_SITE_URL`, observability flags (`NEXT_PUBLIC_VERCEL_ANALYTICS`, optional ad flags), etc.
+- **Environment variables:** `DATABASE_URL` (from Neon), `AUTH_*`, `STRIPE_*`, `KV_*`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_DOCS_URL`, observability flags (`NEXT_PUBLIC_VERCEL_ANALYTICS`, optional ad flags), etc.
 
 ### Vercel + GitHub checklist (manual)
 
@@ -166,13 +166,46 @@ Follow these steps in order once the codebase is committed and CI is green on `d
 1. In Vercel **Settings → Domains**, add `regexlens.dev`.
 2. Update your domain registrar's DNS records to point to Vercel (typically an A record and/or CNAME as shown in the Vercel dashboard).
 3. Vercel provisions SSL automatically.
-4. Update `NEXT_PUBLIC_SITE_URL=https://regexlens.dev` in Vercel env vars (Production scope).
+4. Update `NEXT_PUBLIC_SITE_URL=https://regexlens.dev` and `NEXT_PUBLIC_DOCS_URL=https://docs.regexlens.dev` in Vercel env vars (Production scope).
+
+
+### 7b. Documentation — GitHub Pages (`docs.regexlens.dev`)
+
+The Nextra site in `docs/` deploys separately to **GitHub Pages** on a subdomain. The main app uses `NEXT_PUBLIC_DOCS_URL` (default `https://docs.regexlens.dev`) for all “Docs” links and **301-redirects** `/docs` and `/docs/*` to that host.
+
+#### A. GitHub repository
+
+1. Ensure **Pages** is enabled: **Settings → Pages → Build and deployment → Source: GitHub Actions** (workflow: `.github/workflows/docs-pages.yml`).
+2. After the first successful deploy, open **Settings → Pages** and set **Custom domain** to: `docs.regexlens.dev`
+3. Check **Enforce HTTPS** once DNS and the certificate are ready (GitHub provisions a Let’s Encrypt cert).
+
+GitHub may show the exact DNS targets under **Custom domain** (verify and troubleshoot). For a project Pages site, you typically create a **CNAME** DNS record pointing the subdomain at GitHub’s edge (often `<user>.github.io` — confirm in the GitHub UI for your account).
+
+#### B. Namecheap DNS
+
+1. Namecheap → **Domain List** → **Manage** `regexlens.dev` → **Advanced DNS**.
+2. Add a **CNAME Record**:
+   - **Host:** `docs`
+   - **Value:** use the hostname GitHub shows (commonly `nanaagyei.github.io` for user/project Pages — **copy from GitHub’s Custom domain** panel after saving `docs.regexlens.dev`, or from [GitHub Pages custom domain docs](https://docs.github.com/pages/configuring-a-custom-domain-for-your-github-pages-site/about-custom-domains-and-github-pages)).
+   - **TTL:** Automatic or 30 min.
+3. Remove conflicting records for the same host (e.g. another `docs` CNAME or redirect).
+4. Wait for propagation (often minutes to a few hours). In GitHub Pages settings, wait until the check shows **DNS valid**.
+
+The repo includes `docs/public/CNAME` with `docs.regexlens.dev` so static export publishes the domain hint for Pages.
+
+#### C. Application environment (Vercel)
+
+1. Set **`NEXT_PUBLIC_DOCS_URL=https://docs.regexlens.dev`** for **Production** (and Preview if you use a preview docs URL).
+2. Redeploy the main app so links and redirects use the new value.
+
 
 ### 8. Final Verification
 
 - [ ] `dev` branch Preview URL loads and works end-to-end
 - [ ] PR `dev → main` passes all CI checks (lint, typecheck, test, build, e2e)
 - [ ] Production URL loads after merge to `main`
+- [ ] `https://docs.regexlens.dev` loads (GitHub Pages) and **HTTPS** is enforced
+- [ ] `https://regexlens.dev/docs` redirects to the docs subdomain
 - [ ] Auth sign-in flow works (GitHub and/or Google)
 - [ ] Database tables exist and queries succeed
 - [ ] Vercel Web Analytics and Speed Insights show data

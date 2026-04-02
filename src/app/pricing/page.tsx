@@ -372,7 +372,21 @@ export default function PricingPage() {
 
       {/* Footer */}
       <footer className="border-t border-border py-8">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground space-y-3">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center">
+            <Link href="/changelog" className="hover:text-foreground transition-colors">
+              Changelog
+            </Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">
+              Terms
+            </Link>
+            <Link href="/" className="hover:text-foreground transition-colors">
+              Home
+            </Link>
+          </div>
           <p>&copy; {new Date().getFullYear()} RegexLens. All rights reserved.</p>
         </div>
       </footer>

@@ -82,15 +82,17 @@ function getNodeSummary(node: AstNode): string | null {
       }
       return node.value ? `"${node.value}"` : null;
 
-    case "Quantifier":
-      if (node.kind_ === "Range") {
+    case "Quantifier": {
+      const qKind = node.kind ?? node.kind_;
+      if (qKind === "Range") {
         const from = node.from ?? 0;
         const to = node.to;
         if (to === undefined) return `{${from},}`;
         if (from === to) return `{${from}}`;
         return `{${from},${to}}`;
       }
-      return node.kind_ || null;
+      return qKind || null;
+    }
 
     case "Group":
       if (node.name) return `(?<${node.name}>)`;

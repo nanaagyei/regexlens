@@ -18,7 +18,7 @@ A typical Apache/Nginx access log line:
 ^(?<ip>[\d.]+)\s+-\s+(?<user>\S+)\s+\[(?<timestamp>[^\]]+)\]\s+"(?<method>\w+)\s+(?<path>\S+)\s+(?<protocol>[^"]+)"\s+(?<status>\d+)\s+(?<bytes>\d+)
 ```
 
-[Try this pattern →](https://regexlens.app/?p=Xig/PGlwPltcZC5dKylccystXHMrKD88dXNlcj5cUyspXHMrXFsoPzx0aW1lc3RhbXA+W15cXV0rKVxdXHMrIig/PG1ldGhvZD5cdyspXHMrKD88cGF0aD5cUyspXHMrKD88cHJvdG9jb2w+W14iXSspIlxzKyg/PHN0YXR1cz5cZCspXHMrKD88Ynl0ZXM+XGQrKQ==&f=g&t=MTkyLjE2OC4xLjEgLSBqb2huIFsxMC9PY3QvMjAyMzoxMzo1NTozNiAtMDcwMF0gIkdFVCAvYXBpL3VzZXJzIEhUVFAvMS4xIiAyMDAgMjMyNiAiaHR0cHM6Ly9leGFtcGxlLmNvbSIgIk1vemlsbGEvNS4wIg==)
+[Try this pattern →](https://regexlens.dev/app?p=Xig/PGlwPltcZC5dKylccystXHMrKD88dXNlcj5cUyspXHMrXFsoPzx0aW1lc3RhbXA+W15cXV0rKVxdXHMrIig/PG1ldGhvZD5cdyspXHMrKD88cGF0aD5cUyspXHMrKD88cHJvdG9jb2w+W14iXSspIlxzKyg/PHN0YXR1cz5cZCspXHMrKD88Ynl0ZXM+XGQrKQ==&f=g&t=MTkyLjE2OC4xLjEgLSBqb2huIFsxMC9PY3QvMjAyMzoxMzo1NTozNiAtMDcwMF0gIkdFVCAvYXBpL3VzZXJzIEhUVFAvMS4xIiAyMDAgMjMyNiAiaHR0cHM6Ly9leGFtcGxlLmNvbSIgIk1vemlsbGEvNS4wIg==)
 
 **Captured groups:**
 - `ip` — Client IP address
@@ -38,7 +38,7 @@ Quick pattern to find all HTTP status codes:
 "\s(\d{3})\s
 ```
 
-[Try it →](https://regexlens.app/?p=IlxzKFxkezN9KVxz&f=g&t=IkdFVCAvYXBpIEhUVFAvMS4xIiAyMDAgMTIzNAoiUE9TVCAvbG9naW4gSFRUUC8xLjEiIDQwMSA1NgoiR0VUIC9oZWFsdGggSFRUUC8xLjEiIDUwMCA3OA==)
+[Try it →](https://regexlens.dev/app?p=IlxzKFxkezN9KVxz&f=g&t=IkdFVCAvYXBpIEhUVFAvMS4xIiAyMDAgMTIzNAoiUE9TVCAvbG9naW4gSFRUUC8xLjEiIDQwMSA1NgoiR0VUIC9oZWFsdGggSFRUUC8xLjEiIDUwMCA3OA==)
 
 ### Find Error Responses (4xx and 5xx)
 
@@ -46,7 +46,7 @@ Quick pattern to find all HTTP status codes:
 "\s([45]\d{2})\s
 ```
 
-[Try it →](https://regexlens.app/?p=IlxzKFs0NV1cZHsyfSlccw==&f=g&t=IkdFVCAvYXBpIEhUVFAvMS4xIiAyMDAgMTIzNAoiUE9TVCAvbG9naW4gSFRUUC8xLjEiIDQwMSA1NgoiR0VUIC9oZWFsdGggSFRUUC8xLjEiIDUwMCA3OA==)
+[Try it →](https://regexlens.dev/app?p=IlxzKFs0NV1cZHsyfSlccw==&f=g&t=IkdFVCAvYXBpIEhUVFAvMS4xIiAyMDAgMTIzNAoiUE9TVCAvbG9naW4gSFRUUC8xLjEiIDQwMSA1NgoiR0VUIC9oZWFsdGggSFRUUC8xLjEiIDUwMCA3OA==)
 
 ## Application Logs
 
@@ -59,7 +59,7 @@ Common timestamp formats:
 \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?
 ```
 
-[Try it →](https://regexlens.app/?p=XGR7NH0tXGR7Mn0tXGR7Mn1UXGR7Mn06XGR7Mn06XGR7Mn0oPzpcLlxkKyk/KD86WnxbKy1dXGR7Mn06XGR7Mn0pPw==&f=g&t=MjAyMy0xMC0xNVQxNDozMDowMFoKMjAyMy0xMC0xNVQxNDozMDowMC4xMjMrMDA6MDAKMjAyMy0xMC0xNVQxNDozMDowMC0wNTowMA==)
+[Try it →](https://regexlens.dev/app?p=XGR7NH0tXGR7Mn0tXGR7Mn1UXGR7Mn06XGR7Mn06XGR7Mn0oPzpcLlxkKyk/KD86WnxbKy1dXGR7Mn06XGR7Mn0pPw==&f=g&t=MjAyMy0xMC0xNVQxNDozMDowMFoKMjAyMy0xMC0xNVQxNDozMDowMC4xMjMrMDA6MDAKMjAyMy0xMC0xNVQxNDozMDowMC0wNTowMA==)
 
 **Common log format:**
 ```regex
@@ -74,7 +74,7 @@ Extract log level from structured logs:
 \b(DEBUG|INFO|WARN|ERROR|FATAL)\b
 ```
 
-[Try it →](https://regexlens.app/?p=XGIoREVCVUd8SU5GT3xXQVJOfEVSUk9SfEZBVEFMKVxi&f=gi&t=MjAyMy0xMC0xNSBJTkZPIFVzZXIgbG9nZ2VkIGluCjIwMjMtMTAtMTUgRVJST1IgRGF0YWJhc2UgY29ubmVjdGlvbiBmYWlsZWQKMjAyMy0xMC0xNSBERUJVRyBQcm9jZXNzaW5nIHJlcXVlc3QKMjAyMy0xMC0xNSBXQVJOIE1lbW9yeSB1c2FnZSBoaWdo)
+[Try it →](https://regexlens.dev/app?p=XGIoREVCVUd8SU5GT3xXQVJOfEVSUk9SfEZBVEFMKVxi&f=gi&t=MjAyMy0xMC0xNSBJTkZPIFVzZXIgbG9nZ2VkIGluCjIwMjMtMTAtMTUgRVJST1IgRGF0YWJhc2UgY29ubmVjdGlvbiBmYWlsZWQKMjAyMy0xMC0xNSBERUJVRyBQcm9jZXNzaW5nIHJlcXVlc3QKMjAyMy0xMC0xNSBXQVJOIE1lbW9yeSB1c2FnZSBoaWdo)
 
 ### JSON Log Parsing
 
@@ -90,7 +90,7 @@ For JSON-structured logs, extract specific fields:
 "request_id":\s*"([a-f0-9-]+)"
 ```
 
-[Try JSON parsing →](https://regexlens.app/?p=InJlcXVlc3RfaWQiOlxzKiIoW2EtZjAtOS1dKyki&f=g&t=eyJyZXF1ZXN0X2lkIjogImFiYzEyMy00NTYtZGVmIiwgInN0YXR1cyI6ICJvayJ9CnsicmVxdWVzdF9pZCI6ICI3ODktZ2hpLTAxMiIsICJlcnJvciI6ICJ0aW1lb3V0In0=)
+[Try JSON parsing →](https://regexlens.dev/app?p=InJlcXVlc3RfaWQiOlxzKiIoW2EtZjAtOS1dKyki&f=g&t=eyJyZXF1ZXN0X2lkIjogImFiYzEyMy00NTYtZGVmIiwgInN0YXR1cyI6ICJvayJ9CnsicmVxdWVzdF9pZCI6ICI3ODktZ2hpLTAxMiIsICJlcnJvciI6ICJ0aW1lb3V0In0=)
 
 ## Stack Traces
 
@@ -102,7 +102,7 @@ Extract class and line number from Java exceptions:
 at\s+(?<class>[\w.$]+)\.(?<method>\w+)\((?<file>\w+\.java):(?<line>\d+)\)
 ```
 
-[Try it →](https://regexlens.app/?p=YXRccysoPzxjbGFzcz5bXHcuJF0rKVwuKD88bWV0aG9kPlx3KylcKCg/PGZpbGU+XHcrXC5qYXZhKTooPzxsaW5lPlxkKylcKQ==&f=g&t=amF2YS5sYW5nLk51bGxQb2ludGVyRXhjZXB0aW9uCglhdCBjb20uZXhhbXBsZS5TZXJ2aWNlLnByb2Nlc3MoU2VydmljZS5qYXZhOjQyKQoJYXQgY29tLmV4YW1wbGUuQ29udHJvbGxlci5oYW5kbGUoQ29udHJvbGxlci5qYXZhOjE1KQ==)
+[Try it →](https://regexlens.dev/app?p=YXRccysoPzxjbGFzcz5bXHcuJF0rKVwuKD88bWV0aG9kPlx3KylcKCg/PGZpbGU+XHcrXC5qYXZhKTooPzxsaW5lPlxkKylcKQ==&f=g&t=amF2YS5sYW5nLk51bGxQb2ludGVyRXhjZXB0aW9uCglhdCBjb20uZXhhbXBsZS5TZXJ2aWNlLnByb2Nlc3MoU2VydmljZS5qYXZhOjQyKQoJYXQgY29tLmV4YW1wbGUuQ29udHJvbGxlci5oYW5kbGUoQ29udHJvbGxlci5qYXZhOjE1KQ==)
 
 ### Python Traceback
 

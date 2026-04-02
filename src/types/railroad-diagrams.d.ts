@@ -27,4 +27,7 @@ declare module "@prantlf/railroad-diagrams" {
   export class NonTerminal {
     constructor(text: string);
   }
+  export class Comment {
+    constructor(text: string);
+  }
 }

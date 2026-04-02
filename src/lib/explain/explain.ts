@@ -206,13 +206,14 @@ function handleRepetition(
     const greedy = quantifier.greedy !== false;
     const greedyNote = greedy ? "" : " (lazy - match as few as possible)";
 
-    if (quantifier.kind_ === "*") {
+    const qKind = quantifier.kind ?? quantifier.kind_;
+    if (qKind === "*") {
       label = `Zero or more times${greedyNote}`;
-    } else if (quantifier.kind_ === "+") {
+    } else if (qKind === "+") {
       label = `One or more times${greedyNote}`;
-    } else if (quantifier.kind_ === "?") {
+    } else if (qKind === "?") {
       label = `Optional (zero or one)${greedyNote}`;
-    } else if (quantifier.kind_ === "Range") {
+    } else if (qKind === "Range") {
       const from = quantifier.from ?? 0;
       const to = quantifier.to;
 
