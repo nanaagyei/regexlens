@@ -22,4 +22,32 @@ describe("parseRegex", () => {
     const r = parseRegex("[", "");
     expect(r.ok).toBe(false);
   });
+
+  it("returns normalized tree on success", () => {
+    const r = parseRegex("^abc$", "");
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.normalized).toBeDefined();
+      expect(r.normalized.type).toBe("pattern");
+      expect(r.normalized.children.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("returns normalized tree for empty pattern", () => {
+    const r = parseRegex("", "");
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.normalized).toBeDefined();
+      expect(r.normalized.type).toBe("pattern");
+      expect(r.normalized.children).toEqual([]);
+    }
+  });
+
+  it("does not include normalized on failure", () => {
+    const r = parseRegex("[", "");
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect((r as Record<string, unknown>).normalized).toBeUndefined();
+    }
+  });
 });
