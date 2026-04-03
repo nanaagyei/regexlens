@@ -1,14 +1,19 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from "react";
+import { useMemo, useRef, useSyncExternalStore } from "react";
+import {
+  HoverState,
+  subscribe,
+  getSnapshot,
+  setHoveredRange,
+  setHoveredStepId,
+  setHoveredMatchIndex,
+  toggleLockedStep,
+  clearAll,
+} from "@/lib/stores/hoverStore";
 import { Range } from "@/types";
 
-export interface HoverState {
-  hoveredRange: Range | null;
-  hoveredStepId: string | null;
-  hoveredMatchIndex: number | null;
-  lockedStepId: string | null;
-}
+export type { HoverState };
 
 export interface HoverSyncContextValue {
   hoverState: HoverState;
@@ -19,40 +24,12 @@ export interface HoverSyncContextValue {
   clearAll: () => void;
 }
 
-const DEFAULT_STATE: HoverState = {
-  hoveredRange: null,
-  hoveredStepId: null,
-  hoveredMatchIndex: null,
-  lockedStepId: null,
-};
-
-const HoverSyncContext = createContext<HoverSyncContextValue | null>(null);
-
-export function HoverSyncProvider({ children }: { children: ReactNode }) {
-  const [hoverState, setHoverState] = useState<HoverState>(DEFAULT_STATE);
-
-  const setHoveredRange = useCallback((range: Range | null) => {
-    setHoverState((prev) => ({ ...prev, hoveredRange: range }));
-  }, []);
-
-  const setHoveredStepId = useCallback((stepId: string | null) => {
-    setHoverState((prev) => ({ ...prev, hoveredStepId: stepId }));
-  }, []);
-
-  const setHoveredMatchIndex = useCallback((index: number | null) => {
-    setHoverState((prev) => ({ ...prev, hoveredMatchIndex: index }));
-  }, []);
-
-  const toggleLockedStep = useCallback((stepId: string) => {
-    setHoverState((prev) => ({
-      ...prev,
-      lockedStepId: prev.lockedStepId === stepId ? null : stepId,
-    }));
-  }, []);
-
-  const clearAll = useCallback(() => {
-    setHoverState(DEFAULT_STATE);
-  }, []);
+/**
+ * Primary hook for accessing hover sync state.
+ * No provider needed — backed by useSyncExternalStore.
+ */
+export function useHoverSync(): HoverSyncContextValue {
+  const hoverState = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   const value = useMemo(
     () => ({
@@ -63,27 +40,45 @@ export function HoverSyncProvider({ children }: { children: ReactNode }) {
       toggleLockedStep,
       clearAll,
     }),
-    [
-      hoverState,
-      setHoveredRange,
-      setHoveredStepId,
-      setHoveredMatchIndex,
-      toggleLockedStep,
-      clearAll,
-    ]
+    [hoverState]
   );
 
-  return (
-    <HoverSyncContext.Provider value={value}>
-      {children}
-    </HoverSyncContext.Provider>
-  );
+  return value;
 }
 
-export function useHoverSync(): HoverSyncContextValue {
-  const context = useContext(HoverSyncContext);
-  if (!context) {
-    throw new Error("useHoverSync must be used within a HoverSyncProvider");
-  }
-  return context;
+/**
+ * Fine-grained selector hook — only rerenders when the selected slice changes.
+ * Use this in performance-sensitive components that only need one piece of hover state.
+ *
+ * Example: const matchIndex = useHoverSelector(s => s.hoveredMatchIndex);
+ */
+export function useHoverSelector<T>(selector: (state: HoverState) => T): T {
+  const selectorRef = useRef(selector);
+  selectorRef.current = selector;
+
+  const prevRef = useRef<T | undefined>(undefined);
+  const snapshotRef = useRef<T | undefined>(undefined);
+
+  const getSelected = () => {
+    const nextState = getSnapshot();
+    const nextSelected = selectorRef.current(nextState);
+
+    if (prevRef.current !== undefined && Object.is(snapshotRef.current, nextSelected)) {
+      return snapshotRef.current as T;
+    }
+
+    prevRef.current = nextSelected;
+    snapshotRef.current = nextSelected;
+    return nextSelected;
+  };
+
+  return useSyncExternalStore(subscribe, getSelected, getSelected);
+}
+
+/**
+ * Backwards-compat passthrough — no longer needed but kept so existing
+ * JSX trees don't break. Can be removed once all usages are cleaned up.
+ */
+export function HoverSyncProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

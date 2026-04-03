@@ -1,0 +1,87 @@
+import { Range } from "@/types";
+
+export interface HoverState {
+  hoveredRange: Range | null;
+  hoveredStepId: string | null;
+  hoveredMatchIndex: number | null;
+  lockedStepId: string | null;
+}
+
+type Listener = () => void;
+
+const DEFAULT_STATE: HoverState = {
+  hoveredRange: null,
+  hoveredStepId: null,
+  hoveredMatchIndex: null,
+  lockedStepId: null,
+};
+
+let state: HoverState = { ...DEFAULT_STATE };
+const listeners = new Set<Listener>();
+
+function notify() {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
+export function subscribe(listener: Listener): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+export function getSnapshot(): HoverState {
+  return state;
+}
+
+export function setHoveredRange(range: Range | null) {
+  if (state.hoveredRange === range) return;
+  if (
+    range !== null &&
+    state.hoveredRange !== null &&
+    range.start === state.hoveredRange.start &&
+    range.end === state.hoveredRange.end
+  ) {
+    return;
+  }
+  state = { ...state, hoveredRange: range };
+  notify();
+}
+
+export function setHoveredStepId(stepId: string | null) {
+  if (state.hoveredStepId === stepId) return;
+  state = { ...state, hoveredStepId: stepId };
+  notify();
+}
+
+export function setHoveredMatchIndex(index: number | null) {
+  if (state.hoveredMatchIndex === index) return;
+  state = { ...state, hoveredMatchIndex: index };
+  notify();
+}
+
+export function toggleLockedStep(stepId: string) {
+  state = {
+    ...state,
+    lockedStepId: state.lockedStepId === stepId ? null : stepId,
+  };
+  notify();
+}
+
+export function clearAll() {
+  const isAlreadyDefault =
+    state.hoveredRange === null &&
+    state.hoveredStepId === null &&
+    state.hoveredMatchIndex === null &&
+    state.lockedStepId === null;
+  if (isAlreadyDefault) return;
+  state = { ...DEFAULT_STATE };
+  notify();
+}
+
+/** Reset store to default state (for testing) */
+export function _reset() {
+  state = { ...DEFAULT_STATE };
+}

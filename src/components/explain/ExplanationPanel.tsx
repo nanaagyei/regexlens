@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ExplanationResult, ParseResult, AIContext } from "@/types";
+import { ExplanationMode, ExplanationResult, ParseResult, AIContext } from "@/types";
 import { ExplanationSteps } from "./ExplanationSteps";
 import { useAIChat } from "@/hooks/useAIChat";
 import { useEntitlement } from "@/hooks/useEntitlement";
@@ -20,6 +20,8 @@ interface ExplanationPanelProps {
   parseResult: ParseResult;
   pattern?: string;
   flags?: string;
+  explanationMode?: ExplanationMode;
+  onExplanationModeChange?: (mode: ExplanationMode) => void;
 }
 
 export function ExplanationPanel({
@@ -27,6 +29,8 @@ export function ExplanationPanel({
   parseResult,
   pattern,
   flags,
+  explanationMode = "simple",
+  onExplanationModeChange,
 }: ExplanationPanelProps) {
   const [useAIPolish, setUseAIPolish] = useState(false);
   const { isPro } = useEntitlement();
@@ -110,9 +114,37 @@ export function ExplanationPanel({
   return (
     <div className="p-4">
       <div className="flex items-center justify-between gap-2 mb-3">
-        <h3 className="text-sm font-medium text-muted-foreground">
-          What this pattern does
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-medium text-muted-foreground">
+            What this pattern does
+          </h3>
+          {onExplanationModeChange && (
+            <div className="flex items-center rounded-md bg-muted p-0.5">
+              <button
+                onClick={() => onExplanationModeChange("simple")}
+                className={cn(
+                  "px-2 py-0.5 text-[11px] font-medium rounded transition-colors",
+                  explanationMode === "simple"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Simple
+              </button>
+              <button
+                onClick={() => onExplanationModeChange("technical")}
+                className={cn(
+                  "px-2 py-0.5 text-[11px] font-medium rounded transition-colors",
+                  explanationMode === "technical"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Technical
+              </button>
+            </div>
+          )}
+        </div>
         <Tooltip>
           <TooltipTrigger asChild>
             <label

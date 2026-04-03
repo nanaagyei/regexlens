@@ -1,14 +1,30 @@
 "use client";
 
-import { WarningsResult } from "@/types";
+import { WarningsResult, ParseResult } from "@/types";
 import { WarningCard } from "./WarningCard";
-import { CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
 interface WarningsPanelProps {
   warnings: WarningsResult;
+  parseResult?: ParseResult;
 }
 
-export function WarningsPanel({ warnings }: WarningsPanelProps) {
+export function WarningsPanel({ warnings, parseResult }: WarningsPanelProps) {
+  // Invalid pattern fallback
+  if (parseResult && !parseResult.ok && parseResult.errorMessage) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+        <div className="text-red-400 mb-3">
+          <AlertTriangle className="h-8 w-8" />
+        </div>
+        <h3 className="text-sm font-medium mb-1">Invalid pattern</h3>
+        <p className="text-xs text-red-400 max-w-[250px]">
+          Fix the pattern to check for warnings
+        </p>
+      </div>
+    );
+  }
+
   if (warnings.warnings.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
