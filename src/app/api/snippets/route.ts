@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requirePro, isGuardOk } from "@/lib/entitlements/proGuard";
+import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
 import { combinedRateLimit } from "@/lib/security/rateLimit";
 import { query } from "@/lib/db/pool";
 import {
@@ -22,18 +22,18 @@ interface SnippetRow {
 }
 
 /**
- * POST /api/snippets - Create a new regex snippet (Pro only)
+ * POST /api/snippets - Create a new regex snippet
  */
 export async function POST(request: NextRequest) {
   try {
     // Check rate limit
-    const rateLimitResponse = await combinedRateLimit(request, "api_pro");
+    const rateLimitResponse = await combinedRateLimit(request, "api_free");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
-    // Require Pro subscription
-    const guard = await requirePro();
+    // Require authentication
+    const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
     }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     const rows = await query<SnippetRow>(
       `INSERT INTO snippets (user_id, name, pattern, flags, description, tags)
        VALUES ($1, $2, $3, $4, $5, $6::jsonb)
-       RETURNING 
+       RETURNING
          id::text, name, pattern, flags, description,
          tags, created_at, updated_at`,
       [guard.user.id, name, pattern, flags, description || null, JSON.stringify(tags)]
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/snippets - List user's snippets (Pro only)
+ * GET /api/snippets - List user's snippets
  * 
  * Query parameters:
  * - query: Search by name (optional)
@@ -116,13 +116,13 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Check rate limit
-    const rateLimitResponse = await combinedRateLimit(request, "api_pro");
+    const rateLimitResponse = await combinedRateLimit(request, "api_free");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
-    // Require Pro subscription
-    const guard = await requirePro();
+    // Require authentication
+    const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
     }
