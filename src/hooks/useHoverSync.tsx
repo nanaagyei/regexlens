@@ -8,6 +8,7 @@ import {
   setHoveredRange,
   setHoveredStepId,
   setHoveredMatchIndex,
+  setSelectedMatchIndex,
   toggleLockedStep,
   clearAll,
 } from "@/lib/stores/hoverStore";
@@ -20,6 +21,7 @@ export interface HoverSyncContextValue {
   setHoveredRange: (range: Range | null) => void;
   setHoveredStepId: (stepId: string | null) => void;
   setHoveredMatchIndex: (index: number | null) => void;
+  setSelectedMatchIndex: (index: number | null) => void;
   toggleLockedStep: (stepId: string) => void;
   clearAll: () => void;
 }
@@ -37,6 +39,7 @@ export function useHoverSync(): HoverSyncContextValue {
       setHoveredRange,
       setHoveredStepId,
       setHoveredMatchIndex,
+      setSelectedMatchIndex,
       toggleLockedStep,
       clearAll,
     }),

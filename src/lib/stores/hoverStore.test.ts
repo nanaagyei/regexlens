@@ -5,6 +5,7 @@ import {
   setHoveredRange,
   setHoveredStepId,
   setHoveredMatchIndex,
+  setSelectedMatchIndex,
   toggleLockedStep,
   clearAll,
   _reset,
@@ -21,6 +22,7 @@ describe("hoverStore", () => {
       expect(state.hoveredRange).toBeNull();
       expect(state.hoveredStepId).toBeNull();
       expect(state.hoveredMatchIndex).toBeNull();
+      expect(state.selectedMatchIndex).toBeNull();
       expect(state.lockedStepId).toBeNull();
     });
   });
@@ -89,6 +91,40 @@ describe("hoverStore", () => {
     });
   });
 
+  describe("setSelectedMatchIndex", () => {
+    it("updates selectedMatchIndex", () => {
+      setSelectedMatchIndex(1);
+      expect(getSnapshot().selectedMatchIndex).toBe(1);
+    });
+
+    it("can be cleared to null", () => {
+      setSelectedMatchIndex(1);
+      setSelectedMatchIndex(null);
+      expect(getSnapshot().selectedMatchIndex).toBeNull();
+    });
+
+    it("no-ops when setting same value", () => {
+      setSelectedMatchIndex(1);
+      const snapshot1 = getSnapshot();
+      setSelectedMatchIndex(1);
+      expect(getSnapshot()).toBe(snapshot1);
+    });
+
+    it("notifies listeners on change", () => {
+      const listener = vi.fn();
+      subscribe(listener);
+      setSelectedMatchIndex(2);
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not notify on no-op", () => {
+      const listener = vi.fn();
+      subscribe(listener);
+      setSelectedMatchIndex(null);
+      expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
   describe("toggleLockedStep", () => {
     it("sets lockedStepId when null", () => {
       toggleLockedStep("step-1");
@@ -113,6 +149,7 @@ describe("hoverStore", () => {
       setHoveredRange({ start: 0, end: 5 });
       setHoveredStepId("step-1");
       setHoveredMatchIndex(2);
+      setSelectedMatchIndex(3);
       toggleLockedStep("step-3");
 
       clearAll();
@@ -121,6 +158,7 @@ describe("hoverStore", () => {
       expect(state.hoveredRange).toBeNull();
       expect(state.hoveredStepId).toBeNull();
       expect(state.hoveredMatchIndex).toBeNull();
+      expect(state.selectedMatchIndex).toBeNull();
       expect(state.lockedStepId).toBeNull();
     });
 
