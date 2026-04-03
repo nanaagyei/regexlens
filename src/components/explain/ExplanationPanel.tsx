@@ -4,16 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import { ExplanationMode, ExplanationResult, ParseResult, AIContext } from "@/types";
 import { ExplanationSteps } from "./ExplanationSteps";
 import { useAIChat } from "@/hooks/useAIChat";
-import { useEntitlement } from "@/hooks/useEntitlement";
+import { useUser } from "@/hooks/useUser";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { FileText, Sparkles, Lock, Loader2 } from "lucide-react";
+import { FileText, Sparkles, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 interface ExplanationPanelProps {
   explanation: ExplanationResult;
@@ -33,7 +31,7 @@ export function ExplanationPanel({
   onExplanationModeChange,
 }: ExplanationPanelProps) {
   const [useAIPolish, setUseAIPolish] = useState(false);
-  const { isPro } = useEntitlement();
+  const { isAuthenticated } = useUser();
   const { messages, isStreaming, sendMessage, clearHistory } = useAIChat();
   const prevPatternRef = useRef<string>("");
 
@@ -51,7 +49,7 @@ export function ExplanationPanel({
   useEffect(() => {
     if (
       useAIPolish &&
-      isPro &&
+      isAuthenticated &&
       pattern &&
       explanation.steps.length > 0 &&
       messages.length === 0
@@ -67,7 +65,7 @@ export function ExplanationPanel({
       };
       sendMessage("polish", context);
     }
-  }, [useAIPolish, isPro, pattern, flags, explanation.steps, messages.length, sendMessage]);
+  }, [useAIPolish, isAuthenticated, pattern, flags, explanation.steps, messages.length, sendMessage]);
 
   // Empty state - no pattern
   if (!parseResult.ok && !parseResult.errorMessage) {
@@ -182,36 +180,27 @@ export function ExplanationPanel({
             </label>
           </TooltipTrigger>
           <TooltipContent side="left" className="max-w-[200px]">
-            {isPro
+            {isAuthenticated
               ? "Rewrites the explanation into smooth, natural prose using AI."
-              : "Upgrade to Pro to unlock AI-polished explanations."}
+              : "Sign in to unlock AI-polished explanations."}
           </TooltipContent>
         </Tooltip>
       </div>
 
-      {useAIPolish && !isPro && (
-        <div className="mb-3 flex items-center gap-2">
-          <Badge variant="secondary" className="text-[10px] font-normal gap-1">
-            <Lock className="h-2.5 w-2.5" />
-            Pro feature
-          </Badge>
-          <Link
-            href="/pricing"
-            className="text-[10px] text-primary hover:underline"
-          >
-            Upgrade
-          </Link>
+      {useAIPolish && !isAuthenticated && (
+        <div className="mb-3 text-xs text-muted-foreground">
+          Sign in to use AI polish.
         </div>
       )}
 
-      {useAIPolish && isPro && isStreaming && !polishedContent && (
+      {useAIPolish && isAuthenticated && isStreaming && !polishedContent && (
         <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           <span>Polishing explanation...</span>
         </div>
       )}
 
-      {useAIPolish && isPro && polishedContent ? (
+      {useAIPolish && isAuthenticated && polishedContent ? (
         <div className="text-sm leading-relaxed text-foreground/90 space-y-2">
           {polishedContent.split("\n").map((line, i) =>
             line.trim() ? (

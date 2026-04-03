@@ -3,11 +3,10 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useEntitlement } from "@/hooks/useEntitlement";
+import { useUser } from "@/hooks/useUser";
 import { Warning, ParseResult } from "@/types";
 import { WarningCard } from "@/components/warnings/WarningCard";
-import { AlertTriangle, Lock, Loader2, Search } from "lucide-react";
-import Link from "next/link";
+import { AlertTriangle, LogIn, Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AnalysisPanelProps {
@@ -105,13 +104,13 @@ function RiskScoreBadge({
 }
 
 export function AnalysisPanel({ pattern, flags, parseResult }: AnalysisPanelProps) {
-  const { isPro, isLoading: isEntitlementLoading, user } = useEntitlement();
+  const { user, isLoading: isUserLoading } = useUser();
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleRunAnalysis = useCallback(async () => {
-    if (!isPro || !pattern.trim()) return;
+    if (!user || !pattern.trim()) return;
 
     setIsLoading(true);
     setError(null);
@@ -137,7 +136,7 @@ export function AnalysisPanel({ pattern, flags, parseResult }: AnalysisPanelProp
     } finally {
       setIsLoading(false);
     }
-  }, [isPro, pattern, flags]);
+  }, [user, pattern, flags]);
 
   // Invalid pattern fallback
   if (parseResult && !parseResult.ok && parseResult.errorMessage) {
@@ -154,21 +153,18 @@ export function AnalysisPanel({ pattern, flags, parseResult }: AnalysisPanelProp
     );
   }
 
-  const showUpgradePrompt = !isEntitlementLoading && !isPro;
+  const showSignInPrompt = !isUserLoading && !user;
 
-  if (showUpgradePrompt) {
+  if (showSignInPrompt) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
         <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
-          <Lock className="h-6 w-6 text-muted-foreground" />
+          <LogIn className="h-6 w-6 text-muted-foreground" />
         </div>
-        <h3 className="font-semibold mb-2">Pro Feature</h3>
+        <h3 className="font-semibold mb-2">Sign in required</h3>
         <p className="text-sm text-muted-foreground mb-4 max-w-[280px]">
-          Run advanced regex analysis with risk scoring, backtracking detection, and rewrite suggestions.
+          Sign in to run advanced regex analysis with risk scoring, backtracking detection, and rewrite suggestions.
         </p>
-        <Button asChild>
-          <Link href="/pricing">{user ? "Upgrade to Pro" : "Sign in to upgrade"}</Link>
-        </Button>
       </div>
     );
   }

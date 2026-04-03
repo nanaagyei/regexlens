@@ -12,19 +12,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useEntitlement } from "@/hooks/useEntitlement";
+import { useUser } from "@/hooks/useUser";
 import { Snippet, SnippetListResponse } from "./types";
 import { SnippetCard } from "./SnippetCard";
 import { SnippetDetailModal } from "./SnippetDetailModal";
 import { SaveSnippetModal } from "./SaveSnippetModal";
 import {
-  Lock,
+  LogIn,
   Loader2,
   Search,
   FolderOpen,
   RefreshCw,
 } from "lucide-react";
-import Link from "next/link";
 
 interface SavedLibraryProps {
   open: boolean;
@@ -37,7 +36,7 @@ export function SavedLibrary({
   onOpenChange,
   onLoadSnippet,
 }: SavedLibraryProps) {
-  const { isPro, isLoading: isEntitlementLoading, user } = useEntitlement();
+  const { user, isLoading: isUserLoading } = useUser();
   const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,7 +48,7 @@ export function SavedLibrary({
 
   const fetchSnippets = useCallback(
     async (cursor?: string, append = false) => {
-      if (!isPro) return;
+      if (!user) return;
 
       setIsLoading(true);
 
@@ -91,15 +90,15 @@ export function SavedLibrary({
         setIsLoading(false);
       }
     },
-    [isPro, searchQuery, selectedTag]
+    [user, searchQuery, selectedTag]
   );
 
   // Fetch snippets when dialog opens or filters change
   useEffect(() => {
-    if (open && isPro) {
+    if (open && user) {
       fetchSnippets();
     }
-  }, [open, isPro, searchQuery, selectedTag, fetchSnippets]);
+  }, [open, user, searchQuery, selectedTag, fetchSnippets]);
 
   const handleLoadMore = useCallback(() => {
     if (nextCursor) {
@@ -168,7 +167,7 @@ export function SavedLibrary({
     setSelectedTag(null);
   }, []);
 
-  const showUpgradePrompt = !isEntitlementLoading && !isPro;
+  const showSignInPrompt = !isUserLoading && !user;
 
   return (
     <>
@@ -184,22 +183,17 @@ export function SavedLibrary({
             </DialogDescription>
           </DialogHeader>
 
-          {showUpgradePrompt ? (
+          {showSignInPrompt ? (
             <div className="py-8 text-center space-y-4">
               <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                <Lock className="h-6 w-6 text-muted-foreground" />
+                <LogIn className="h-6 w-6 text-muted-foreground" />
               </div>
               <div className="space-y-2">
-                <h3 className="font-semibold">Pro Feature</h3>
+                <h3 className="font-semibold">Sign in required</h3>
                 <p className="text-sm text-muted-foreground">
-                  Save and organize your regex patterns with RegexLens Pro.
+                  Sign in to save and organize your regex patterns.
                 </p>
               </div>
-              <Button asChild className="mt-4">
-                <Link href="/pricing">
-                  {user ? "Upgrade to Pro" : "Sign in to upgrade"}
-                </Link>
-              </Button>
             </div>
           ) : (
             <div className="flex flex-col flex-1 min-h-0">
