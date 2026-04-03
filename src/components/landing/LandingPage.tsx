@@ -161,7 +161,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Do I need an account?",
-    a: "No. You can use the full regex analysis toolkit for free without signing up. Accounts are optional for saving snippets to your personal library and accessing Pro features like export.",
+    a: "No. The core regex analysis toolkit works without signing up. Create a free account to save snippets, export explanations, and use the AI copilot.",
   },
   {
     q: "Is my regex data stored on your servers?",
@@ -176,8 +176,8 @@ const FAQ_ITEMS = [
     a: "Absolutely. Generate a shareable link and paste it into your PR comment. Your reviewer will see the pattern, test text, explanations, and warnings in one click.",
   },
   {
-    q: "What\u2019s included in Pro?",
-    a: "Pro adds a saved pattern library, export to Markdown/JSON/PDF, version history with diffs, and priority support. The core analysis tools remain free forever.",
+    q: "Is RegexLens really free?",
+    a: "Yes. Every feature is free. Sign in to unlock saving patterns, exporting explanations, AI analysis, and version diffs. If you find it useful, consider supporting the project.",
   },
 ];
 
@@ -188,9 +188,11 @@ const TRUST_ITEMS = [
   { icon: CheckCircle2, text: "No tracking scripts by default" },
 ];
 
+const SUPPORT_URL =
+  process.env.NEXT_PUBLIC_SUPPORT_URL || "https://buymeacoffee.com/regexlens";
+
 const NAV_LINKS = [
   { href: "/app", label: "Try it" },
-  { href: "/pricing", label: "Pricing" },
   { href: DOCS_URL, label: "Docs", external: true },
 ];
 
@@ -503,14 +505,6 @@ export function LandingPage() {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="border-border/60 hover:border-primary/40 transition-colors"
-            >
-              <Link href="/pricing">Pricing</Link>
-            </Button>
             <Button size="sm" asChild>
               <Link href="/app">
                 Try RegexLens
@@ -978,19 +972,19 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* ─── Pricing Teaser ─── */}
+        {/* ─── Open Source & Community ─── */}
         <section className="py-20 sm:py-28 relative">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
             <h2 className="font-serif text-2xl sm:text-3xl font-bold mb-4">
-              Simple, developer-friendly pricing
+              Free and open source
             </h2>
             <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-              The core tools are free forever. Upgrade only when you need a
-              personal pattern library and export features.
+              Every feature is free. If RegexLens saves you time, consider
+              supporting the project.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild className="h-12 px-8">
-                <Link href="/app">Start free</Link>
+                <Link href="/app">Get started</Link>
               </Button>
               <Button
                 size="lg"
@@ -998,7 +992,9 @@ export function LandingPage() {
                 asChild
                 className="h-12 px-8 border-border/60"
               >
-                <Link href="/pricing">Compare plans</Link>
+                <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
+                  Support the project
+                </a>
               </Button>
             </div>
           </div>
@@ -1067,12 +1063,14 @@ export function LandingPage() {
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    href="/pricing"
+                  <a
+                    href={SUPPORT_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="hover:text-foreground transition-colors"
                   >
-                    Pricing
-                  </Link>
+                    Support Us
+                  </a>
                 </li>
                 <li>
                   <a
