@@ -15,6 +15,7 @@ describe("useHoverSync", () => {
       hoveredRange: null,
       hoveredStepId: null,
       hoveredMatchIndex: null,
+      selectedMatchIndex: null,
       lockedStepId: null,
     });
   });
@@ -37,6 +38,15 @@ describe("useHoverSync", () => {
     expect(result.current.hoverState.hoveredMatchIndex).toBe(2);
   });
 
+  it("setSelectedMatchIndex updates state", () => {
+    const { result } = renderHook(() => useHoverSync());
+    act(() => result.current.setSelectedMatchIndex(1));
+    expect(result.current.hoverState.selectedMatchIndex).toBe(1);
+
+    act(() => result.current.setSelectedMatchIndex(null));
+    expect(result.current.hoverState.selectedMatchIndex).toBeNull();
+  });
+
   it("toggleLockedStep toggles step lock", () => {
     const { result } = renderHook(() => useHoverSync());
     act(() => result.current.toggleLockedStep("step-1"));
@@ -53,6 +63,7 @@ describe("useHoverSync", () => {
       result.current.setHoveredRange({ start: 0, end: 5 });
       result.current.setHoveredStepId("step-1");
       result.current.setHoveredMatchIndex(2);
+      result.current.setSelectedMatchIndex(3);
       result.current.toggleLockedStep("step-3");
     });
 
@@ -62,6 +73,7 @@ describe("useHoverSync", () => {
       hoveredRange: null,
       hoveredStepId: null,
       hoveredMatchIndex: null,
+      selectedMatchIndex: null,
       lockedStepId: null,
     });
   });

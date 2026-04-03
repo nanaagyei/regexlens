@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useCallback, useRef, useImperativeHandle, forwardRef } from "react";
+import { useMemo, useRef, useImperativeHandle, forwardRef } from "react";
 import { MatchResult } from "@/types";
-import { useHoverSync } from "@/hooks/useHoverSync";
+import { MatchOverlay } from "./MatchOverlay";
 import { cn } from "@/lib/utils";
 
 export interface TestTextEditorRef {
@@ -17,18 +17,8 @@ interface TestTextEditorProps {
   flags: string;
 }
 
-const HIGHLIGHT_CLASSES = [
-  "match-highlight-1",
-  "match-highlight-2",
-  "match-highlight-3",
-  "match-highlight-4",
-  "match-highlight-5",
-  "match-highlight-6",
-];
-
 export const TestTextEditor = forwardRef<TestTextEditorRef, TestTextEditorProps>(
   function TestTextEditor({ value, onChange, matches, pattern, flags: _flags }, ref) {
-  const { hoverState, setHoveredMatchIndex } = useHoverSync();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useImperativeHandle(ref, () => ({
@@ -92,17 +82,6 @@ export const TestTextEditor = forwardRef<TestTextEditorRef, TestTextEditorProps>
     return segments;
   }, [value, matches.spans]);
 
-  const handleMouseEnter = useCallback(
-    (matchIndex: number) => {
-      setHoveredMatchIndex(matchIndex);
-    },
-    [setHoveredMatchIndex]
-  );
-
-  const handleMouseLeave = useCallback(() => {
-    setHoveredMatchIndex(null);
-  }, [setHoveredMatchIndex]);
-
   return (
     <div className="relative h-full">
       {/* Actual textarea for editing */}
@@ -123,34 +102,7 @@ export const TestTextEditor = forwardRef<TestTextEditorRef, TestTextEditorProps>
 
       {/* Highlight overlay - positioned behind the text */}
       {matches.spans.length > 0 && (
-        <div
-          className="absolute inset-0 p-4 pointer-events-none font-mono text-sm whitespace-pre-wrap break-words overflow-hidden"
-          aria-hidden="true"
-        >
-          {highlightedSegments.map((segment, index) => {
-            if (!segment.isMatch) {
-              return <span key={index}>{segment.text}</span>;
-            }
-
-            const colorIndex = segment.matchIndex % HIGHLIGHT_CLASSES.length;
-            const isHovered = hoverState.hoveredMatchIndex === segment.matchIndex;
-            
-            return (
-              <span
-                key={index}
-                className={cn(
-                  HIGHLIGHT_CLASSES[colorIndex],
-                  isHovered && `${HIGHLIGHT_CLASSES[colorIndex]}-active`,
-                  "rounded-sm transition-colors duration-150 pointer-events-auto cursor-pointer"
-                )}
-                onMouseEnter={() => handleMouseEnter(segment.matchIndex)}
-                onMouseLeave={handleMouseLeave}
-              >
-                {segment.text}
-              </span>
-            );
-          })}
-        </div>
+        <MatchOverlay segments={highlightedSegments} />
       )}
 
       {/* Empty state */}

@@ -4,6 +4,7 @@ export interface HoverState {
   hoveredRange: Range | null;
   hoveredStepId: string | null;
   hoveredMatchIndex: number | null;
+  selectedMatchIndex: number | null;
   lockedStepId: string | null;
 }
 
@@ -13,6 +14,7 @@ const DEFAULT_STATE: HoverState = {
   hoveredRange: null,
   hoveredStepId: null,
   hoveredMatchIndex: null,
+  selectedMatchIndex: null,
   lockedStepId: null,
 };
 
@@ -62,6 +64,12 @@ export function setHoveredMatchIndex(index: number | null) {
   notify();
 }
 
+export function setSelectedMatchIndex(index: number | null) {
+  if (state.selectedMatchIndex === index) return;
+  state = { ...state, selectedMatchIndex: index };
+  notify();
+}
+
 export function toggleLockedStep(stepId: string) {
   state = {
     ...state,
@@ -75,6 +83,7 @@ export function clearAll() {
     state.hoveredRange === null &&
     state.hoveredStepId === null &&
     state.hoveredMatchIndex === null &&
+    state.selectedMatchIndex === null &&
     state.lockedStepId === null;
   if (isAlreadyDefault) return;
   state = { ...DEFAULT_STATE };
