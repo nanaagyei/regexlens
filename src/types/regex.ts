@@ -22,8 +22,10 @@ export interface RegexState {
   selectedTemplate: string | null;
 }
 
+import type { ComparableNode } from "./ast";
+
 export type ParseResult =
-  | { ok: true; ast: AstNode; normalizedPattern: string }
+  | { ok: true; ast: AstNode; normalizedPattern: string; normalized: ComparableNode }
   | { ok: false; errorMessage: string; errorRange?: Range };
 
 export interface MatchSpan {
