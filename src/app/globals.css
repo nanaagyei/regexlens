@@ -109,6 +109,14 @@
 .match-highlight-5-active { background-color: hsl(var(--match-5) / 0.5); }
 .match-highlight-6-active { background-color: hsl(var(--match-6) / 0.5); }
 
+/* Selected match highlights (ring outline) */
+.match-highlight-1-selected { background-color: hsl(var(--match-1) / 0.4); outline: 2px solid hsl(var(--match-1) / 0.7); outline-offset: -1px; }
+.match-highlight-2-selected { background-color: hsl(var(--match-2) / 0.4); outline: 2px solid hsl(var(--match-2) / 0.7); outline-offset: -1px; }
+.match-highlight-3-selected { background-color: hsl(var(--match-3) / 0.4); outline: 2px solid hsl(var(--match-3) / 0.7); outline-offset: -1px; }
+.match-highlight-4-selected { background-color: hsl(var(--match-4) / 0.4); outline: 2px solid hsl(var(--match-4) / 0.7); outline-offset: -1px; }
+.match-highlight-5-selected { background-color: hsl(var(--match-5) / 0.4); outline: 2px solid hsl(var(--match-5) / 0.7); outline-offset: -1px; }
+.match-highlight-6-selected { background-color: hsl(var(--match-6) / 0.4); outline: 2px solid hsl(var(--match-6) / 0.7); outline-offset: -1px; }
+
 /* Monaco editor custom styles */
 .monaco-editor {
   --vscode-editor-background: hsl(var(--card)) !important;

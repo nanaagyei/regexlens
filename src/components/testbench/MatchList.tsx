@@ -20,7 +20,7 @@ const BADGE_VARIANTS = [
 ] as const;
 
 export function MatchList({ matches, onMatchClick }: MatchListProps) {
-  const { hoverState, setHoveredMatchIndex } = useHoverSync();
+  const { hoverState, setHoveredMatchIndex, setSelectedMatchIndex } = useHoverSync();
 
   if (matches.error) {
     return (
@@ -48,9 +48,15 @@ export function MatchList({ matches, onMatchClick }: MatchListProps) {
           match={match}
           index={index}
           isHovered={hoverState.hoveredMatchIndex === index}
+          isSelected={hoverState.selectedMatchIndex === index}
           onMouseEnter={() => setHoveredMatchIndex(index)}
           onMouseLeave={() => setHoveredMatchIndex(null)}
-          onClick={() => onMatchClick?.(index, match.full.start, match.full.end)}
+          onClick={() => {
+            setSelectedMatchIndex(
+              hoverState.selectedMatchIndex === index ? null : index
+            );
+            onMatchClick?.(index, match.full.start, match.full.end);
+          }}
         />
       ))}
       {matches.truncated && (
@@ -66,6 +72,7 @@ interface MatchItemProps {
   match: Match;
   index: number;
   isHovered: boolean;
+  isSelected: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   onClick?: () => void;
@@ -75,6 +82,7 @@ function MatchItem({
   match,
   index,
   isHovered,
+  isSelected,
   onMouseEnter,
   onMouseLeave,
   onClick,
@@ -87,8 +95,12 @@ function MatchItem({
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
       className={cn(
-        "p-2 rounded-md border border-border transition-colors duration-150",
-        isHovered ? "bg-accent" : "bg-card hover:bg-accent/50",
+        "p-2 rounded-md border transition-colors duration-150",
+        isSelected
+          ? "border-primary ring-2 ring-primary/50 bg-accent"
+          : isHovered
+            ? "border-border bg-accent"
+            : "border-border bg-card hover:bg-accent/50",
         onClick && "cursor-pointer"
       )}
       onMouseEnter={onMouseEnter}
