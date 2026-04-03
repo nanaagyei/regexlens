@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, type Dispatch, type SetStateAction } from "react";
 import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
@@ -9,6 +9,7 @@ import { HoverSyncProvider } from "@/hooks/useHoverSync";
 import { useHoverSync } from "@/hooks/useHoverSync";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { getShareUrl } from "@/hooks/useUrlState";
+import { FIXTURE_TIMEOUT_MS } from "@/hooks/useRegexMatches";
 import { AppHeader } from "./AppHeader";
 import { PatternSection, PatternSectionRef } from "./PatternSection";
 import { TestSection } from "./TestSection";
@@ -17,22 +18,38 @@ import { WorkspaceModals } from "./WorkspaceModals";
 import type { FixtureSuite } from "@/lib/fixtures/types";
 
 export function AppShell() {
+  const [selectedFixtureSuite, setSelectedFixtureSuite] = useState<FixtureSuite | null>(null);
+  const matchFixtureTimeoutMs =
+    selectedFixtureSuite?.category === "performance_safety"
+      ? FIXTURE_TIMEOUT_MS
+      : undefined;
+
   return (
     <TooltipProvider delayDuration={300}>
       <HoverSyncProvider>
-        <WorkspaceProvider>
-          <AppShellLayout />
+        <WorkspaceProvider matchFixtureTimeoutMs={matchFixtureTimeoutMs}>
+          <AppShellLayout
+            selectedFixtureSuite={selectedFixtureSuite}
+            setSelectedFixtureSuite={setSelectedFixtureSuite}
+          />
         </WorkspaceProvider>
       </HoverSyncProvider>
     </TooltipProvider>
   );
 }
 
-function AppShellLayout() {
+interface AppShellLayoutProps {
+  selectedFixtureSuite: FixtureSuite | null;
+  setSelectedFixtureSuite: Dispatch<SetStateAction<FixtureSuite | null>>;
+}
+
+function AppShellLayout({
+  selectedFixtureSuite,
+  setSelectedFixtureSuite,
+}: AppShellLayoutProps) {
   const patternSectionRef = useRef<PatternSectionRef>(null);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
-  const [selectedFixtureSuite, setSelectedFixtureSuite] = useState<FixtureSuite | null>(null);
 
   const { state, actions } = useWorkspace();
   const { clearAll } = useHoverSync();
@@ -49,7 +66,7 @@ function AppShellLayout() {
       });
       setSelectedFixtureSuite(suite);
     },
-    [actions]
+    [actions, setSelectedFixtureSuite]
   );
 
   const handleSelectFixtureTest = useCallback(
@@ -64,7 +81,7 @@ function AppShellLayout() {
 
   const handleClearFixtureSuite = useCallback(() => {
     setSelectedFixtureSuite(null);
-  }, []);
+  }, [setSelectedFixtureSuite]);
 
   // Keyboard shortcuts
   const handleClearSelection = useCallback(() => {

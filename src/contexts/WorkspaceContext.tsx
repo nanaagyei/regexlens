@@ -28,14 +28,23 @@ export interface WorkspaceContextValue {
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
-export function WorkspaceProvider({ children }: { children: ReactNode }) {
+export function WorkspaceProvider({
+  children,
+  matchFixtureTimeoutMs,
+}: {
+  children: ReactNode;
+  /** When set (e.g. performance_safety fixture suites), caps match work to avoid ReDoS hangs */
+  matchFixtureTimeoutMs?: number;
+}) {
   const { state, actions } = useRegexState();
   const parseResult = useRegexParse(state.pattern, state.flags);
   const matchResult = useRegexMatches(
     state.pattern,
     state.flags,
     state.text,
-    parseResult.ok
+    parseResult.ok,
+    undefined,
+    matchFixtureTimeoutMs
   );
   const explanation = useExplanation(parseResult);
   const warnings = useWarnings(state.pattern, state.flags, parseResult, matchResult);
