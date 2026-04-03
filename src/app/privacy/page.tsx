@@ -36,14 +36,9 @@ export default function PrivacyPolicyPage() {
           vendor (Resend).
         </li>
         <li>
-          <strong>Saved content (Pro).</strong> If you are a subscriber and save regexes or
-          related snippets in the app, we store that content and metadata you choose to save
-          in our database so you can access it across sessions.
-        </li>
-        <li>
-          <strong>Billing.</strong> If you purchase a paid plan, payment information is handled
-          by Stripe. We receive limited billing identifiers and subscription status from Stripe
-          (we do not store full payment card numbers on RegexLens servers).
+          <strong>Saved content.</strong> If you save regexes or related snippets in the app,
+          we store that content and metadata you choose to save in our database so you can
+          access it across sessions.
         </li>
       </ul>
 
@@ -69,15 +64,15 @@ export default function PrivacyPolicyPage() {
       <ul>
         <li>
           Core regex testing and visualization run in your browser. Unless you explicitly save
-          content to your account (Pro) or use features that send data to our servers, your
-          patterns and sample text are not stored by us as part of routine operation.
+          content to your account or use features that send data to our servers, your patterns
+          and sample text are not stored by us as part of routine operation.
         </li>
         <li>
           <strong>Shareable links</strong> may encode pattern and test state in the URL you
           share. Anyone with the link can view that encoded state.
         </li>
         <li>
-          <strong>Regex Copilot (Pro AI assistant).</strong> When you use AI-powered features,
+          <strong>Regex Copilot (AI assistant).</strong> When you use AI-powered features,
           your prompts and relevant regex context are sent to our AI provider (Anthropic) to
           generate responses. Please do not submit secrets, regulated personal data, or other
           sensitive information you are not authorized to share with subprocessors.
@@ -88,8 +83,7 @@ export default function PrivacyPolicyPage() {
       <p>We use the information above to:</p>
       <ul>
         <li>Provide, operate, and improve RegexLens;</li>
-        <li>Authenticate users, sync saved library content, and enforce plan limits;</li>
-        <li>Process payments and manage subscriptions via Stripe;</li>
+        <li>Authenticate users and sync saved library content;</li>
         <li>Communicate transactional messages (for example, sign-in emails where applicable);</li>
         <li>Monitor security, prevent abuse, and comply with legal obligations.</li>
       </ul>
@@ -107,9 +101,8 @@ export default function PrivacyPolicyPage() {
       <ul>
         <li>Hosting and infrastructure (for example Vercel);</li>
         <li>Database and authentication storage (PostgreSQL as configured for our Auth.js adapter);</li>
-        <li>Payments (Stripe);</li>
         <li>Transactional email (Resend, for magic links);</li>
-        <li>AI inference (Anthropic, for Pro AI features);</li>
+        <li>AI inference (Anthropic, for AI features);</li>
         <li>Analytics (Vercel Analytics).</li>
       </ul>
       <p>
@@ -119,8 +112,8 @@ export default function PrivacyPolicyPage() {
 
       <h2>Data retention</h2>
       <p>
-        We retain account, billing, and saved-library data as needed to provide the service and
-        meet legal, tax, and accounting requirements. Session and security logs are kept for a
+        We retain account and saved-library data as needed to provide the service and meet
+        legal requirements. Session and security logs are kept for a
         limited period consistent with operational needs. You may request deletion of your
         account (see Contact); some records may be retained where we are legally required to do
         so.
@@ -150,9 +143,8 @@ export default function PrivacyPolicyPage() {
         <li>Lodge a complaint with a supervisory authority.</li>
       </ul>
       <p>
-        You can manage some information through your account and subscription portal (Stripe
-        Customer Portal, where available). For other requests, contact us using the information
-        below.
+        You can manage some information through your account settings. For other requests,
+        contact us using the information below.
       </p>
 
       <h2>Children</h2>
