@@ -10,20 +10,10 @@ export const RATE_LIMITS = {
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 5,
   },
-  // General API endpoints for free users
+  // General API endpoints
   api_free: {
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 60,
-  },
-  // General API endpoints for Pro users
-  api_pro: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 300,
-  },
-  // Webhook endpoints (Stripe)
-  webhook: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100,
+    maxRequests: 120,
   },
   // Export endpoint - more restrictive
   export: {

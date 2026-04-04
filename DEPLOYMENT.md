@@ -42,7 +42,7 @@ RegexLens uses PostgreSQL via `pg` and `@auth/pg-adapter`. For Vercel deployment
 2. **Install "Neon" from Vercel Marketplace** — links project automatically and sets `DATABASE_URL`
 3. **Run schema:** In Neon SQL Editor, execute the contents of `docker/init.sql`
   - Or from local: `psql $DATABASE_URL -f docker/init.sql`
-4. **Environment variables** — `DATABASE_URL` is auto-set by the Vercel integration; add `AUTH_*`, `STRIPE_*` as needed
+4. **Environment variables** — `DATABASE_URL` is auto-set by the Vercel integration; add `AUTH_*` as needed
 
 ### Why Neon
 
@@ -85,7 +85,7 @@ RegexLens uses PostgreSQL via `pg` and `@auth/pg-adapter`. For Vercel deployment
 
 - **Production branch:** `main`
 - **Preview deployments:** All Git branches, or treat `**dev`** as the primary staging branch (merge previews before promoting to `main`)
-- **Environment variables:** `DATABASE_URL` (from Neon), `AUTH_*`, `STRIPE_*`, `KV_*`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_DOCS_URL`, observability flags (`NEXT_PUBLIC_VERCEL_ANALYTICS`, optional ad flags), etc.
+- **Environment variables:** `DATABASE_URL` (from Neon), `AUTH_*`, `KV_*`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_DOCS_URL`, observability flags (`NEXT_PUBLIC_VERCEL_ANALYTICS`, optional ad flags), etc.
 
 ### Vercel + GitHub checklist (manual)
 
@@ -153,26 +153,19 @@ Follow these steps in order once the codebase is committed and CI is green on `d
   - Set `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` in Vercel.
 3. **AUTH_SECRET:** Generate with `openssl rand -base64 32` and set in Vercel for both scopes.
 
-### 5. Stripe — Billing (optional for launch)
-
-1. Create products and prices in [Stripe Dashboard](https://dashboard.stripe.com) (test mode).
-2. Set `STRIPE_SECRET_KEY`, `STRIPE_PRO_MONTHLY_PRICE_ID`, `STRIPE_PRO_YEARLY_PRICE_ID` in Vercel env vars.
-3. Add a webhook endpoint in Stripe pointing to `https://regexlens.dev/api/billing/webhook` with events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`.
-4. Set `STRIPE_WEBHOOK_SECRET` in Vercel.
-
-### 6. Vercel KV — Rate Limiting (optional for launch)
+### 5. Vercel KV — Rate Limiting (optional)
 
 1. In the Vercel dashboard, go to **Storage → Create Database → KV**.
 2. This auto-sets `KV_REST_API_URL` and `KV_REST_API_TOKEN`. Rate limiting activates automatically when these are present.
 
-### 7. DNS / Custom Domain
+### 6. DNS / Custom Domain
 
 1. In Vercel **Settings → Domains**, add `regexlens.dev`.
 2. Update your domain registrar's DNS records to point to Vercel (typically an A record and/or CNAME as shown in the Vercel dashboard).
 3. Vercel provisions SSL automatically.
 4. Update `NEXT_PUBLIC_SITE_URL=https://regexlens.dev` and `NEXT_PUBLIC_DOCS_URL=https://docs.regexlens.dev` in Vercel env vars (Production scope).
 
-### 7b. Documentation — GitHub Pages (`docs.regexlens.dev`)
+### 6b. Documentation — GitHub Pages (`docs.regexlens.dev`)
 
 The Nextra site in `docs/` deploys separately to **GitHub Pages** on a subdomain. The main app uses `NEXT_PUBLIC_DOCS_URL` (default `https://docs.regexlens.dev`) for all “Docs” links and **301-redirects** `/docs` and `/docs/*` to that host.
 
@@ -201,7 +194,7 @@ The repo includes `docs/public/CNAME` with `docs.regexlens.dev` so static export
 1. Set `**NEXT_PUBLIC_DOCS_URL=https://docs.regexlens.dev`** for **Production** (and Preview if you use a preview docs URL).
 2. Redeploy the main app so links and redirects use the new value.
 
-### 8. Final Verification
+### 7. Final Verification
 
 - `dev` branch Preview URL loads and works end-to-end
 - PR `dev → main` passes all CI checks (lint, typecheck, test, build, e2e)
@@ -211,5 +204,4 @@ The repo includes `docs/public/CNAME` with `docs.regexlens.dev` so static export
 - Auth sign-in flow works (GitHub and/or Google)
 - Database tables exist and queries succeed
 - Vercel Web Analytics and Speed Insights show data
-- (If Stripe enabled) Checkout flow completes in test mode
 

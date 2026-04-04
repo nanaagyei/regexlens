@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requirePro, isGuardOk } from "@/lib/entitlements/proGuard";
+import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
 import { combinedRateLimit } from "@/lib/security/rateLimit";
 import { query, queryOne } from "@/lib/db/pool";
 import { diffQuerySchema, uuidSchema, validateInput, formatZodError, parseSearchParams } from "@/lib/security/validation";
@@ -27,14 +27,14 @@ async function verifySnippetOwnership(snippetId: string, userId: string): Promis
 }
 
 /**
- * GET /api/snippets/:id/diff?from=&to= - Compute diff between two versions (Pro only)
+ * GET /api/snippets/:id/diff?from=&to= - Compute diff between two versions (requires auth)
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const rateLimitResponse = await combinedRateLimit(request, "api_pro");
+    const rateLimitResponse = await combinedRateLimit(request, "api_free");
     if (rateLimitResponse) return rateLimitResponse;
 
-    const guard = await requirePro();
+    const guard = await requireAuth();
     if (!isGuardOk(guard)) return guard;
 
     const { id: snippetId } = await params;

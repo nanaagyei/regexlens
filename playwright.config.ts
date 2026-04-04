@@ -7,6 +7,10 @@ const webServerEnv = {
   ...process.env,
   DATABASE_URL:
     process.env.DATABASE_URL || "postgresql://user:pass@localhost:5432/db",
+  // Auth.js requires a secret outside `next dev`; CI runs `next build` + `next start`.
+  AUTH_SECRET:
+    process.env.AUTH_SECRET ||
+    "playwright-e2e-auth-secret-placeholder-min-32-chars",
 };
 
 export default defineConfig({

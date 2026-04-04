@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useEntitlement } from "@/hooks/useEntitlement";
+import { useUser } from "@/hooks/useUser";
 import { ExplanationStep, Warning } from "@/types";
 import {
   FileText,
@@ -21,11 +21,10 @@ import {
   Blocks,
   Copy,
   Download,
-  Lock,
+  LogIn,
   Loader2,
   Check,
 } from "lucide-react";
-import Link from "next/link";
 
 type ExportFormat = "markdown" | "plain" | "pr_comment" | "notion";
 
@@ -80,14 +79,14 @@ export function ExportModal({
   steps,
   warnings,
 }: ExportModalProps) {
-  const { isPro, isLoading: isEntitlementLoading, user } = useEntitlement();
+  const { user, isLoading: isUserLoading } = useUser();
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>("markdown");
   const [isExporting, setIsExporting] = useState(false);
   const [exportedContent, setExportedContent] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const handleExport = useCallback(async () => {
-    if (!isPro) return;
+    if (!user) return;
 
     setIsExporting(true);
     setExportedContent(null);
@@ -129,7 +128,7 @@ export function ExportModal({
     } finally {
       setIsExporting(false);
     }
-  }, [isPro, selectedFormat, pattern, flags, steps, warnings]);
+  }, [user, selectedFormat, pattern, flags, steps, warnings]);
 
   const handleCopy = useCallback(async () => {
     if (!exportedContent) return;
@@ -174,8 +173,8 @@ export function ExportModal({
     onOpenChange(false);
   }, [onOpenChange]);
 
-  // Show upgrade prompt for non-Pro users
-  const showUpgradePrompt = !isEntitlementLoading && !isPro;
+  // Show sign-in prompt for unauthenticated users
+  const showSignInPrompt = !isUserLoading && !user;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -190,22 +189,17 @@ export function ExportModal({
           </DialogDescription>
         </DialogHeader>
 
-        {showUpgradePrompt ? (
+        {showSignInPrompt ? (
           <div className="py-6 text-center space-y-4">
             <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-              <Lock className="h-6 w-6 text-muted-foreground" />
+              <LogIn className="h-6 w-6 text-muted-foreground" />
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold">Pro Feature</h3>
+              <h3 className="font-semibold">Sign in required</h3>
               <p className="text-sm text-muted-foreground">
-                Export explanations to Markdown, PR comments, and more with RegexLens Pro.
+                Sign in to export explanations to Markdown, PR comments, and more.
               </p>
             </div>
-            <Button asChild className="mt-4">
-              <Link href="/pricing">
-                {user ? "Upgrade to Pro" : "Sign in to upgrade"}
-              </Link>
-            </Button>
           </div>
         ) : exportedContent ? (
           <div className="space-y-4">

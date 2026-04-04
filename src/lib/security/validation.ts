@@ -297,20 +297,6 @@ export const aiChatRequestSchema = z.object({
 export type AIChatRequestInput = z.infer<typeof aiChatRequestSchema>;
 
 // ============================================
-// Billing Schemas
-// ============================================
-
-/**
- * Checkout request schema
- */
-export const checkoutRequestSchema = z.object({
-  priceId: z.string().min(1, "Price ID is required"),
-  returnUrl: z.string().url().nullable().optional(),
-});
-
-export type CheckoutRequestInput = z.infer<typeof checkoutRequestSchema>;
-
-// ============================================
 // UUID Validation
 // ============================================
 

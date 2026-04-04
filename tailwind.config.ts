@@ -73,8 +73,13 @@ export default {
       },
       animation: {
         "pulse-highlight": "pulse-highlight 1s ease-in-out",
+        "fade-up": "fade-up 0.55s ease-out both",
       },
       keyframes: {
+        "fade-up": {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
         "pulse-highlight": {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.5" },

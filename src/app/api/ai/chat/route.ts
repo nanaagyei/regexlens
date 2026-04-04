@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { requirePro, isGuardOk } from "@/lib/entitlements/proGuard";
+import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
 import { combinedRateLimit } from "@/lib/security/rateLimit";
 import {
   aiChatRequestSchema,
@@ -10,7 +10,7 @@ import {
 import { buildSystemPrompt, buildUserPrompt } from "@/lib/ai/systemPrompt";
 
 /**
- * POST /api/ai/chat - AI-powered regex assistant (Pro only, streaming)
+ * POST /api/ai/chat - AI-powered regex assistant (streaming)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse;
     }
 
-    // Require Pro subscription
-    const guard = await requirePro();
+    // Require authentication
+    const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
     }

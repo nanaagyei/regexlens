@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requirePro, isGuardOk } from "@/lib/entitlements/proGuard";
+import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
 import { combinedRateLimit } from "@/lib/security/rateLimit";
 import {
   exportRequestSchema,
@@ -10,7 +10,7 @@ import {
 } from "@/lib/security/validation";
 
 /**
- * POST /api/export - Export explanation in various formats (Pro only)
+ * POST /api/export - Export explanation in various formats
  * 
  * Supported formats:
  * - markdown: Markdown document
@@ -26,8 +26,8 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse;
     }
 
-    // Require Pro subscription
-    const guard = await requirePro();
+    // Require authentication
+    const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
     }

@@ -1,6 +1,6 @@
 # API Reference
 
-RegexLens provides a REST API for Pro users to integrate regex functionality into their workflows.
+RegexLens exposes a REST API for authenticated integrations (saved snippets, analysis, AI chat, and more).
 
 import { Callout } from 'nextra/components'
 
@@ -27,19 +27,19 @@ When signed in via the web interface, your session cookie is automatically inclu
 
 ### API Token (Coming Soon)
 
-Pro users will be able to generate API tokens for programmatic access.
+Signed-in users will be able to generate API tokens for programmatic access.
 
 ## Endpoints
 
-### User & Entitlement
+### User profile
 
 #### GET /api/me
 
-Get current user and subscription status.
+Get the current signed-in user (if any).
 
-**Authentication:** Optional (returns null for unauthenticated)
+**Authentication:** Optional (`user` is `null` when unauthenticated)
 
-**Response:**
+**Response (authenticated):**
 ```json
 {
   "user": {
@@ -47,34 +47,26 @@ Get current user and subscription status.
     "email": "user@example.com",
     "name": "John Doe",
     "image": "https://..."
-  },
-  "entitlement": {
-    "plan": "PRO",
-    "status": "active",
-    "current_period_end": "2024-01-15T00:00:00Z",
-    "is_pro": true,
-    "is_past_due": false
   }
 }
 ```
 
-**Unauthenticated response:**
+**Response (unauthenticated):**
 ```json
 {
-  "user": null,
-  "entitlement": null
+  "user": null
 }
 ```
 
 ---
 
-### Snippets (Pro)
+### Snippets
 
 #### GET /api/snippets
 
 List saved regex patterns.
 
-**Authentication:** Required (Pro)
+**Authentication:** Required 
 
 **Query Parameters:**
 
@@ -88,19 +80,19 @@ List saved regex patterns.
 **Response:**
 ```json
 {
-  "items": [
-    {
-      "id": "snippet_123",
-      "name": "Email Validation",
-      "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
-      "flags": "gi",
-      "description": "Basic email format validation",
-      "tags": ["validation", "email"],
-      "created_at": "2023-10-15T10:30:00Z",
-      "updated_at": "2023-10-15T10:30:00Z"
-    }
-  ],
-  "next_cursor": "cursor_abc123"
+ "items": [
+  {
+   "id": "snippet_123",
+   "name": "Email Validation",
+   "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+   "flags": "gi",
+   "description": "Basic email format validation",
+   "tags": ["validation", "email"],
+   "created_at": "2023-10-15T10:30:00Z",
+   "updated_at": "2023-10-15T10:30:00Z"
+  }
+ ],
+ "next_cursor": "cursor_abc123"
 }
 ```
 
@@ -108,30 +100,30 @@ List saved regex patterns.
 
 Create a new saved pattern.
 
-**Authentication:** Required (Pro)
+**Authentication:** Required 
 
 **Request Body:**
 ```json
 {
-  "name": "Phone Number",
-  "pattern": "\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}",
-  "flags": "g",
-  "description": "US phone number format",
-  "tags": ["validation", "phone"]
+ "name": "Phone Number",
+ "pattern": "\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}",
+ "flags": "g",
+ "description": "US phone number format",
+ "tags": ["validation", "phone"]
 }
 ```
 
 **Response:** `201 Created`
 ```json
 {
-  "id": "snippet_456",
-  "name": "Phone Number",
-  "pattern": "\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}",
-  "flags": "g",
-  "description": "US phone number format",
-  "tags": ["validation", "phone"],
-  "created_at": "2023-10-15T11:00:00Z",
-  "updated_at": "2023-10-15T11:00:00Z"
+ "id": "snippet_456",
+ "name": "Phone Number",
+ "pattern": "\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}",
+ "flags": "g",
+ "description": "US phone number format",
+ "tags": ["validation", "phone"],
+ "created_at": "2023-10-15T11:00:00Z",
+ "updated_at": "2023-10-15T11:00:00Z"
 }
 ```
 
@@ -139,19 +131,19 @@ Create a new saved pattern.
 
 Get a specific pattern.
 
-**Authentication:** Required (Pro)
+**Authentication:** Required 
 
 **Response:**
 ```json
 {
-  "id": "snippet_123",
-  "name": "Email Validation",
-  "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
-  "flags": "gi",
-  "description": "Basic email format validation",
-  "tags": ["validation", "email"],
-  "created_at": "2023-10-15T10:30:00Z",
-  "updated_at": "2023-10-15T10:30:00Z"
+ "id": "snippet_123",
+ "name": "Email Validation",
+ "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+ "flags": "gi",
+ "description": "Basic email format validation",
+ "tags": ["validation", "email"],
+ "created_at": "2023-10-15T10:30:00Z",
+ "updated_at": "2023-10-15T10:30:00Z"
 }
 ```
 
@@ -159,26 +151,26 @@ Get a specific pattern.
 
 Update a pattern.
 
-**Authentication:** Required (Pro)
+**Authentication:** Required 
 
 **Request Body:** (all fields optional)
 ```json
 {
-  "name": "Email Validation (Updated)",
-  "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
-  "flags": "gi",
-  "description": "Updated description",
-  "tags": ["validation", "email", "updated"],
-  "notes": "Added support for plus addressing"
+ "name": "Email Validation (Updated)",
+ "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+ "flags": "gi",
+ "description": "Updated description",
+ "tags": ["validation", "email", "updated"],
+ "notes": "Added support for plus addressing"
 }
 ```
 
 **Response:**
 ```json
 {
-  "id": "snippet_123",
-  "name": "Email Validation (Updated)",
-  ...
+ "id": "snippet_123",
+ "name": "Email Validation (Updated)",
+ ...
 }
 ```
 
@@ -186,7 +178,7 @@ Update a pattern.
 
 Delete a pattern.
 
-**Authentication:** Required (Pro)
+**Authentication:** Required 
 
 **Response:** `204 No Content`
 
@@ -194,59 +186,59 @@ Delete a pattern.
 
 Get version history for a pattern.
 
-**Authentication:** Required (Pro)
+**Authentication:** Required 
 
 **Response:**
 ```json
 {
-  "items": [
-    {
-      "id": "version_789",
-      "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
-      "flags": "gi",
-      "notes": "Added plus addressing support",
-      "created_at": "2023-10-15T11:00:00Z"
-    },
-    {
-      "id": "version_456",
-      "pattern": "^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
-      "flags": "gi",
-      "notes": null,
-      "created_at": "2023-10-15T10:30:00Z"
-    }
-  ]
+ "items": [
+  {
+   "id": "version_789",
+   "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+   "flags": "gi",
+   "notes": "Added plus addressing support",
+   "created_at": "2023-10-15T11:00:00Z"
+  },
+  {
+   "id": "version_456",
+   "pattern": "^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+   "flags": "gi",
+   "notes": null,
+   "created_at": "2023-10-15T10:30:00Z"
+  }
+ ]
 }
 ```
 
 ---
 
-### Export (Pro)
+### Export 
 
 #### POST /api/export
 
 Export explanation in various formats.
 
-**Authentication:** Required (Pro)
+**Authentication:** Required 
 
 **Request Body:**
 ```json
 {
-  "format": "markdown",
-  "title": "Email Validation",
-  "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
-  "flags": "gi",
-  "steps": [
-    { "label": "Start of string", "depth": 0 },
-    { "label": "One or more word characters...", "depth": 0, "detail": "Local part" }
-  ],
-  "warnings": [
-    {
-      "severity": "info",
-      "title": "Unescaped dot",
-      "message": "The dot matches any character",
-      "hint": "Use \\. for literal dot"
-    }
-  ]
+ "format": "markdown",
+ "title": "Email Validation",
+ "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+ "flags": "gi",
+ "steps": [
+  { "label": "Start of string", "depth": 0 },
+  { "label": "One or more word characters...", "depth": 0, "detail": "Local part" }
+ ],
+ "warnings": [
+  {
+   "severity": "info",
+   "title": "Unescaped dot",
+   "message": "The dot matches any character",
+   "hint": "Use \\. for literal dot"
+  }
+ ]
 }
 ```
 
@@ -255,60 +247,60 @@ Export explanation in various formats.
 **Response:**
 ```json
 {
-  "content": "# Email Validation\n\n## Pattern\n\n..."
+ "content": "# Email Validation\n\n## Pattern\n\n..."
 }
 ```
 
 ---
 
-### Analyze (Pro)
+### Analyze 
 
 #### POST /api/analyze
 
 Run server-side advanced analysis (same engine as the **Analysis** tab). Returns a **risk score**, structured warnings, optional rewrite suggestions, and a **complexity** summary.
 
-**Authentication:** Required (Pro session cookie)
+**Authentication:** Required (session cookie)
 
 **Request Body:**
 ```json
 {
-  "pattern": "^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$",
-  "flags": "gi"
+ "pattern": "^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$",
+ "flags": "gi"
 }
 ```
 
 **Success Response:**
 ```json
 {
-  "riskScore": 42,
-  "warnings": [
-    {
-      "id": "nested-quantifiers",
-      "severity": "danger",
-      "title": "Nested quantifiers",
-      "message": "May cause catastrophic backtracking on hostile input.",
-      "hint": "Prefer possessive/atomic groups where supported, or simplify repetition.",
-      "range": { "start": 0, "end": 5 }
-    }
-  ],
-  "notes": [
-    "Consider testing with long non-matching prefixes."
-  ],
-  "suggestions": [
-    {
-      "id": "rewrite-1",
-      "title": "Prefer explicit character class",
-      "description": "Replace alternation of single letters with `[abc]` when equivalent.",
-      "caveat": "Check readability vs. performance tradeoffs."
-    }
-  ],
-  "complexity": {
-    "level": "medium",
-    "factors": [
-      "Multiple quantifiers",
-      "Lookaround assertions"
-    ]
+ "riskScore": 42,
+ "warnings": [
+  {
+   "id": "nested-quantifiers",
+   "severity": "danger",
+   "title": "Nested quantifiers",
+   "message": "May cause catastrophic backtracking on hostile input.",
+   "hint": "Prefer possessive/atomic groups where supported, or simplify repetition.",
+   "range": { "start": 0, "end": 5 }
   }
+ ],
+ "notes": [
+  "Consider testing with long non-matching prefixes."
+ ],
+ "suggestions": [
+  {
+   "id": "rewrite-1",
+   "title": "Prefer explicit character class",
+   "description": "Replace alternation of single letters with `[abc]` when equivalent.",
+   "caveat": "Check readability vs. performance tradeoffs."
+  }
+ ],
+ "complexity": {
+  "level": "medium",
+  "factors": [
+   "Multiple quantifiers",
+   "Lookaround assertions"
+  ]
+ }
 }
 ```
 
@@ -317,70 +309,18 @@ Fields may vary run-to-run; `warnings` / `suggestions` can be empty arrays. Seve
 ---
 
 
-### AI chat (Pro)
+### AI chat 
 
 #### POST /api/ai/chat
 
-Streaming AI assistant used by **Regex Copilot**. **Pro**-only; requires server-side `ANTHROPIC_API_KEY`. Request and response bodies are versioned with the main app—use browser devtools or server logs while integrating. Typical body includes an `action`, user `message`, structured `context` (pattern, flags, warnings, explanation steps), and optional `conversationHistory`.
+Streaming AI assistant used by **Regex Copilot**. **Signed-in only**; requires server-side `ANTHROPIC_API_KEY`. Request and response bodies are versioned with the main app—use browser devtools or server logs while integrating. Typical body includes an `action`, user `message`, structured `context` (pattern, flags, warnings, explanation steps), and optional `conversationHistory`.
 
-**Authentication:** Required (Pro session cookie)
+**Authentication:** Required (session cookie)
 
-**Errors:** `402` for non-Pro, `429` when rate-limited, `503` if the provider is not configured.
-
----
-
-
-### Billing
-
-#### POST /api/billing/checkout
-
-Create a Stripe checkout session.
-
-**Authentication:** Required
-
-**Request Body:**
-```json
-{
-  "priceId": "price_xxx",
-  "returnUrl": "https://regexlens.dev/app?checkout=success"
-}
-```
-
-**Response:**
-```json
-{
-  "url": "https://checkout.stripe.com/..."
-}
-```
-
-#### GET /api/billing/checkout
-
-Get available prices.
-
-**Authentication:** None
-
-**Response:**
-```json
-{
-  "prices": {
-    "monthly": {
-      "id": "price_xxx",
-      "amount": 800,
-      "currency": "usd",
-      "interval": "month"
-    },
-    "yearly": {
-      "id": "price_yyy",
-      "amount": 4900,
-      "currency": "usd",
-      "interval": "year",
-      "savings": "Save ~40%"
-    }
-  }
-}
-```
+**Errors:** `401` when unauthenticated, `429` when rate-limited, `503` if the provider is not configured.
 
 ---
+
 
 ## Error Responses
 
@@ -388,9 +328,9 @@ All errors follow this format:
 
 ```json
 {
-  "error": "error_code",
-  "message": "Human-readable message",
-  "details": {}
+ "error": "error_code",
+ "message": "Human-readable message",
+ "details": {}
 }
 ```
 
@@ -399,7 +339,7 @@ All errors follow this format:
 | Code | Status | Description |
 |------|--------|-------------|
 | `unauthorized` | 401 | Not signed in |
-| `pro_required` | 402 | Pro subscription required |
+
 | `not_found` | 404 | Resource not found |
 | `rate_limited` | 429 | Too many requests |
 | `invalid_json` | 400 | Malformed JSON body |
@@ -410,7 +350,7 @@ All errors follow this format:
 
 ## Rate Limits
 
-| Endpoint | Free | Pro |
+| Endpoint | Anonymous | Signed in |
 |----------|------|-----|
 | `/api/me` | 60/min | 300/min |
 | `/api/snippets` | N/A | 300/min |
@@ -429,6 +369,6 @@ X-RateLimit-Reset: 1697376000
 
 ## Webhooks (Coming Soon)
 
-Pro users will be able to configure webhooks for:
+Signed-in users will be able to configure webhooks for:
 - Pattern created/updated/deleted
-- Subscription status changes
+- Export completed
