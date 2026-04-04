@@ -4,11 +4,14 @@ import { useRef, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Button } from "@/components/ui/button";
-import { DOCS_URL } from "@/lib/site";
+import {
+  DOCS_URL,
+  GITHUB_REPO_URL,
+  GITHUB_CONTRIBUTING_URL,
+  GITHUB_LICENSE_URL,
+  GITHUB_DISCUSSIONS_URL,
+} from "@/lib/site";
 import {
   Collapsible,
   CollapsibleContent,
@@ -34,16 +37,16 @@ import {
   Sparkles,
   Download,
   Github,
-  Twitter,
-  Linkedin,
+  Globe,
+  Code2,
+  Scale,
+  HeartHandshake,
   Zap,
   Eye,
   CheckCircle2,
   Terminal,
   Braces,
 } from "lucide-react";
-
-gsap.registerPlugin(ScrollTrigger);
 
 /* ─── Data ─── */
 
@@ -75,8 +78,8 @@ const HOW_IT_WORKS = [
       "Share regex links with your team, export analysis, and catch performance issues before they reach production.",
     icon: Download,
     image:
-      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=400&fit=crop&q=80",
-    imageAlt: "Team collaborating on code",
+      "images/third.png",
+    imageAlt: "Collaborating on a shared RegexLens workspace link",
   },
 ];
 
@@ -123,9 +126,9 @@ const FEATURES = [
   },
   {
     icon: Zap,
-    title: "Blazing Fast",
+    title: "Fast in the browser",
     description:
-      "Everything runs in your browser. No server round-trips, no waiting. Just instant regex analysis.",
+      "Core matching and explanations run locally. No server round trips for the fundamentals you use all day.",
     accent: "from-yellow-500/20 to-amber-500/20",
     iconColor: "text-yellow-400",
   },
@@ -157,52 +160,50 @@ const SOLUTION_POINTS = [
 const FAQ_ITEMS = [
   {
     q: "What is RegexLens?",
-    a: "RegexLens is a developer tool that helps you understand, test, and document regular expressions. It provides plain-English explanations, live match highlighting, a visual structure tree, and built-in safety warnings.",
+    a: "RegexLens is an open-source developer tool for understanding, testing, and documenting JavaScript regular expressions. It provides plain-English explanations, live match highlighting, a visual structure tree, and built-in safety warnings.",
   },
   {
     q: "Do I need an account?",
-    a: "No. The core regex analysis toolkit works without signing up. Create a free account to save snippets, export explanations, and use the AI copilot.",
+    a: "No. The core workbench runs without signing in. Optional sign-in unlocks saved snippets, exports, deeper analysis, and Copilot when your deployment is configured to support those features.",
   },
   {
     q: "Is my regex data stored on your servers?",
-    a: "By default, no. RegexLens runs entirely in your browser. We only store patterns if you explicitly save them to your account.",
+    a: "By default, no. RegexLens runs matching and explanations in your browser. We only store patterns if you explicitly save them to your account.",
   },
   {
     q: "What regex flavor does it support?",
-    a: "RegexLens supports JavaScript/ECMAScript regex syntax, including named groups, lookbehinds, and Unicode properties. This covers Node.js, browsers, Deno, Bun, and many other environments.",
+    a: "RegexLens targets JavaScript/ECMAScript RegExp syntax, including named groups, lookbehinds, and Unicode properties — the same flavor used in browsers, Node.js, Deno, and Bun.",
   },
   {
     q: "Can I use it for code reviews?",
-    a: "Absolutely. Generate a shareable link and paste it into your PR comment. Your reviewer will see the pattern, test text, explanations, and warnings in one click.",
+    a: "Yes. Generate a shareable link and paste it into a PR comment. Reviewers see the pattern, test text, explanations, and warnings in one click.",
   },
   {
-    q: "Is RegexLens really free?",
-    a: "Yes. Every feature is free. Sign in to unlock saving patterns, exporting explanations, AI analysis, and version diffs. If you find it useful, consider supporting the project.",
+    q: "Is RegexLens open source?",
+    a: "Yes. The project is MIT-licensed. You can self-host, inspect the code, and contribute improvements on GitHub.",
   },
 ];
 
 const TRUST_ITEMS = [
   { icon: Shield, text: "Runs entirely in your browser" },
-  { icon: Terminal, text: "No server-side regex execution" },
+  { icon: Terminal, text: "No server-side regex execution for core matching" },
   { icon: Braces, text: "Open analysis — no black boxes" },
   { icon: CheckCircle2, text: "No tracking scripts by default" },
 ];
 
-const SUPPORT_URL =
-  process.env.NEXT_PUBLIC_SUPPORT_URL || "https://buymeacoffee.com/nanaagyei";
-
 const NAV_LINKS = [
-  { href: "/app", label: "Try it" },
+  { href: "/app", label: "Workbench" },
   { href: DOCS_URL, label: "Docs", external: true },
+  { href: GITHUB_REPO_URL, label: "GitHub", external: true },
 ];
 
-const BROWSER_LOGOS = [
-  { name: "Chrome", icon: "🌐" },
-  { name: "Firefox", icon: "🦊" },
-  { name: "Safari", icon: "🧭" },
-  { name: "Edge", icon: "🔷" },
-  { name: "Node.js", icon: "⬢" },
-];
+const BROWSER_TARGETS = [
+  "Chrome",
+  "Firefox",
+  "Safari",
+  "Edge",
+  "Node.js",
+] as const;
 
 /* ─── Animated regex preview for the hero ─── */
 
@@ -225,38 +226,63 @@ const REGEX_EXAMPLES = [
   },
 ];
 
-function AnimatedRegex() {
+
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const apply = () => setReduced(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  return reduced;
+}
+
+function AnimatedRegex({ reducedMotion }: { reducedMotion: boolean }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [displayText, setDisplayText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
 
   useEffect(() => {
     const example = REGEX_EXAMPLES[currentIdx];
+
+    if (reducedMotion) {
+      setDisplayText(example.pattern);
+      setIsTyping(false);
+      const id = window.setTimeout(() => {
+        setCurrentIdx((prev) => (prev + 1) % REGEX_EXAMPLES.length);
+      }, 3200);
+      return () => window.clearTimeout(id);
+    }
+
     let charIndex = 0;
     setIsTyping(true);
     setDisplayText("");
 
-    const typeInterval = setInterval(() => {
+    const typeInterval = window.setInterval(() => {
       if (charIndex < example.pattern.length) {
         setDisplayText(example.pattern.slice(0, charIndex + 1));
-        charIndex++;
+        charIndex += 1;
       } else {
-        clearInterval(typeInterval);
+        window.clearInterval(typeInterval);
         setIsTyping(false);
-        setTimeout(() => {
+        window.setTimeout(() => {
           setCurrentIdx((prev) => (prev + 1) % REGEX_EXAMPLES.length);
-        }, 2500);
+        }, 2200);
       }
-    }, 35);
+    }, 32);
 
-    return () => clearInterval(typeInterval);
-  }, [currentIdx]);
+    return () => window.clearInterval(typeInterval);
+  }, [currentIdx, reducedMotion]);
 
   return (
     <div className="relative w-full max-w-2xl mx-auto">
       <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl p-5 shadow-2xl shadow-primary/5">
         <div className="flex items-center gap-2 mb-3">
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5" aria-hidden="true">
             <span className="w-3 h-3 rounded-full bg-red-500/70" />
             <span className="w-3 h-3 rounded-full bg-yellow-500/70" />
             <span className="w-3 h-3 rounded-full bg-green-500/70" />
@@ -265,18 +291,19 @@ function AnimatedRegex() {
             regexlens
           </span>
         </div>
-        <div className="font-mono text-sm sm:text-base leading-relaxed text-foreground/90 min-h-[28px] break-all">
-          <span className="text-primary/60">{"/  "}</span>
+        <p className="font-mono text-sm sm:text-base leading-relaxed text-foreground/90 min-h-[28px] break-all">
+          <span className="text-primary/60" aria-hidden="true">{"/  "}</span>
           <span>{displayText}</span>
           <span
-            className={`inline-block w-[2px] h-[1.1em] bg-primary ml-0.5 align-middle ${
+            className={`inline-block w-[2px] h-[1.1em] bg-primary ml-0.5 align-middle motion-reduce:opacity-0 ${
               isTyping ? "animate-pulse" : "opacity-0"
             }`}
+            aria-hidden="true"
           />
-        </div>
+        </p>
         <div className="mt-3 flex items-center gap-2">
           <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs text-primary font-medium">
-            <Sparkles className="w-3 h-3" />
+            <Sparkles className="w-3 h-3" aria-hidden="true" />
             {REGEX_EXAMPLES[currentIdx].label}
           </span>
         </div>
@@ -289,12 +316,9 @@ function AnimatedRegex() {
 
 export function LandingPage() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const howRef = useRef<HTMLDivElement>(null);
-  const featuresRef = useRef<HTMLDivElement>(null);
-  const faqRef = useRef<HTMLDivElement>(null);
   const [openFaq, setOpenFaq] = useState<string | null>(null);
   const searchParams = useSearchParams();
+  const reducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     const p = searchParams.get("p");
@@ -309,178 +333,37 @@ export function LandingPage() {
     }
   }, [searchParams]);
 
-  const spotlightRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const spotlight = spotlightRef.current;
-    if (!spotlight) return;
 
-    const onMove = (e: MouseEvent) => {
-      spotlight.style.left = `${e.clientX}px`;
-      spotlight.style.top = `${e.clientY}px`;
-      spotlight.style.opacity = "1";
-    };
 
-    const onLeave = () => {
-      spotlight.style.opacity = "0";
-    };
-
-    window.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseleave", onLeave);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseleave", onLeave);
-    };
-  }, []);
-
-  /* ─── GSAP Animations ─── */
-
-  useGSAP(
-    () => {
-      if (!heroRef.current) return;
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-      tl.fromTo(
-        ".hero-badge",
-        { opacity: 0, y: 40, scale: 0.9 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "back.out(1.4)" }
-      )
-        .fromTo(
-          ".hero-headline",
-          { opacity: 0, y: 60 },
-          { opacity: 1, y: 0, duration: 1 },
-          "-=0.5"
-        )
-        .fromTo(
-          ".hero-sub",
-          { opacity: 0, y: 40 },
-          { opacity: 1, y: 0, duration: 0.8 },
-          "-=0.5"
-        )
-        .fromTo(
-          ".hero-cta",
-          { opacity: 0, y: 30, scale: 0.98 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "back.out(1.2)" },
-          "-=0.4"
-        )
-        .fromTo(
-          ".hero-terminal",
-          { opacity: 0, y: 50, scale: 0.95 },
-          { opacity: 1, y: 0, scale: 1, duration: 1, ease: "back.out(1.1)" },
-          "-=0.5"
-        );
-    },
-    { scope: heroRef, dependencies: [] }
-  );
-
-  useGSAP(
-    () => {
-      if (!howRef.current) return;
-      gsap.fromTo(
-        ".how-header",
-        { opacity: 0, y: 50 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.9,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: howRef.current,
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
-      gsap.fromTo(
-        ".how-card",
-        { opacity: 0, y: 80, scale: 0.92 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.9,
-          stagger: 0.2,
-          ease: "back.out(1.1)",
-          scrollTrigger: {
-            trigger: howRef.current,
-            start: "top 80%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
-    },
-    { scope: howRef, dependencies: [] }
-  );
-
-  useGSAP(
-    () => {
-      if (!featuresRef.current) return;
-      gsap.fromTo(
-        ".feat-card",
-        { opacity: 0, y: 60, scale: 0.93 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.8,
-          stagger: 0.1,
-          ease: "back.out(1.05)",
-          scrollTrigger: {
-            trigger: featuresRef.current,
-            start: "top 82%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
-    },
-    { scope: featuresRef, dependencies: [] }
-  );
-
-  useGSAP(
-    () => {
-      if (!faqRef.current) return;
-      gsap.fromTo(
-        ".faq-item",
-        { opacity: 0, x: -30, y: 20 },
-        {
-          opacity: 1,
-          x: 0,
-          y: 0,
-          duration: 0.6,
-          stagger: 0.08,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: faqRef.current,
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
-    },
-    { scope: faqRef, dependencies: [] }
-  );
 
   return (
     <div
       ref={containerRef}
-      className="min-h-screen bg-background relative overflow-hidden landing-dots"
+      className="min-h-screen bg-background relative overflow-x-hidden"
     >
-      {/* Mouse-follow spotlight */}
-      <div ref={spotlightRef} className="landing-spotlight opacity-0" />
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:shadow-lg focus:ring-2 focus:ring-ring"
+      >
+        Skip to content
+      </a>
 
       {/* ─── Header ─── */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/40">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40 supports-[backdrop-filter]:bg-background/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <Image
               src="/regexlens-logo.png"
-              alt="RegexLens"
-              width={120}
-              height={120}
-              className="rounded"
+              alt="RegexLens home"
+              width={160}
+              height={40}
+              priority
+              className="h-9 w-auto rounded"
             />
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+          <nav aria-label="Primary" className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
             {NAV_LINKS.map((link) =>
               link.external ? (
                 <a
@@ -488,7 +371,7 @@ export function LandingPage() {
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
                 >
                   {link.label}
                 </a>
@@ -496,7 +379,7 @@ export function LandingPage() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
                 >
                   {link.label}
                 </Link>
@@ -504,11 +387,17 @@ export function LandingPage() {
             )}
           </nav>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
+            <Button size="sm" variant="outline" asChild>
+              <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" className="gap-1.5">
+                <Github className="h-3.5 w-3.5" aria-hidden="true" />
+                Star
+              </a>
+            </Button>
             <Button size="sm" asChild>
-              <Link href="/app">
-                Try RegexLens
-                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              <Link href="/app" className="gap-1.5">
+                Open the app
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             </Button>
           </div>
@@ -539,7 +428,7 @@ export function LandingPage() {
                   )
                 )}
                 <DropdownMenuItem asChild>
-                  <Link href="/app">Try RegexLens</Link>
+                  <Link href="/app">Open the app</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -547,9 +436,9 @@ export function LandingPage() {
         </div>
       </header>
 
-      <main className="relative z-10 pt-16">
+      <main id="main-content" className="relative z-10">
         {/* ─── Hero ─── */}
-        <section ref={heroRef} className="relative py-28 sm:py-40 overflow-hidden">
+        <section aria-labelledby="hero-heading" className="relative py-24 sm:py-32 lg:py-36 overflow-hidden border-b border-border/30 motion-safe:animate-fade-up motion-reduce:animate-none">
           {/* Background mesh */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-primary/8 blur-[120px]" />
@@ -558,29 +447,29 @@ export function LandingPage() {
           </div>
 
           <div className="relative max-w-5xl mx-auto px-4 sm:px-6 text-center">
-            <div className="hero-badge inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm text-primary font-medium mb-8">
-              <Zap className="w-3.5 h-3.5" />
-              Free regex analysis for developers
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm text-primary font-medium mb-8">
+              <Github className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+              Open source under the MIT License
             </div>
 
-            <h1 className="hero-headline font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
+            <h1 id="hero-heading" className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
               Stop guessing.{" "}
               <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
                 Start understanding.
               </span>
             </h1>
 
-            <p className="hero-sub text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              RegexLens turns cryptic patterns into clear explanations, visual
-              structure trees, and real-time match analysis — so you never have
-              to decode a regex alone again.
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+              RegexLens explains JavaScript regular expressions with interactive structure,
+              live matches, and safety insights — built in public for developers who review,
+              teach, and ship regex every week.
             </p>
 
-            <div className="hero-cta flex flex-col sm:flex-row gap-4 justify-center mb-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4" aria-label="Primary calls to action">
               <Button size="lg" asChild className="text-base h-12 px-8 shadow-lg shadow-primary/20">
                 <Link href="/app">
-                  Try it free
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  Open the app
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
               <Button
@@ -589,17 +478,17 @@ export function LandingPage() {
                 asChild
                 className="text-base h-12 px-8 border-border/60 hover:border-primary/40"
               >
-                <Link href="/app">View live examples</Link>
+                <a href={DOCS_URL} target="_blank" rel="noopener noreferrer">
+                  Read the docs
+                </a>
               </Button>
             </div>
 
-            <p className="text-sm text-muted-foreground/70 mb-16">
-              No sign-up required. Works in your browser.
+            <p className="text-sm text-muted-foreground/80 mb-16">
+              No account required for the core workbench. Self-host or contribute on GitHub.
             </p>
 
-            <div className="hero-terminal">
-              <AnimatedRegex />
-            </div>
+            <AnimatedRegex reducedMotion={reducedMotion} />
           </div>
         </section>
 
@@ -609,22 +498,19 @@ export function LandingPage() {
             <p className="text-center text-xs font-medium uppercase tracking-wider text-muted-foreground/60 mb-6">
               Works everywhere you write code
             </p>
-            <div className="flex flex-wrap justify-center gap-8 sm:gap-12">
-              {BROWSER_LOGOS.map((b) => (
-                <div
-                  key={b.name}
-                  className="flex items-center gap-2 text-muted-foreground/50 hover:text-muted-foreground transition-colors duration-200"
-                >
-                  <span className="text-lg">{b.icon}</span>
-                  <span className="text-sm font-medium">{b.name}</span>
-                </div>
+            <ul className="flex flex-wrap justify-center gap-x-8 gap-y-3 sm:gap-x-12 text-sm text-muted-foreground list-none m-0 p-0">
+              {BROWSER_TARGETS.map((name) => (
+                <li key={name} className="inline-flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-primary/70 shrink-0" aria-hidden="true" />
+                  <span className="font-medium text-foreground/80">{name}</span>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </section>
 
         {/* ─── How It Works ─── */}
-        <section ref={howRef} className="py-28 sm:py-36 relative">
+        <section className="py-28 sm:py-36 relative">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="how-header text-center mb-16">
               <p className="text-xs font-medium uppercase tracking-wider text-primary mb-4">
@@ -640,7 +526,7 @@ export function LandingPage() {
               {HOW_IT_WORKS.map((step, i) => (
                 <div
                   key={step.title}
-                  className={`how-card grid lg:grid-cols-2 gap-8 lg:gap-16 items-center ${
+                  className={`grid lg:grid-cols-2 gap-8 lg:gap-16 items-center ${
                     i % 2 === 1 ? "lg:direction-rtl" : ""
                   }`}
                 >
@@ -658,7 +544,7 @@ export function LandingPage() {
                     </p>
                     <Button variant="outline" size="sm" asChild className="mt-2 group">
                       <Link href="/app">
-                        Try it now
+                        Open in the app
                         <ArrowRight className="ml-1.5 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                       </Link>
                     </Button>
@@ -711,8 +597,8 @@ export function LandingPage() {
                 <div className="absolute bottom-6 left-6 right-6">
                   <Button size="lg" asChild className="shadow-lg">
                     <Link href="/app">
-                      Open RegexLens
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      Open the app
+                      <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                     </Link>
                   </Button>
                 </div>
@@ -767,7 +653,7 @@ export function LandingPage() {
                   {SOLUTION_POINTS.map((point) => (
                     <div
                       key={point.label}
-                      className="flex items-start gap-4 p-4 rounded-xl border border-border/50 bg-card/50 hover:border-primary/30 transition-colors duration-200 cursor-pointer group"
+                      className="flex items-start gap-4 p-4 rounded-xl border border-border/50 bg-card/50 hover:border-primary/30 transition-colors duration-200 group"
                     >
                       <div className="rounded-lg bg-primary/10 p-2.5 shrink-0 group-hover:bg-primary/20 transition-colors">
                         <point.icon className="h-5 w-5 text-primary" />
@@ -789,7 +675,7 @@ export function LandingPage() {
         </section>
 
         {/* ─── Features Bento Grid ─── */}
-        <section ref={featuresRef} className="py-28 sm:py-36 relative">
+        <section className="py-28 sm:py-36 relative">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-16">
               <p className="text-xs font-medium uppercase tracking-wider text-primary mb-4">
@@ -808,7 +694,7 @@ export function LandingPage() {
               {FEATURES.map((f) => (
                 <div
                   key={f.title}
-                  className={`feat-card group relative rounded-2xl border border-border/40 bg-gradient-to-b ${f.accent} p-6 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer`}
+                  className={`group relative rounded-2xl border border-border/40 bg-gradient-to-b ${f.accent} p-6 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5`}
                 >
                   <div
                     className={`rounded-xl bg-card/80 border border-border/30 p-3 w-fit mb-4`}
@@ -927,7 +813,7 @@ export function LandingPage() {
         </section>
 
         {/* ─── FAQ ─── */}
-        <section ref={faqRef} className="py-24 sm:py-32 relative">
+        <section className="py-24 sm:py-32 relative">
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <div className="grid md:grid-cols-[1fr_1.5fr] gap-12 md:gap-16">
               <div>
@@ -949,7 +835,10 @@ export function LandingPage() {
                     onOpenChange={(open) => setOpenFaq(open ? item.q : null)}
                   >
                     <CollapsibleTrigger asChild>
-                      <div className="faq-item flex items-center justify-between w-full p-4 rounded-xl border border-border/40 bg-card/30 hover:bg-card/60 transition-colors cursor-pointer text-left group">
+                      <button
+                        type="button"
+                        className="flex items-center justify-between w-full p-4 rounded-xl border border-border/40 bg-card/30 hover:bg-card/60 transition-colors cursor-pointer text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      >
                         <span className="font-medium text-sm pr-4">
                           {item.q}
                         </span>
@@ -957,8 +846,9 @@ export function LandingPage() {
                           className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${
                             openFaq === item.q ? "rotate-180" : ""
                           }`}
+                          aria-hidden="true"
                         />
-                      </div>
+                      </button>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <div className="px-4 pb-4 pt-3 text-sm text-muted-foreground leading-relaxed border-x border-b border-border/40 rounded-b-xl -mt-1 mx-1">
@@ -973,27 +863,101 @@ export function LandingPage() {
         </section>
 
         {/* ─── Open Source & Community ─── */}
-        <section className="py-20 sm:py-28 relative">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-            <h2 className="font-serif text-2xl sm:text-3xl font-bold mb-4">
-              Free and open source
-            </h2>
-            <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-              Every feature is free. If RegexLens saves you time, consider
-              supporting the project.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild className="h-12 px-8">
-                <Link href="/app">Get started</Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                asChild
-                className="h-12 px-8 border-border/60"
+        <section className="py-20 sm:py-28 relative" aria-labelledby="oss-heading">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
+              <p className="text-xs font-medium uppercase tracking-wider text-primary mb-3">
+                Open source
+              </p>
+              <h2 id="oss-heading" className="font-serif text-2xl sm:text-3xl font-bold mb-4">
+                Built with the community
+              </h2>
+              <p className="text-muted-foreground text-base sm:text-lg">
+                RegexLens is MIT-licensed. Inspect the code, self-host, and help shape the roadmap on GitHub.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4 lg:gap-5">
+              <a
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group rounded-2xl border border-border/40 bg-card/40 p-5 sm:p-6 text-left transition-colors duration-200 hover:border-primary/30 hover:bg-card/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer"
               >
-                <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
-                  Support the project
+                <div className="flex items-start gap-3">
+                  <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
+                    <Code2 className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Source &amp; issues</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      Clone the repo, report bugs, and follow releases.
+                    </p>
+                  </div>
+                </div>
+              </a>
+              <a
+                href={GITHUB_CONTRIBUTING_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group rounded-2xl border border-border/40 bg-card/40 p-5 sm:p-6 text-left transition-colors duration-200 hover:border-primary/30 hover:bg-card/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
+                    <HeartHandshake className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Contributing guide</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      Local development, tests, and how to open a pull request.
+                    </p>
+                  </div>
+                </div>
+              </a>
+              <a
+                href={GITHUB_LICENSE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group rounded-2xl border border-border/40 bg-card/40 p-5 sm:p-6 text-left transition-colors duration-200 hover:border-primary/30 hover:bg-card/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
+                    <Scale className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">MIT License</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      Use RegexLens in your own projects with minimal friction.
+                    </p>
+                  </div>
+                </div>
+              </a>
+              <a
+                href={GITHUB_DISCUSSIONS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group rounded-2xl border border-border/40 bg-card/40 p-5 sm:p-6 text-left transition-colors duration-200 hover:border-primary/30 hover:bg-card/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
+                    <Github className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Discussions</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      Ask questions, compare approaches, and propose features.
+                    </p>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+              <Button size="lg" asChild className="h-12 px-8">
+                <Link href="/app">Open the app</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild className="h-12 px-8 border-border/60">
+                <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" className="gap-2">
+                  <Github className="h-4 w-4" aria-hidden="true" />
+                  View on GitHub
                 </a>
               </Button>
             </div>
@@ -1015,8 +979,7 @@ export function LandingPage() {
               your next regex?
             </h2>
             <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-              Join thousands of developers who ship regex with confidence.
-              Free. No sign-up required.
+              Ship regex reviews with a shared, inspectable tool — no account required to get started.
             </p>
             <Button
               size="lg"
@@ -1024,8 +987,8 @@ export function LandingPage() {
               className="h-14 px-10 shadow-lg shadow-primary/20 text-lg"
             >
               <Link href="/app">
-                Try RegexLens free
-                <ArrowRight className="ml-2 h-5 w-5" />
+                Open the app
+                <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
               </Link>
             </Button>
           </div>
@@ -1041,14 +1004,13 @@ export function LandingPage() {
                 <Image
                   src="/regexlens-logo.png"
                   alt="RegexLens"
-                  width={120}
-                  height={120}
-                  className="rounded"
+                  width={160}
+                  height={40}
+                  className="h-9 w-auto rounded"
                 />
               </Link>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Understand any regex instantly. Free developer tool with visual
-                analysis.
+                Understand any regex instantly. Open-source visual analysis for JavaScript RegExp.
               </p>
             </div>
             <div>
@@ -1059,17 +1021,27 @@ export function LandingPage() {
                     href="/app"
                     className="hover:text-foreground transition-colors"
                   >
-                    Try it
+                    Open the app
                   </Link>
                 </li>
                 <li>
                   <a
-                    href={SUPPORT_URL}
+                    href={GITHUB_REPO_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-foreground transition-colors"
                   >
-                    Support Us
+                    GitHub
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={GITHUB_CONTRIBUTING_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Contributing
                   </a>
                 </li>
                 <li>
@@ -1089,12 +1061,12 @@ export function LandingPage() {
               <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li>
                   <a
-                    href="https://github.com/nanaagyei"
+                    href={GITHUB_DISCUSSIONS_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-foreground transition-colors"
                   >
-                    GitHub
+                    Discussions
                   </a>
                 </li>
                 <li>
@@ -1132,27 +1104,13 @@ export function LandingPage() {
               <h4 className="font-semibold text-sm mb-4">Connect</h4>
               <div className="flex gap-2">
                 <a
-                  href="https://github.com/nanaagyei"
+                  href={GITHUB_REPO_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-lg bg-card/50 border border-border/30 hover:border-primary/30 hover:bg-primary/10 transition-colors duration-200"
-                  aria-label="GitHub"
+                  className="p-2 rounded-lg bg-card/50 border border-border/30 hover:border-primary/30 hover:bg-primary/10 transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label="RegexLens on GitHub"
                 >
                   <Github className="h-4 w-4" />
-                </a>
-                <a
-                  href="#"
-                  className="p-2 rounded-lg bg-card/50 border border-border/30 hover:border-primary/30 hover:bg-primary/10 transition-colors duration-200"
-                  aria-label="Twitter"
-                >
-                  <Twitter className="h-4 w-4" />
-                </a>
-                <a
-                  href="#"
-                  className="p-2 rounded-lg bg-card/50 border border-border/30 hover:border-primary/30 hover:bg-primary/10 transition-colors duration-200"
-                  aria-label="LinkedIn"
-                >
-                  <Linkedin className="h-4 w-4" />
                 </a>
               </div>
             </div>
