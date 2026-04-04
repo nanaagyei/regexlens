@@ -10,7 +10,7 @@ test.describe("smoke", () => {
       })
     ).toBeVisible({ timeout: 20_000 });
 
-    await page.getByRole("link", { name: /Try it free/i }).first().click();
+    await page.getByRole("link", { name: /Open the app/i }).first().click();
     await expect(page).toHaveURL(/\/app/, { timeout: 20_000 });
   });
 
@@ -91,14 +91,3 @@ test.describe("workspace integration", () => {
   });
 });
 
-test.describe("pricing", () => {
-  test("pricing page loads", async ({ page }) => {
-    await page.goto("/pricing");
-    await expect(
-      page.getByRole("heading", {
-        level: 1,
-        name: /Simple pricing for developers/i,
-      })
-    ).toBeVisible({ timeout: 20_000 });
-  });
-});

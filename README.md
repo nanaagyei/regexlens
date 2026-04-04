@@ -13,14 +13,13 @@
   <a href="https://docs.regexlens.dev">Docs</a> &middot;
   <a href="#getting-started">Getting Started</a> &middot;
   <a href="CONTRIBUTING.md">Contributing</a> &middot;
-  <a href="https://buymeacoffee.com/nanaagyei">Support</a>
+  <a href="https://github.com/nanaagyei/regexlens">GitHub</a>
 </p>
 
 <p align="center">
   <a href="https://github.com/nanaagyei/regexlens/actions"><img src="https://img.shields.io/github/actions/workflow/status/nanaagyei/regexlens/ci.yml?branch=main&style=flat-square&label=CI" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/nanaagyei/regexlens?style=flat-square" alt="License" /></a>
   <a href="https://github.com/nanaagyei/regexlens/issues"><img src="https://img.shields.io/github/issues/nanaagyei/regexlens?style=flat-square" alt="Issues" /></a>
-  <a href="https://buymeacoffee.com/nanaagyei"><img src="https://img.shields.io/badge/Support-Buy%20Me%20a%20Coffee-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black" alt="Support" /></a>
 </p>
 
 <p align="center">
@@ -41,7 +40,7 @@ RegexLens is a free, open-source developer tool for understanding regular expres
 - **How it's structured** — Interactive AST tree visualization
 - **Where it might fail** — Performance warnings and correctness gotchas
 
-All features are **free** for signed-in users. No paywalls, no premium tiers.
+RegexLens is **MIT licensed** and free to use. Optional sign-in unlocks cloud-backed features you enable in your deployment; there are no paid tiers in the upstream project.
 
 ---
 
@@ -236,7 +235,6 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for gu
 
 RegexLens is free and open source. If you find it useful, consider supporting development:
 
-<a href="https://buymeacoffee.com/nanaagyei"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee" /></a>
 
 ---
 
