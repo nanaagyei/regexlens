@@ -3,11 +3,11 @@
 import { Callout } from 'nextra/components'
 
 <Callout type="default">
-For the in-app **Analysis** tab behavior, read [Analysis (Pro)](/features/analysis). This page expands on workflows and mirrors the `POST /api/analyze` contract.
+For the in-app **Analysis** tab behavior, read [Analysis](/features/analysis). This page expands on workflows and mirrors the `POST /api/analyze` contract.
 </Callout>
 
 <Callout type="info">
-**Pro Feature:** Advanced Analysis requires a RegexLens Pro subscription.
+**Note:** Advanced Analysis requires an account on a deployment that enables these features.
 </Callout>
 
 Go beyond basic explanations with deep pattern analysis, performance insights, and optimization suggestions.
@@ -57,12 +57,12 @@ Identify patterns that cause excessive backtracking:
 ⚠️ Potential Backtracking Issues
 
 1. Nested quantifiers at position 5-12
-   Pattern: (a+)+
-   Risk: Exponential backtracking on non-matching input
+  Pattern: (a+)+
+  Risk: Exponential backtracking on non-matching input
 
 2. Overlapping alternatives at position 15-25
-   Pattern: (foo|foobar)
-   Risk: Unnecessary backtracking when matching "foobar"
+  Pattern: (foo|foobar)
+  Risk: Unnecessary backtracking when matching "foobar"
 ```
 
 ### Optimization Suggestions
@@ -73,16 +73,16 @@ Get actionable recommendations:
 💡 Optimization Suggestions
 
 1. Use atomic group or possessive quantifier
-   Before: (a+)+
-   After: (?>a+)+ or a++ (if supported)
+  Before: (a+)+
+  After: (?>a+)+ or a++ (if supported)
 
 2. Reorder alternatives by frequency
-   Before: (rare|common|frequent)
-   After: (frequent|common|rare)
+  Before: (rare|common|frequent)
+  After: (frequent|common|rare)
 
 3. Use character class instead of alternation
-   Before: (a|b|c|d)
-   After: [abcd]
+  Before: (a|b|c|d)
+  After: [abcd]
 ```
 
 ## Diff View
@@ -173,14 +173,14 @@ Authorization: Bearer <your-token>
 Content-Type: application/json
 
 {
-  "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
-  "flags": "gi",
-  "options": {
-    "complexity": true,
-    "performance": true,
-    "suggestions": true,
-    "testCases": true
-  }
+ "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+ "flags": "gi",
+ "options": {
+  "complexity": true,
+  "performance": true,
+  "suggestions": true,
+  "testCases": true
+ }
 }
 ```
 
@@ -188,32 +188,32 @@ Content-Type: application/json
 
 ```json
 {
-  "complexity": {
-    "score": 5,
-    "level": "moderate",
-    "nodes": 15,
-    "depth": 3,
-    "quantifiers": 3,
-    "groups": 0,
-    "lookarounds": 0
-  },
-  "performance": {
-    "bestCase": "O(n)",
-    "worstCase": "O(n)",
-    "redosRisk": "low"
-  },
-  "suggestions": [
-    {
-      "type": "info",
-      "message": "Consider using named groups for clarity",
-      "position": { "start": 1, "end": 10 }
-    }
-  ],
-  "testCases": {
-    "matching": ["test@example.com", "a@b.cd"],
-    "nonMatching": ["@example.com", "test@"],
-    "edge": ["", "very-long-email..."]
+ "complexity": {
+  "score": 5,
+  "level": "moderate",
+  "nodes": 15,
+  "depth": 3,
+  "quantifiers": 3,
+  "groups": 0,
+  "lookarounds": 0
+ },
+ "performance": {
+  "bestCase": "O(n)",
+  "worstCase": "O(n)",
+  "redosRisk": "low"
+ },
+ "suggestions": [
+  {
+   "type": "info",
+   "message": "Consider using named groups for clarity",
+   "position": { "start": 1, "end": 10 }
   }
+ ],
+ "testCases": {
+  "matching": ["test@example.com", "a@b.cd"],
+  "nonMatching": ["@example.com", "test@"],
+  "edge": ["", "very-long-email..."]
+ }
 }
 ```
 

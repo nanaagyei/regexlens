@@ -1,32 +1,33 @@
 # Getting Started
 
-**RegexLens** is a UI-first developer tool for **JavaScript regular expressions** (`RegExp`). It helps you see **what** matches, **why** it matches (plain-English steps), **how** the pattern is structured (AST + railroad diagram), and **where** it may be risky (smart warnings). Optional **Pro** adds a saved library, exports, deeper **Analysis**, and **Regex Copilot** (streaming AI).
+**RegexLens** is an open-source, UI-first developer tool for **JavaScript regular expressions** (`RegExp`). It helps you see **what** matches, **why** it matches (plain-English steps), **how** the pattern is structured (AST + railroad diagram), and **where** it may be risky (smart warnings). Optional sign-in adds cloud-backed features like a saved library, exports, deeper **Analysis**, and **Regex Copilot** (streaming AI), depending on how you deploy and configure the app.
 
 ## Where things live
 
 | Surface | URL / path | Purpose |
 |--------|------------|---------|
-| Marketing site | `/` | Landing, sign-in, pricing entry |
+| Marketing site | `/` | Landing and sign-in entry |
 | Workbench | `/app` | Full editor: pattern, test text, matches, tabs |
-| Pricing | `/pricing` | Free vs Pro, Stripe checkout |
 | Docs (this site) | [docs.regexlens.dev](https://docs.regexlens.dev) — Nextra in `docs/`; local dev port `3002` | Long-form help |
 | Changelog (web) | [regexlens.dev/changelog](https://regexlens.dev/changelog) | High-level release notes |
 
 Set `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_DOCS_URL` in production so share links, metadata, and documentation links use your domains (defaults: `https://regexlens.dev` and `https://docs.regexlens.dev`).
 
-## Free vs Pro (at a glance)
+## Anonymous vs signed-in (at a glance)
 
-| Capability | Free | Pro |
-|------------|:----:|:---:|
+| Capability | Anonymous | Signed in |
+|------------|:---------:|:---------:|
 | Live matching, flags, templates, fixtures | Yes | Yes |
 | Explanations, AST, railroad, warnings | Yes | Yes |
 | Shareable URLs | Yes | Yes |
 | Saved library, versions, diff | — | Yes |
 | Export (Markdown, PR comment, Notion, plain) | — | Yes |
-| **Analysis** tab + `POST /api/analyze` | — | Yes |
-| **Regex Copilot** (`/api/ai/chat`) | — | Yes |
+| **Analysis** tab + `POST /api/analyze` | — | Yes * |
+| **Regex Copilot** (`/api/ai/chat`) | — | Yes * |
 
-Signing in is optional for core editing; OAuth (Google, GitHub) and magic links (Resend) are available via Auth.js on the main app.
+\* Requires your deployment to configure the relevant server credentials (for example `ANTHROPIC_API_KEY`).
+
+Signing in is optional for core editing. OAuth (GitHub, Google) and magic links (Resend) are available via Auth.js on the main app when enabled.
 
 ## Workbench layout
 
@@ -36,11 +37,11 @@ Signing in is optional for core editing; OAuth (Google, GitHub) and magic links 
    - **Explain** — Deterministic step-by-step explanation from the AST (not LLM output).
    - **Structure** — Collapsible AST tree synced with hover elsewhere when applicable.
    - **Railroad** — Syntax railroad diagram for the pattern.
-   - **Analysis** — Pro: risk score, complexity, extra warnings/suggestions via server analysis.
+   - **Analysis** — Risk score, complexity, extra warnings/suggestions via server analysis (signed in).
    - **Warnings** — In-app static warnings (severity info / warn / danger).
-   - **Copilot** — Pro: streaming assistant (Anthropic) with actions like apply pattern; rate-limited.
+   - **Copilot** — Streaming assistant with actions like apply pattern (signed in; provider dependent).
 
-Header: **Docs** (opens documentation), **Templates**, **Fixtures**, **Save** / **Library** (Pro), **Share**, **Reset**, account menu, and **Homepage** returns to marketing `/`.
+Header: **Docs** (opens documentation), **Templates**, **Fixtures**, **Save** / **Library**, **Share**, **Reset**, account menu, and **Homepage** returns to marketing `/`.
 
 ## Sharing & URL state
 
@@ -62,11 +63,11 @@ import { Cards, Card } from 'nextra/components'
   <Card title="AST & Railroad" href="/features/ast-viewer">
     Structure tab + diagram tab
   </Card>
-  <Card title="Regex Copilot (Pro)" href="/features/regex-copilot">
+  <Card title="Regex Copilot" href="/features/regex-copilot">
     AI-assisted regex help
   </Card>
-  <Card title="Pro features" href="/pro/saved-library">
-    Library, export, analysis API
+  <Card title="Account features" href="/account/saved-library">
+    Library, export, and deeper workflows
   </Card>
   <Card title="API reference" href="/reference/api">
     REST endpoints for automation
