@@ -189,7 +189,7 @@ const TRUST_ITEMS = [
 ];
 
 const SUPPORT_URL =
-  process.env.NEXT_PUBLIC_SUPPORT_URL || "https://buymeacoffee.com/regexlens";
+  process.env.NEXT_PUBLIC_SUPPORT_URL || "https://buymeacoffee.com/nanaagyei";
 
 const NAV_LINKS = [
   { href: "/app", label: "Try it" },

@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 
 const SUPPORT_URL =
-  process.env.NEXT_PUBLIC_SUPPORT_URL || "https://buymeacoffee.com/regexlens";
+  process.env.NEXT_PUBLIC_SUPPORT_URL || "https://buymeacoffee.com/nanaagyei";
 
 // Google icon component since lucide doesn't have one
 function GoogleIcon({ className }: { className?: string }) {
