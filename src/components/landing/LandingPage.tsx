@@ -11,6 +11,7 @@ import {
   GITHUB_CONTRIBUTING_URL,
   GITHUB_LICENSE_URL,
   GITHUB_DISCUSSIONS_URL,
+  SUPPORT_URL,
 } from "@/lib/site";
 import {
   Collapsible,
@@ -41,6 +42,7 @@ import {
   Code2,
   Scale,
   HeartHandshake,
+  Coffee,
   Zap,
   Eye,
   CheckCircle2,
@@ -949,8 +951,26 @@ export function LandingPage() {
                   </div>
                 </div>
               </a>
+              <a
+                href={SUPPORT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group rounded-2xl border border-border/40 bg-card/40 p-5 sm:p-6 text-left transition-colors duration-200 hover:border-primary/30 hover:bg-card/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer sm:col-span-2"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
+                    <Coffee className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Support the project</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      RegexLens stays free and open source. If it helps you, you can optionally thank the maintainers via Buy Me a Coffee.
+                    </p>
+                  </div>
+                </div>
+              </a>
             </div>
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
               <Button size="lg" asChild className="h-12 px-8">
                 <Link href="/app">Open the app</Link>
               </Button>
@@ -958,6 +978,12 @@ export function LandingPage() {
                 <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" className="gap-2">
                   <Github className="h-4 w-4" aria-hidden="true" />
                   View on GitHub
+                </a>
+              </Button>
+              <Button size="lg" variant="outline" asChild className="h-12 px-8 border-border/60">
+                <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" className="gap-2">
+                  <Coffee className="h-4 w-4" aria-hidden="true" />
+                  Buy me a coffee
                 </a>
               </Button>
             </div>
@@ -1042,6 +1068,16 @@ export function LandingPage() {
                     className="hover:text-foreground transition-colors"
                   >
                     Contributing
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={SUPPORT_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Support the project
                   </a>
                 </li>
                 <li>

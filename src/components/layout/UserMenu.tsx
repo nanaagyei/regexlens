@@ -19,10 +19,11 @@ import {
   LogOut,
   Github,
   Mail,
+  Heart,
   Loader2,
   ChevronDown,
 } from "lucide-react";
-import { GITHUB_REPO_URL } from "@/lib/site";
+import { GITHUB_REPO_URL, SUPPORT_URL } from "@/lib/site";
 
 // Google icon component since lucide doesn't have one
 function GoogleIcon({ className }: { className?: string }) {
@@ -164,6 +165,13 @@ export function UserMenu() {
             <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer">
               <Github className="mr-2 h-4 w-4" />
               GitHub repository
+            </a>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem asChild className="cursor-pointer">
+            <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
+              <Heart className="mr-2 h-4 w-4 text-pink-500" />
+              Support RegexLens
             </a>
           </DropdownMenuItem>
 

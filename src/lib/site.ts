@@ -21,4 +21,7 @@ export const GITHUB_CONTRIBUTING_URL = `${GITHUB_REPO_URL}/blob/main/CONTRIBUTIN
 export const GITHUB_LICENSE_URL = `${GITHUB_REPO_URL}/blob/main/LICENSE`;
 
 export const GITHUB_DISCUSSIONS_URL = `${GITHUB_REPO_URL}/discussions`;
-
+/** Voluntary sponsorship (e.g. Buy Me a Coffee) — not a product tier or paywall. */
+export const SUPPORT_URL = trimTrailingSlash(
+  process.env.NEXT_PUBLIC_SUPPORT_URL ?? "https://buymeacoffee.com/nanaagyei"
+);
