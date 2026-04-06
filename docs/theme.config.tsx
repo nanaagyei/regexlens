@@ -1,6 +1,11 @@
 import React from 'react'
 import { DocsThemeConfig } from 'nextra-theme-docs'
 
+function faviconHref(): string {
+  const base = (process.env.GH_PAGES_BASEPATH || '').replace(/\/$/, '')
+  return base ? `${base}/favicon.ico` : '/favicon.ico'
+}
+
 const site = 'https://regexlens.dev'
 
 const config: DocsThemeConfig = {
@@ -29,7 +34,7 @@ const config: DocsThemeConfig = {
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta property="og:title" content="RegexLens Documentation" />
       <meta property="og:description" content="Documentation for RegexLens — test, explain, and visualize JavaScript regular expressions." />
-      <link rel="icon" href="/favicon.ico" />
+      <link rel="icon" href={faviconHref()} />
     </>
   ),
   useNextSeoProps() {
