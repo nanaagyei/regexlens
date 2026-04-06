@@ -106,10 +106,18 @@ describe("normalizeAst — escapes", () => {
     expect(kids[0].key).toBe("escape:tab");
   });
 
-  it("normalizes escaped dot \\. as escape:other", () => {
+  it("normalizes escaped dot \\. as escape:other with distinct key", () => {
     const kids = topChildren("\\.");
     expect(kids[0].type).toBe("escape");
-    expect(kids[0].key).toBe("escape:other");
+    expect(kids[0].key).toBe("escape:other:\\.");
+  });
+
+  it("keeps distinct keys for different escape:other sequences", () => {
+    const dot = topChildren("\\.")[0];
+    const plus = topChildren("\\+")[0];
+    expect(dot.key).not.toBe(plus.key);
+    expect(dot.key).toBe("escape:other:\\.");
+    expect(plus.key).toBe("escape:other:\\+");
   });
 });
 
@@ -289,6 +297,14 @@ describe("normalizeAst — backreferences", () => {
     expect(backref.type).toBe("backreference");
     expect(backref.key).toBe("backreference:1");
     expect(backref.props).toMatchObject({ groupNumber: 1 });
+  });
+
+  it("normalizes \k<_id> as named backreference", () => {
+    const kids = topChildren("(?<_id>a)\\k<_id>");
+    const backref = kids[1];
+    expect(backref.type).toBe("backreference");
+    expect(backref.key).toBe("backreference:named:_id");
+    expect(backref.props).toMatchObject({ groupName: "_id" });
   });
 });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -223,8 +224,14 @@ function MobileNav({
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={async () => {
-              const url = getShareUrl(state);
-              await navigator.clipboard.writeText(url);
+              try {
+                const url = getShareUrl(state);
+                await navigator.clipboard.writeText(url);
+                toast.success("Link copied to clipboard");
+              } catch (error) {
+                console.error("Failed to copy share link:", error);
+                toast.error("Failed to copy link");
+              }
             }}
             disabled={!state.pattern && !state.text}
           >

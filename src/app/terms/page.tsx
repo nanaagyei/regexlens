@@ -40,7 +40,7 @@ export default function TermsOfServicePage() {
       <h2>The Service</h2>
       <p>
         RegexLens provides tools to test, visualize, explain, and work with regular expressions.
-        All features — including saved libraries, exports, and AI-assisted assistance — are
+        All features — including saved libraries, exports, and AI-assisted tools — are
         available free of charge to signed-in users.
       </p>
       <p>

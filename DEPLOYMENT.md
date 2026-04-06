@@ -191,7 +191,7 @@ The repo includes `docs/public/CNAME` with `docs.regexlens.dev` so static export
 
 #### C. Application environment (Vercel)
 
-1. Set `**NEXT_PUBLIC_DOCS_URL=https://docs.regexlens.dev`** for **Production** (and Preview if you use a preview docs URL).
+1. Set **`NEXT_PUBLIC_DOCS_URL=https://docs.regexlens.dev`** for **Production** (and Preview if you use a preview docs URL).
 2. Redeploy the main app so links and redirects use the new value.
 
 ### 7. Final Verification

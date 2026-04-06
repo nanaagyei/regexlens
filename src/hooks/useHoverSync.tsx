@@ -59,18 +59,16 @@ export function useHoverSelector<T>(selector: (state: HoverState) => T): T {
   const selectorRef = useRef(selector);
   selectorRef.current = selector;
 
-  const prevRef = useRef<T | undefined>(undefined);
   const snapshotRef = useRef<T | undefined>(undefined);
 
   const getSelected = () => {
     const nextState = getSnapshot();
     const nextSelected = selectorRef.current(nextState);
 
-    if (prevRef.current !== undefined && Object.is(snapshotRef.current, nextSelected)) {
+    if (snapshotRef.current !== undefined && Object.is(snapshotRef.current, nextSelected)) {
       return snapshotRef.current as T;
     }
 
-    prevRef.current = nextSelected;
     snapshotRef.current = nextSelected;
     return nextSelected;
   };

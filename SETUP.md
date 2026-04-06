@@ -16,8 +16,10 @@ Get up and running in under 5 minutes:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/regexlens.git
+git clone https://github.com/nanaagyei/regexlens.git
 cd regexlens
+
+# If you're contributing from a fork, clone your fork URL instead.
 
 # 2. Install dependencies
 npm install

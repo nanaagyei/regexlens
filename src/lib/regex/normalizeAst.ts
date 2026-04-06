@@ -165,7 +165,7 @@ function normalizeChar(node: AstNode): ComparableNode {
     const escapeType = mapEscapeType(escChar);
 
     return {
-      key: `escape:${escapeType}`,
+      key: comparableEscapeKey(escapeType, raw),
       type: "escape",
       text,
       range,
@@ -181,7 +181,7 @@ function normalizeChar(node: AstNode): ComparableNode {
     const raw = `\\${val}`;
 
     return {
-      key: `escape:${escapeType}`,
+      key: comparableEscapeKey(escapeType, raw),
       type: "escape",
       text,
       range,
@@ -230,6 +230,14 @@ function mapEscapeType(
     default:  return "other";
   }
 }
+
+function comparableEscapeKey(
+  escapeType: EscapeProps["escapeType"],
+  raw: string
+): string {
+  return escapeType === "other" ? `escape:other:${raw}` : `escape:${escapeType}`;
+}
+
 
 // ── Assertion (anchor / lookaround) ────────────────────────────
 
@@ -437,9 +445,12 @@ function normalizeBackreference(node: AstNode): ComparableNode {
   const range = extractRange(node);
   const text = extractText(node);
   const groupNumber = node.reference ?? null;
-  const groupName = typeof node.referenceRaw === "string" && /^[a-zA-Z]/.test(node.referenceRaw)
-    ? node.referenceRaw
-    : null;
+  const groupName =
+    typeof node.referenceRaw === "string" &&
+    node.referenceRaw.length > 0 &&
+    !/^\d+$/.test(node.referenceRaw)
+      ? node.referenceRaw
+      : null;
 
   const key = groupName
     ? `backreference:named:${groupName}`

@@ -235,10 +235,10 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for gu
 
 ## Support the Project
 
-RegexLens is free and open source. If you find it useful, consider supporting development:
+RegexLens is free and open source. If you find it useful, you can support the project by:
 
-
----
+- [Starring the repository on GitHub](https://github.com/nanaagyei/regexlens) — it helps others discover the tool
+- [Opening issues or discussions](https://github.com/nanaagyei/regexlens/issues) — feedback and ideas are welcome
 
 ## Security
 

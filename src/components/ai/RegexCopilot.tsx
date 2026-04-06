@@ -13,11 +13,11 @@ import {
   Sparkles,
   Send,
   Trash2,
-  LogIn,
   StopCircle,
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SignInCallout } from "@/components/auth/SignInCallout";
 
 interface RegexCopilotProps {
   pattern: string;
@@ -110,15 +110,11 @@ export function RegexCopilot({
   // Auth gate
   if (!isUserLoading && !user) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-        <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
-          <LogIn className="h-6 w-6 text-muted-foreground" />
-        </div>
-        <h3 className="font-semibold mb-2">Regex Copilot</h3>
-        <p className="text-sm text-muted-foreground max-w-[260px] mb-4">
-          Sign in to get AI-powered pattern analysis, smart suggestions, edge case
-          detection, and pattern generation.
-        </p>
+      <div className="flex flex-col items-center justify-center h-full p-8">
+        <SignInCallout
+          title="Regex Copilot"
+          description="Sign in to get AI-powered pattern analysis, smart suggestions, edge case detection, and pattern generation."
+        />
       </div>
     );
   }

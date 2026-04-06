@@ -32,8 +32,13 @@ export function useUser(): UseUserReturn {
       setError(null);
 
       const response = await fetch("/api/me");
-      const data = await response.json();
+      if (!response.ok) {
+        setError(`Failed to fetch user (${response.status})`);
+        setUser(null);
+        return;
+      }
 
+      const data = await response.json();
       setUser(data.user ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch user");

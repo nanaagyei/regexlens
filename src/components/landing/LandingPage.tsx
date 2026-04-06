@@ -231,8 +231,10 @@ const REGEX_EXAMPLES = [
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const apply = () => setReduced(mq.matches);
     apply();
@@ -240,7 +242,7 @@ function usePrefersReducedMotion(): boolean {
     return () => mq.removeEventListener("change", apply);
   }, []);
 
-  return reduced;
+  return mounted ? reduced : false;
 }
 
 function AnimatedRegex({ reducedMotion }: { reducedMotion: boolean }) {

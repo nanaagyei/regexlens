@@ -71,13 +71,13 @@ Every time you update a saved pattern, RegexLens keeps the previous version. Thi
 
 ## API Access
 
-Signed-in users can access their saved patterns via API:
+Signed-in users can access their saved patterns via the API while authenticated with **NextAuth.js**. The server validates the **HTTP-only session cookie** from your browser session. **`Authorization: Bearer` tokens are not supported** — use same-origin `fetch` from the web app (cookies are included automatically), or pass the session cookie when testing with `curl`.
 
 ### List Patterns
 
 ```bash
-GET /api/snippets
-Authorization: Bearer <your-token>
+curl -sS "https://regexlens.dev/api/snippets" \
+  -H "Cookie: next-auth.session-token=<session-token-from-signed-in-browser>"
 ```
 
 **Query Parameters:**
@@ -93,7 +93,7 @@ Authorization: Bearer <your-token>
   {
    "id": "abc123",
    "name": "Email Validation",
-   "pattern": "^[\\w.+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$",
+   "pattern": "^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$",
    "flags": "gi",
    "description": "Basic email format validation",
    "tags": ["validation", "email"],
@@ -108,37 +108,26 @@ Authorization: Bearer <your-token>
 ### Create Pattern
 
 ```bash
-POST /api/snippets
-Authorization: Bearer <your-token>
-Content-Type: application/json
-
-{
- "name": "Phone Number",
- "pattern": "\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}",
- "flags": "g",
- "description": "US phone number format",
- "tags": ["validation", "phone"]
-}
+curl -sS -X POST "https://regexlens.dev/api/snippets" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: next-auth.session-token=<session-token-from-signed-in-browser>" \
+  -d '{"name":"Phone Number","pattern":"\\(\\?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}","flags":"g","description":"US phone number format","tags":["validation","phone"]}'
 ```
 
 ### Update Pattern
 
 ```bash
-PATCH /api/snippets/:id
-Authorization: Bearer <your-token>
-Content-Type: application/json
-
-{
- "pattern": "updated-pattern",
- "notes": "Fixed edge case with area codes"
-}
+curl -sS -X PATCH "https://regexlens.dev/api/snippets/<id>" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: next-auth.session-token=<session-token-from-signed-in-browser>" \
+  -d '{"pattern":"updated-pattern","notes":"Fixed edge case with area codes"}'
 ```
 
 ### Delete Pattern
 
 ```bash
-DELETE /api/snippets/:id
-Authorization: Bearer <your-token>
+curl -sS -X DELETE "https://regexlens.dev/api/snippets/<id>" \
+  -H "Cookie: next-auth.session-token=<session-token-from-signed-in-browser>"
 ```
 
 ## Best Practices

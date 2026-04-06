@@ -122,11 +122,17 @@ export function AuthExplainerModal({
           setIsLoading(false);
           return;
         }
-        await signIn("resend", {
+        const result = await signIn("resend", {
           email,
           callbackUrl: "/?auth=success",
+          redirect: false,
         });
-        setEmailSent(true);
+        if (result?.ok) {
+          setEmailSent(true);
+        } else if (result?.error) {
+          console.error("Sign in error:", result.error);
+        }
+        setIsLoading(false);
       } else {
         // For OAuth providers, redirect immediately
         await signIn(provider, { callbackUrl: "/?auth=success" });
