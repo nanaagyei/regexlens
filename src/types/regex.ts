@@ -105,8 +105,8 @@ export interface AstNode {
   symbol?: string;
   escaped?: boolean;
   codePoint?: number;
-  // Reference
-  reference?: number;
+  // Reference (numeric index and/or \k<name> target)
+  reference?: number | string;
   referenceRaw?: string;
   // Flags (on RegExp node)
   flags?: string;

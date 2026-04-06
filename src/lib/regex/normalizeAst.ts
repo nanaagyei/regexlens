@@ -10,6 +10,7 @@ import type {
   QuantifierProps,
   AssertionProps,
   BackreferenceProps,
+  PatternProps,
 } from "@/types/ast";
 import type { AstNode } from "@/types/regex";
 
@@ -78,7 +79,7 @@ function normalizeRegExp(node: AstNode): ComparableNode {
     type: "pattern",
     text: extractText(node),
     range: extractRange(node),
-    props: {},
+    props: { flags: node.flags ?? "" } as PatternProps,
     children,
   };
 }
@@ -444,12 +445,13 @@ function normalizeGroup(node: AstNode): ComparableNode {
 function normalizeBackreference(node: AstNode): ComparableNode {
   const range = extractRange(node);
   const text = extractText(node);
-  const groupNumber = node.reference ?? null;
+  const groupNumber = typeof node.number === "number" ? node.number : null;
+  const ref = node.reference;
   const groupName =
-    typeof node.referenceRaw === "string" &&
-    node.referenceRaw.length > 0 &&
-    !/^\d+$/.test(node.referenceRaw)
-      ? node.referenceRaw
+    typeof ref === "string" &&
+    ref.length > 0 &&
+    !/^\d+$/.test(ref)
+      ? ref
       : null;
 
   const key = groupName
@@ -501,6 +503,26 @@ function normalizeQuantifierFallback(node: AstNode): ComparableNode {
 // ── Utilities ──────────────────────────────────────────────────
 
 function extractRange(node: AstNode): { start: number; end: number } | undefined {
+  if (node.type === "RegExp") {
+    const body = node.body;
+    const emptyAlternative =
+      body &&
+      !Array.isArray(body) &&
+      body.type === "Alternative" &&
+      (!body.expressions || body.expressions.length === 0);
+    if (!body || emptyAlternative) {
+      return { start: 0, end: 0 };
+    }
+    if (!Array.isArray(body) && body.loc) {
+      // Body spans the pattern inside delimiters; apply the same -1 mapping as other nodes.
+      return {
+        start: body.loc.start.offset - 1,
+        end: body.loc.end.offset - 1,
+      };
+    }
+    return { start: 0, end: 0 };
+  }
+
   if (!node.loc) return undefined;
   // regexp-tree offsets include the leading `/`, so subtract 1
   return {

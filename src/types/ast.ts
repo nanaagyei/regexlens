@@ -114,5 +114,7 @@ export interface AlternationProps {}
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface AlternativeProps {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface PatternProps {}
+export interface PatternProps {
+  /** RegExp flags from the parsed pattern (e.g. `gi`). */
+  flags: string;
+}

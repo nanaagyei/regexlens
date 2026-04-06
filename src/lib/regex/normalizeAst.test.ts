@@ -304,7 +304,7 @@ describe("normalizeAst — backreferences", () => {
     const backref = kids[1];
     expect(backref.type).toBe("backreference");
     expect(backref.key).toBe("backreference:named:_id");
-    expect(backref.props).toMatchObject({ groupName: "_id" });
+    expect(backref.props).toMatchObject({ groupName: "_id", groupNumber: 1 });
   });
 });
 

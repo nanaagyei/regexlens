@@ -53,9 +53,8 @@ export function AppHeader({
   const handleSelectFixtureSuite = useCallback(
     (suite: FixtureSuite) => {
       onSelectFixtureSuite(suite);
-      onFocusEditor();
     },
-    [onSelectFixtureSuite, onFocusEditor]
+    [onSelectFixtureSuite]
   );
 
   return (
@@ -147,6 +146,7 @@ export function AppHeader({
               size="icon"
               onClick={actions.reset}
               className="text-muted-foreground hover:text-foreground"
+              aria-label="Reset all"
             >
               <RotateCcw className="h-4 w-4" />
             </Button>
@@ -178,7 +178,7 @@ function MobileNav({
   onSelectFixtureSuite,
   onFocusEditor,
 }: {
-  state: AppHeaderProps extends never ? never : ReturnType<typeof useWorkspace>["state"];
+  state: ReturnType<typeof useWorkspace>["state"];
   actions: ReturnType<typeof useWorkspace>["actions"];
   onSaveClick: () => void;
   onLibraryClick: () => void;
@@ -192,7 +192,12 @@ function MobileNav({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon" className="h-8 w-8">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            aria-label="More options"
+          >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>

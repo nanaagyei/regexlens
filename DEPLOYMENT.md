@@ -21,7 +21,7 @@ This document covers cloud database setup (Neon Postgres), branch strategy, CI/C
 
 ## GitHub Branch Protection (main)
 
-Configure in **Settings → Branches → Add branch protection rules** for `**main`** and (recommended) `**dev**`:
+Configure in **Settings → Branches → Add branch protection rules** for `main` and (recommended) `dev`:
 
 - **Require a pull request before merging** (at least for `main`)
 - **Require status checks to pass** before merge (from workflow **CI** / `ci.yml`): `lint`, `typecheck`, `test`, `build`, `e2e`, and optionally `security`

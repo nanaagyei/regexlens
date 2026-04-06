@@ -33,7 +33,7 @@ export function parseRegex(pattern: string, flags: string): ParseResult {
       ok: true,
       ast,
       normalizedPattern: "",
-      normalized: { key: "pattern", type: "pattern" as const, text: "", props: {}, children: [] },
+      normalized: { key: "pattern", type: "pattern" as const, text: "", props: { flags }, children: [] },
     };
   }
 
