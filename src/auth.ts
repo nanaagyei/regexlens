@@ -90,29 +90,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   
-  events: {
-    /**
-     * Create user event - runs when a new user is created
-     * Create default FREE entitlement for new users
-     */
-    async createUser({ user }) {
-      if (user.id) {
-        try {
-          // Create default entitlement for new user
-          // The trigger in 0002_bootstrap_entitlements.sql should handle this,
-          // but we add a fallback here for safety
-          await pool.query(
-            `INSERT INTO entitlements (user_id, plan, status)
-             VALUES ($1, 'FREE', 'inactive')
-             ON CONFLICT (user_id) DO NOTHING`,
-            [user.id]
-          );
-        } catch (error) {
-          console.error("Failed to create entitlement for user:", error);
-        }
-      }
-    },
-  },
+  events: {},
   
   pages: {
     signIn: "/",

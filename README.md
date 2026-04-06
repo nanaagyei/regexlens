@@ -2,68 +2,63 @@
   <img src="public/regexlens-logo.png" width="100" height="100" alt="RegexLens Logo" />
 </p>
 
+<h1 align="center">RegexLens</h1>
+
 <p align="center">
-  <strong>Understand, test, and visualize regex instantly</strong>
+  <strong>Understand, test, and visualize regular expressions — instantly.</strong>
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#demo">Demo</a> •
-  <a href="#getting-started">Getting Started</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#architecture">Architecture</a> •
-  <a href="#contributing">Contributing</a> •
-  <a href="DEPLOYMENT.md">Deployment</a>
+  <a href="https://regexlens.dev">Live App</a> &middot;
+  <a href="https://docs.regexlens.dev">Docs</a> &middot;
+  <a href="#getting-started">Getting Started</a> &middot;
+  <a href="CONTRIBUTING.md">Contributing</a> &middot;
+  <a href="https://buymeacoffee.com/nanaagyei">Support</a> &middot;
+  <a href="https://github.com/nanaagyei/regexlens">GitHub</a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js" alt="Next.js 15" />
-  <img src="https://img.shields.io/badge/TypeScript-5.7-blue?style=flat-square&logo=typescript" alt="TypeScript" />
+  <a href="https://github.com/nanaagyei/regexlens/actions"><img src="https://img.shields.io/github/actions/workflow/status/nanaagyei/regexlens/ci.yml?branch=main&style=flat-square&label=CI" alt="CI" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/nanaagyei/regexlens?style=flat-square" alt="License" /></a>
+  <a href="https://github.com/nanaagyei/regexlens/issues"><img src="https://img.shields.io/github/issues/nanaagyei/regexlens?style=flat-square" alt="Issues" /></a>
+  <a href="https://buymeacoffee.com/nanaagyei"><img src="https://img.shields.io/badge/Support-Buy%20Me%20a%20Coffee-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee" /></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js" alt="Next.js 16" />
+  <img src="https://img.shields.io/badge/TypeScript-5.7-blue?style=flat-square&logo=typescript" alt="TypeScript 5.7" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React 19" />
   <img src="https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=flat-square&logo=tailwind-css" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License" />
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs Welcome" />
-  <img src="https://img.shields.io/badge/Monaco-Editor-purple?style=flat-square" alt="Monaco Editor" />
-  <img src="https://img.shields.io/badge/regexp--tree-Parser-orange?style=flat-square" alt="regexp-tree" />
 </p>
 
 ---
 
-## Overview
+## What is RegexLens?
 
-**RegexLens** is a premium, UI-first developer tool for understanding, testing, and documenting regular expressions. Unlike traditional regex testers that only tell you *if* something matches, RegexLens shows you:
+RegexLens is a free, open-source developer tool for understanding regular expressions. Unlike traditional regex testers that only tell you *if* something matches, RegexLens shows you:
 
 - **What it matches** — Live highlighting with color-coded capture groups
 - **Why it matches** — Plain-English, step-by-step explanations
-- **How it's structured** — Interactive syntax tree visualization
+- **How it's structured** — Interactive AST tree visualization
 - **Where it might fail** — Performance warnings and correctness gotchas
 
-No AI fluff. No chat interfaces. Just clarity.
+RegexLens is **MIT licensed** and free to use. Optional sign-in unlocks cloud-backed features you enable in your deployment; there are no paid tiers in the upstream project.
 
 ---
 
 ## Features
 
-### 🔍 Live Regex Testing
+### Live Regex Testing
 
-Real-time match highlighting as you type. See exactly where your pattern matches, with each capture group displayed in a distinct color. Supports all JavaScript regex flags (`g`, `i`, `m`, `s`, `u`, `y`).
+Real-time match highlighting as you type. Each capture group gets a distinct color. Supports all JavaScript regex flags (`g`, `i`, `m`, `s`, `u`, `y`).
 
-- **Instant feedback** — Results update as you type (150ms debounce)
-- **Group highlighting** — Each capture group gets its own color
-- **Named groups** — Full support for `(?<name>...)` syntax
-- **Match list** — See all matches with positions and group details
+### Plain-English Explanations
 
-### 📖 Plain-English Explanations
-
-Every regex is broken down into human-readable steps. No more deciphering cryptic patterns.
+Every regex is broken down into human-readable steps — deterministic, not AI-generated.
 
 ```
 Pattern: ^([A-Z]+)\d{2,4}$
 
-Explanation:
 1. Start of input
 2. Capture group #1
    └─ One or more uppercase letters (A-Z)
@@ -71,86 +66,27 @@ Explanation:
 4. End of input
 ```
 
-- **Deterministic** — Not AI-generated, just intelligent parsing
-- **Hover sync** — Hover a step to highlight the corresponding regex segment
-- **Click to lock** — Pin an explanation step to keep it highlighted
+### Structure View (AST)
 
-### 🌳 Structure View (AST)
+Visualize the internal syntax tree. Collapsible nodes, type indicators, and click-to-highlight source mapping.
 
-Visualize the internal syntax tree of your regex. Understand exactly how the regex engine interprets your pattern.
+### Smart Warnings
 
-- **Collapsible nodes** — Expand/collapse complex patterns
-- **Type indicators** — See node types (Group, Quantifier, CharClass, etc.)
-- **Range mapping** — Click nodes to highlight their source
+Detects common pitfalls — nested quantifiers, ambiguous `.*`, unescaped dots, empty alternatives, and more — with explanations and fixes.
 
-### ⚠️ Smart Warnings
+### Regex Copilot
 
-RegexLens detects common regex pitfalls before they bite you in production.
+AI-powered assistant for regex help, powered by streaming chat. Ask questions, get suggestions, iterate on patterns.
 
-| Warning | Severity | Example |
-|---------|----------|---------|
-| Nested quantifiers | 🔴 Danger | `(a+)+` |
-| Ambiguous `.*` | 🟡 Warn | `.*foo` |
-| Alternation in repetition | 🟡 Warn | `(foo\|bar)*` |
-| Unescaped dot | 🔵 Info | `example.com` |
-| Pipe in character class | 🔵 Info | `[a\|b]` |
-| Empty alternatives | 🟡 Warn | `(foo\|)` |
-| Multiline anchor behavior | 🔵 Info | `^` with `m` flag |
-| dotAll behavior | 🔵 Info | `.` with `s` flag |
+### Additional Features
 
-Each warning includes:
-- Clear explanation of the issue
-- Why it matters
-- How to fix it
-
-### 🔗 Shareable Links
-
-Share your regex with teammates. The entire state (pattern, flags, test text) is encoded in the URL.
-
-```
-https://regexlens.app/?p=XihbQS1aXSsp&f=gi&t=SGVsbG8gV29ybGQ=
-```
-
-No login required. No data stored.
-
-### 📚 Built-in Templates
-
-15 real-world regex patterns to learn from:
-
-| Template | Description |
-|----------|-------------|
-| A/B + digits | Match sequences like `AB12`, `AAA99` |
-| Email (basic) | Simple email validation |
-| US Phone | Flexible phone number formats |
-| ISO Date | YYYY-MM-DD validation |
-| Quoted strings | Extract strings with escape handling |
-| URL (HTTP/S) | Match web URLs |
-| TODO comments | Find `// TODO:` in code |
-| Multiple spaces | Detect extra whitespace |
-| Markdown headings | Parse `#` headings |
-| Word boundaries | Capture whole words |
-| Password policy | Complexity requirements with lookaheads |
-| Named groups | Phone number with named captures |
-| Key=value pairs | Config file parsing |
-| HTML tags | Simple tag matching (educational) |
-| Danger demo | Catastrophic backtracking example |
-
----
-
-## Demo
-
-Try it live: **[regexlens.app](https://regexlens.app)** *(coming soon)*
-
-Or run locally:
-
-```bash
-git clone https://github.com/your-username/regexlens.git
-cd regexlens
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000)
+- **Shareable links** — Pattern, flags, and test text encoded in the URL
+- **Saved library** — Save, organize, and version-track your patterns
+- **Export** — Markdown, PR comments, Notion-friendly formats
+- **Diff view** — Compare regex versions side-by-side
+- **Advanced analysis** — Deeper backtracking and complexity detection
+- **15 built-in templates** — Real-world patterns to learn from
+- **Fixture suites** — Test patterns against expected match sets
 
 ---
 
@@ -159,43 +95,50 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Prerequisites
 
 - **Node.js 18+** (recommended: 20+)
-- **npm** or **pnpm** or **yarn**
-- (Optional) PostgreSQL for Pro features
+- **npm**, **pnpm**, or **yarn**
+- **Docker** (for local PostgreSQL database)
 
-### Installation
+### Quick Start
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/regexlens.git
+git clone https://github.com/nanaagyei/regexlens.git
 cd regexlens
 
 # Install dependencies
 npm install
 
-# Start development server
+# Copy environment template
+cp .env.example .env.local
+
+# Start the database
+docker compose up -d
+
+# Generate an AUTH_SECRET and add it to .env.local
+openssl rand -base64 32
+
+# Start the development server
 npm run dev
 ```
 
+Open [http://localhost:3000](http://localhost:3000).
+
+> **Note:** Core regex features (testing, explanations, AST, warnings, sharing) work without any environment variables. The database and auth setup are needed for saved library, export, AI chat, and analysis features.
+
 ### Environment Variables
 
-Create a `.env.local` file for optional features:
+Copy `.env.example` to `.env.local` and configure:
 
-```env
-# Database (only for Pro features)
-DATABASE_URL=postgresql://user:password@localhost:5432/regexlens
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes (for DB features) | PostgreSQL connection string |
+| `AUTH_SECRET` | Yes (for auth) | Random secret — `openssl rand -base64 32` |
+| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | Yes (for auth) | [GitHub OAuth app](https://github.com/settings/developers) |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Optional | Google OAuth credentials |
+| `AUTH_RESEND_KEY` | Optional | [Resend](https://resend.com) API key for magic links |
+| `KV_REST_API_URL` / `KV_REST_API_TOKEN` | Optional | Vercel KV for rate limiting |
 
-# Auth.js (only for Pro features)
-AUTH_SECRET=generate-with-openssl-rand-base64-32
-AUTH_GITHUB_ID=your-github-oauth-client-id
-AUTH_GITHUB_SECRET=your-github-oauth-client-secret
-
-# Stripe (future Pro billing)
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRO_PRICE_ID=price_...
-```
-
-> **Note:** The core regex features work without any environment variables. Auth and database are only needed for future Pro features.
+See [`.env.example`](.env.example) for the full list with inline documentation.
 
 ### Scripts
 
@@ -204,40 +147,15 @@ STRIPE_PRO_PRICE_ID=price_...
 | `npm run dev` | Start development server |
 | `npm run build` | Build for production |
 | `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run typecheck` | Run TypeScript check |
-| `npm run ci` | Run lint, typecheck, and build |
-
----
-
-## Usage
-
-### Basic Workflow
-
-1. **Enter a regex pattern** in the left panel
-2. **Toggle flags** as needed (g, i, m, s, u, y)
-3. **Paste test text** in the center panel
-4. **View results** in the right panel:
-   - **Explanation tab** — Step-by-step breakdown
-   - **Structure tab** — AST tree view
-   - **Warnings tab** — Potential issues
-
-### Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `/` | Focus regex editor |
-| `Cmd/Ctrl + Enter` | Force re-parse |
-| `Escape` | Clear selection |
-| `Cmd/Ctrl + Shift + C` | Copy share link |
-
-### Token Toolbar
-
-Quick-insert common regex tokens:
-
-`\d` `\w` `\s` `.` `+` `*` `?` `{}` `()` `(?:)` `[]` `^` `$` `|` `\b`
-
-Click any token to append it to your pattern.
+| `npm run lint` | Run ESLint (zero warnings enforced) |
+| `npm run typecheck` | Run TypeScript type checking |
+| `npm run test` | Run unit tests (Vitest) |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:e2e` | Run end-to-end tests (Playwright) |
+| `npm run ci` | Run lint + typecheck + test + build |
+| `npm run db:start` | Start PostgreSQL via Docker Compose |
+| `npm run db:stop` | Stop PostgreSQL |
+| `npm run db:reset` | Reset database (destroys data) |
 
 ---
 
@@ -247,46 +165,48 @@ Click any token to append it to your pattern.
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript 5.7 |
-| UI Library | React 19 |
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript 5.7 (strict) |
+| UI | React 19 |
 | Styling | Tailwind CSS 3.4 |
-| Components | Shadcn/ui + Radix UI |
+| Components | shadcn/ui + Radix UI |
 | Editor | Monaco Editor |
 | Regex Parsing | regexp-tree |
 | URL State | nuqs |
 | Auth | Auth.js (NextAuth v5) |
 | Database | PostgreSQL |
-
+| Testing | Vitest + Playwright |
 
 ### Data Flow
 
 ```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  User Input     │────▶│  useRegexState   │────▶│  URL State      │
-│  (pattern,text) │     │  (central state) │     │  (nuqs sync)    │
-└─────────────────┘     └────────┬─────────┘     └─────────────────┘
-                                 │
-                    ┌────────────┼────────────┐
-                    ▼            ▼            ▼
-            ┌───────────┐ ┌───────────┐ ┌───────────┐
-            │ Parse AST │ │  Matches  │ │ Warnings  │
-            │(regexp-   │ │(JS RegExp)│ │(heuristics│
-            │ tree)     │ │           │ │           │
-            └─────┬─────┘ └─────┬─────┘ └─────┬─────┘
-                  │             │             │
-                  ▼             ▼             ▼
-            ┌───────────┐ ┌───────────┐ ┌───────────┐
-            │Explanation│ │ Highlight │ │ Warning   │
-            │  Steps    │ │  Spans    │ │  Cards    │
-            └───────────┘ └───────────┘ └───────────┘
+User Input (pattern, text, flags)
+       │
+       ▼
+  useRegexState (central state + URL sync via nuqs)
+       │
+       ├──▶ Parse AST (regexp-tree)  ──▶ Explanation Steps
+       ├──▶ Compute Matches (RegExp) ──▶ Highlight Spans
+       └──▶ Run Heuristics           ──▶ Warning Cards
 ```
+
+### API Routes
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/me` | GET | No | Current user info |
+| `/api/auth/*` | * | No | Auth.js handlers |
+| `/api/snippets` | GET, POST | Yes | List/create saved patterns |
+| `/api/snippets/:id` | GET, PATCH, DELETE | Yes | Manage a pattern |
+| `/api/snippets/:id/versions` | GET, POST | Yes | Version history |
+| `/api/snippets/:id/diff` | POST | Yes | Compare versions |
+| `/api/export` | POST | Yes | Export explanation |
+| `/api/analyze` | POST | Yes | Deep regex analysis |
+| `/api/ai/chat` | POST | Yes | AI Copilot chat |
 
 ---
 
-## Safety & Limits
-
-RegexLens includes safeguards to prevent UI lockups:
+## Safety Limits
 
 | Limit | Value | Purpose |
 |-------|-------|---------|
@@ -295,97 +215,50 @@ RegexLens includes safeguards to prevent UI lockups:
 | Max matches shown | 1,000 | Keep UI responsive |
 | Parse debounce | 150ms | Reduce CPU usage |
 
-Additionally, catastrophic backtracking patterns are detected and warned before they can cause problems.
-
----
-
-## Pro Features (Coming Soon)
-
-RegexLens Pro will add:
-
-| Feature | Description |
-|---------|-------------|
-| **Saved Library** | Save and organize your regex patterns |
-| **Export** | Markdown, PR comments, Notion-friendly |
-| **Diff View** | Compare regex changes side-by-side |
-| **Advanced Analysis** | Deeper backtracking detection |
-
-Pricing: **$8/month** or **$49/year**
-
-The core features will always remain free.
-
----
-
-## API Routes
-
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/api/me` | GET | No | Get current user & entitlement |
-| `/api/auth/*` | * | No | NextAuth handlers |
-| `/api/snippets` | GET, POST | Pro | List/create saved patterns |
-| `/api/snippets/:id` | GET, PATCH, DELETE | Pro | Manage a pattern |
-| `/api/export` | POST | Pro | Export explanation |
-| `/api/analyze` | POST | Pro | Deep analysis |
-| `/api/billing/checkout` | POST | Auth | Create Stripe session |
-| `/api/billing/webhook` | POST | No | Stripe webhooks |
+Catastrophic backtracking patterns are detected and warned before they cause problems.
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please read our contributing guidelines first.
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
 
-### Development Setup
+- Setting up your development environment
+- Code style and conventions
+- Submitting pull requests
+- Reporting bugs
 
-```bash
-# Fork and clone
-git clone https://github.com/your-username/regexlens.git
-cd regexlens
+## Community
 
-# Install dependencies
-npm install
+- [GitHub Issues](https://github.com/nanaagyei/regexlens/issues) — Bug reports and feature requests
+- [GitHub Discussions](https://github.com/nanaagyei/regexlens/discussions) — Questions and ideas
 
-# Start dev server
-npm run dev
+## Support the Project
 
-# Run linter
-npm run lint
+RegexLens is free and open source. If you find it useful, you can support the project by:
 
-# Build for production
-npm run build
-```
+- [Starring the repository on GitHub](https://github.com/nanaagyei/regexlens) — it helps others discover the tool
+- [Opening issues or discussions](https://github.com/nanaagyei/regexlens/issues) — feedback and ideas are welcome
 
-### Code Style
+## Security
 
-- TypeScript strict mode
-- ESLint + Prettier
-- Tailwind CSS for styling
-- Shadcn/ui component patterns
-
----
-
-## Acknowledgments
-
-- [regexp-tree](https://github.com/nicolo-ribaudo/regexp-tree) — Regex parsing and AST
-- [Monaco Editor](https://microsoft.github.io/monaco-editor/) — Code editor
-- [Shadcn/ui](https://ui.shadcn.com/) — UI components
-- [nuqs](https://github.com/47ng/nuqs) — URL state management
-- [Lucide](https://lucide.dev/) — Icons
-
----
+Found a vulnerability? Please see [SECURITY.md](SECURITY.md) for responsible disclosure guidelines. Do **not** open a public issue for security reports.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License — see [LICENSE](LICENSE) for details.
+
+## Acknowledgments
+
+- [regexp-tree](https://github.com/DmitrySoshnikov/regexp-tree) — Regex parsing and AST
+- [Monaco Editor](https://microsoft.github.io/monaco-editor/) — Code editor
+- [shadcn/ui](https://ui.shadcn.com/) — UI components
+- [nuqs](https://nuqs.47ng.com/) — URL state management
+- [Lucide](https://lucide.dev/) — Icons
+- [Auth.js](https://authjs.dev/) — Authentication
 
 ---
 
 <p align="center">
-  <strong>Built for developers who want to understand, not guess.</strong>
-</p>
-
-<p align="center">
-  <a href="https://github.com/your-username/regexlens">GitHub</a> •
-  <a href="https://regexlens.app">Live Demo</a> •
-  <a href="https://twitter.com/regexlens">Twitter</a>
+  Built for developers who want to <strong>understand</strong>, not guess.
 </p>

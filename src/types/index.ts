@@ -3,6 +3,7 @@
  */
 
 export * from "./regex";
+export * from "./ast";
 export * from "./explain";
 export * from "./warnings";
 export * from "./templates";

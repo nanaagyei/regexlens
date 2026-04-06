@@ -29,7 +29,7 @@ export default function ChangelogPage() {
       <ul>
         <li>
           <strong>Documentation</strong> — Refreshed the <code>docs/</code> Nextra site to match the
-          current product: Railroad diagram tab, Analysis tab (Pro), Regex Copilot (Pro), fixtures
+          current product: Railroad diagram tab, Analysis tab, Regex Copilot, fixtures
           &amp; templates, sharing/URL format, keyboard shortcuts, and API shapes.
         </li>
         <li>
@@ -49,12 +49,12 @@ export default function ChangelogPage() {
       <h2>Earlier releases</h2>
       <p>
         RegexLens ships as a single web app with a marketing landing page (<code>/</code>), the
-        regex workbench (<code>/app</code>), pricing (<code>/pricing</code>), and optional Nextra
+        regex workbench (<code>/app</code>), and optional Nextra
         documentation (see the <code>docs/</code> package). Core capabilities include live
         matching, plain-English explanations (deterministic), AST structure view, railroad diagrams,
-        smart warnings, shareable URLs, templates &amp; fixture suites, Pro-only saved library with
-        version history and diff, exports, advanced analysis API, and Pro Regex Copilot (streaming
-        AI assistance).
+        smart warnings, shareable URLs, templates &amp; fixture suites, saved library with
+        version history and diff, exports, advanced analysis API, and Regex Copilot (streaming
+        AI assistance). All features are free for signed-in users.
       </p>
     </LegalPageLayout>
   );

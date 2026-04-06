@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useAIChat } from "@/hooks/useAIChat";
-import { useEntitlement } from "@/hooks/useEntitlement";
+import { useUser } from "@/hooks/useUser";
 import { AIAction, AIContext } from "@/types";
 import { SmartPromptBar } from "./SmartPromptBar";
 import { StreamingMessage } from "./StreamingMessage";
@@ -13,12 +13,11 @@ import {
   Sparkles,
   Send,
   Trash2,
-  Lock,
   StopCircle,
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { SignInCallout } from "@/components/auth/SignInCallout";
 
 interface RegexCopilotProps {
   pattern: string;
@@ -47,7 +46,7 @@ export function RegexCopilot({
   explanationSteps,
   onApplyPattern,
 }: RegexCopilotProps) {
-  const { isPro, isLoading: isEntitlementLoading, user } = useEntitlement();
+  const { user, isLoading: isUserLoading } = useUser();
   const {
     messages,
     isStreaming,
@@ -108,23 +107,14 @@ export function RegexCopilot({
     [sendMessage, buildContext]
   );
 
-  // Pro gate
-  if (!isEntitlementLoading && !isPro) {
+  // Auth gate
+  if (!isUserLoading && !user) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-        <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
-          <Lock className="h-6 w-6 text-muted-foreground" />
-        </div>
-        <h3 className="font-semibold mb-2">Regex Copilot</h3>
-        <p className="text-sm text-muted-foreground max-w-[260px] mb-4">
-          Get AI-powered pattern analysis, smart suggestions, edge case
-          detection, and pattern generation.
-        </p>
-        <Button asChild size="sm">
-          <Link href="/pricing">
-            {user ? "Upgrade to Pro" : "Sign in to upgrade"}
-          </Link>
-        </Button>
+      <div className="flex flex-col items-center justify-center h-full p-8">
+        <SignInCallout
+          title="Regex Copilot"
+          description="Sign in to get AI-powered pattern analysis, smart suggestions, edge case detection, and pattern generation."
+        />
       </div>
     );
   }

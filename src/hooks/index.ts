@@ -11,4 +11,4 @@ export { useWarnings } from "./useWarnings";
 export { useUrlState, getShareUrl } from "./useUrlState";
 export { useHoverSync, HoverSyncProvider } from "./useHoverSync";
 export { useKeyboardShortcuts } from "./useKeyboardShortcuts";
-export { useEntitlement } from "./useEntitlement";
+export { useUser } from "./useUser";

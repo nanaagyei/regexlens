@@ -16,8 +16,10 @@ Get up and running in under 5 minutes:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/regexlens.git
+git clone https://github.com/nanaagyei/regexlens.git
 cd regexlens
+
+# If you're contributing from a fork, clone your fork URL instead.
 
 # 2. Install dependencies
 npm install
@@ -45,7 +47,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 ## Database Setup
 
-RegexLens uses PostgreSQL for storing user data, subscriptions, and saved regex patterns.
+RegexLens uses PostgreSQL for storing user data and saved regex patterns.
 
 ### Starting the Database
 
@@ -145,40 +147,6 @@ Email authentication uses [Resend](https://resend.com) for sending magic link em
 
 ---
 
-## Stripe Setup (Optional)
-
-Stripe is used for Pro subscription billing. This is optional for local development.
-
-### Getting Test API Keys
-
-1. Create a [Stripe account](https://stripe.com) (or use an existing one)
-2. Make sure you're in **Test mode** (toggle in the dashboard)
-3. Go to **Developers** > **API keys**
-4. Copy the **Secret key** to `STRIPE_SECRET_KEY` in `.env.local`
-
-### Creating Products and Prices
-
-1. Go to **Products** in the Stripe dashboard
-2. Create a new product called "RegexLens Pro"
-3. Add two prices:
-   - **Monthly:** $8/month (recurring)
-   - **Yearly:** $49/year (recurring)
-4. Copy the price IDs to `.env.local`:
-   - `STRIPE_PRO_MONTHLY_PRICE_ID=price_xxx`
-   - `STRIPE_PRO_YEARLY_PRICE_ID=price_xxx`
-
-### Setting Up Webhooks (for testing subscriptions)
-
-1. Install the [Stripe CLI](https://stripe.com/docs/stripe-cli)
-2. Login: `stripe login`
-3. Forward webhooks to your local server:
-   ```bash
-   stripe listen --forward-to localhost:3000/api/billing/webhook
-   ```
-4. Copy the webhook signing secret to `STRIPE_WEBHOOK_SECRET`
-
----
-
 ## Rate Limiting (Vercel KV)
 
 Rate limiting uses Vercel KV (Redis) to prevent abuse.
@@ -227,14 +195,6 @@ AUTH_RESEND_KEY=
 EMAIL_FROM=noreply@localhost
 
 # ===========================================
-# Stripe Billing (optional)
-# ===========================================
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-STRIPE_PRO_MONTHLY_PRICE_ID=
-STRIPE_PRO_YEARLY_PRICE_ID=
-
-# ===========================================
 # Rate Limiting - Vercel KV (optional)
 # ===========================================
 KV_REST_API_URL=
@@ -253,10 +213,6 @@ KV_REST_API_TOKEN=
 | `AUTH_GOOGLE_SECRET` | No | Google OAuth client secret |
 | `AUTH_RESEND_KEY` | No | Resend API key for email auth |
 | `EMAIL_FROM` | No | Sender email address |
-| `STRIPE_SECRET_KEY` | No | Stripe secret key (test mode) |
-| `STRIPE_WEBHOOK_SECRET` | No | Stripe webhook signing secret |
-| `STRIPE_PRO_MONTHLY_PRICE_ID` | No | Stripe price ID for monthly Pro |
-| `STRIPE_PRO_YEARLY_PRICE_ID` | No | Stripe price ID for yearly Pro |
 | `KV_REST_API_URL` | No | Vercel KV REST API URL |
 | `KV_REST_API_TOKEN` | No | Vercel KV REST API token |
 
@@ -298,12 +254,6 @@ Another PostgreSQL instance may be running. Either stop it or change the port in
 1. Verify your OAuth callback URLs match exactly
 2. Check that `AUTH_SECRET` is set
 3. Ensure the database is running and accessible
-
-### Stripe webhooks not received
-
-1. Make sure `stripe listen` is running
-2. Check the webhook signing secret matches
-3. Verify the endpoint URL is correct
 
 ---
 

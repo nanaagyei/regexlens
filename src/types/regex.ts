@@ -4,6 +4,8 @@
 
 export type RegexFlavor = "javascript";
 
+export type ExplanationMode = "simple" | "technical";
+
 export interface Range {
   start: number;
   end: number;
@@ -14,10 +16,16 @@ export interface RegexState {
   flags: string;
   text: string;
   flavor: RegexFlavor;
+  comparisonPattern: string;
+  comparisonFlags: string;
+  explanationMode: ExplanationMode;
+  selectedTemplate: string | null;
 }
 
+import type { ComparableNode } from "./ast";
+
 export type ParseResult =
-  | { ok: true; ast: AstNode; normalizedPattern: string }
+  | { ok: true; ast: AstNode; normalizedPattern: string; normalized: ComparableNode }
   | { ok: false; errorMessage: string; errorRange?: Range };
 
 export interface MatchSpan {
@@ -97,8 +105,8 @@ export interface AstNode {
   symbol?: string;
   escaped?: boolean;
   codePoint?: number;
-  // Reference
-  reference?: number;
+  // Reference (numeric index and/or \k<name> target)
+  reference?: number | string;
   referenceRaw?: string;
   // Flags (on RegExp node)
   flags?: string;

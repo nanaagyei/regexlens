@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requirePro, isGuardOk } from "@/lib/entitlements/proGuard";
+import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
 import { combinedRateLimit } from "@/lib/security/rateLimit";
 import {
   analyzeRequestSchema,
@@ -35,7 +35,7 @@ interface AnalysisResult {
 }
 
 /**
- * POST /api/analyze - Run advanced regex analysis (Pro only)
+ * POST /api/analyze - Run advanced regex analysis
  * 
  * Returns:
  * - riskScore: 0-100 aggregate risk score
@@ -46,13 +46,13 @@ interface AnalysisResult {
 export async function POST(request: NextRequest) {
   try {
     // Check rate limit
-    const rateLimitResponse = await combinedRateLimit(request, "api_pro");
+    const rateLimitResponse = await combinedRateLimit(request, "api_free");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
-    // Require Pro subscription
-    const guard = await requirePro();
+    // Require authentication
+    const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
     }

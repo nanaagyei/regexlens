@@ -1,5 +1,6 @@
 import regexpTree from "regexp-tree";
 import { ParseResult, AstNode, REGEX_CONFIG } from "@/types";
+import { normalizeAst } from "./normalizeAst";
 
 /**
  * Detect PCRE recursion constructs (?R) or (?n) for n=0..9
@@ -23,14 +24,16 @@ function detectPcreRecursion(
 export function parseRegex(pattern: string, flags: string): ParseResult {
   // Handle empty pattern
   if (!pattern) {
+    const ast = {
+      type: "RegExp",
+      body: { type: "Alternative", expressions: [] } as AstNode,
+      flags,
+    } as AstNode;
     return {
       ok: true,
-      ast: {
-        type: "RegExp",
-        body: { type: "Alternative", expressions: [] } as AstNode,
-        flags,
-      } as AstNode,
+      ast,
       normalizedPattern: "",
+      normalized: { key: "pattern", type: "pattern" as const, text: "", props: { flags }, children: [] },
     };
   }
 
@@ -59,10 +62,13 @@ export function parseRegex(pattern: string, flags: string): ParseResult {
       captureLocations: true,
     }) as unknown as AstNode;
 
+    const normalized = normalizeAst(ast);
+
     return {
       ok: true,
       ast,
       normalizedPattern: pattern,
+      normalized,
     };
   } catch (error) {
     return {

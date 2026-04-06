@@ -1,0 +1,167 @@
+# Saved Library
+
+import { Callout } from 'nextra/components'
+
+<Callout type="info">
+**Note:** The Saved Library requires an account on a deployment that enables these features.
+</Callout>
+
+Save, organize, and quickly access your frequently used regex patterns.
+
+## Overview
+
+The Saved Library lets you:
+- **Save patterns** with names and descriptions
+- **Organize with tags** for easy filtering
+- **Search** across all your saved patterns
+- **Version history** to track changes over time
+- **Quick load** patterns into the editor
+
+## Saving a Pattern
+
+1. Create or load a regex pattern
+2. Click the **Save** button in the header
+3. Enter a name and optional description
+4. Add tags for organization
+5. Click **Save Pattern**
+
+### Pattern Metadata
+
+Each saved pattern stores:
+- **Name** — A descriptive title
+- **Pattern** — The regex pattern itself
+- **Flags** — Which flags are enabled
+- **Description** — Optional notes about usage
+- **Tags** — For filtering and organization
+- **Created/Updated** — Timestamps
+
+## Organizing Patterns
+
+### Tags
+
+Use tags to categorize your patterns:
+- `validation` — Input validation patterns
+- `parsing` — Data extraction patterns
+- `security` — Security-related patterns
+- `work` — Work project patterns
+- `personal` — Personal project patterns
+
+### Filtering
+
+Filter your library by:
+- **Tag** — Show only patterns with a specific tag
+- **Search** — Search by name or pattern content
+- **Date** — Sort by recently updated
+
+## Version History
+
+Every time you update a saved pattern, RegexLens keeps the previous version. This lets you:
+
+- **View history** — See all previous versions
+- **Compare versions** — Diff view shows what changed
+- **Restore** — Roll back to any previous version
+- **Add notes** — Document why you made changes
+
+### Viewing History
+
+1. Open a saved pattern
+2. Click the **History** button
+3. Browse previous versions
+4. Click any version to view or restore
+
+## API Access
+
+Signed-in users can access their saved patterns via the API while authenticated with **NextAuth.js**. The server validates the **HTTP-only session cookie** from your browser session. **`Authorization: Bearer` tokens are not supported** — use same-origin `fetch` from the web app (cookies are included automatically), or pass the session cookie when testing with `curl`.
+
+### List Patterns
+
+```bash
+curl -sS "https://regexlens.dev/api/snippets" \
+  -H "Cookie: next-auth.session-token=<session-token-from-signed-in-browser>"
+```
+
+**Query Parameters:**
+- `query` — Search by name
+- `tag` — Filter by tag
+- `limit` — Number of results (default 20, max 100)
+- `cursor` — Pagination cursor
+
+**Response:**
+```json
+{
+ "items": [
+  {
+   "id": "abc123",
+   "name": "Email Validation",
+   "pattern": "^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$",
+   "flags": "gi",
+   "description": "Basic email format validation",
+   "tags": ["validation", "email"],
+   "created_at": "2023-10-15T10:30:00Z",
+   "updated_at": "2023-10-15T10:30:00Z"
+  }
+ ],
+ "next_cursor": "def456"
+}
+```
+
+### Create Pattern
+
+```bash
+curl -sS -X POST "https://regexlens.dev/api/snippets" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: next-auth.session-token=<session-token-from-signed-in-browser>" \
+  -d '{"name":"Phone Number","pattern":"\\(\\?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}","flags":"g","description":"US phone number format","tags":["validation","phone"]}'
+```
+
+### Update Pattern
+
+```bash
+curl -sS -X PATCH "https://regexlens.dev/api/snippets/<id>" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: next-auth.session-token=<session-token-from-signed-in-browser>" \
+  -d '{"pattern":"updated-pattern","notes":"Fixed edge case with area codes"}'
+```
+
+### Delete Pattern
+
+```bash
+curl -sS -X DELETE "https://regexlens.dev/api/snippets/<id>" \
+  -H "Cookie: next-auth.session-token=<session-token-from-signed-in-browser>"
+```
+
+## Best Practices
+
+### Naming Conventions
+
+Use clear, descriptive names:
+- ✅ `Email Validation (Basic)`
+- ✅ `US Phone Number - Flexible`
+- ❌ `regex1`
+- ❌ `test pattern`
+
+### Descriptions
+
+Include in your descriptions:
+- What the pattern matches
+- What it doesn't match (edge cases)
+- Example inputs
+- Any caveats or limitations
+
+### Tags
+
+Create a consistent tagging system:
+- Use lowercase
+- Be specific but not too granular
+- Consider using project names as tags
+
+## Limits
+
+| Resource | Limit |
+|----------|-------|
+| Saved patterns | 500 per account |
+| Pattern length | 2,000 characters |
+| Description length | 1,000 characters |
+| Tags per pattern | 10 |
+| Tag length | 50 characters |
+| Versions per pattern | 100 |

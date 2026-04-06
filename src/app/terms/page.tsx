@@ -40,9 +40,8 @@ export default function TermsOfServicePage() {
       <h2>The Service</h2>
       <p>
         RegexLens provides tools to test, visualize, explain, and work with regular expressions.
-        We offer free functionality and optional paid plans (&quot;Pro&quot;) with additional
-        features such as saved libraries, exports, and AI-assisted assistance, as described on
-        our pricing page.
+        All features — including saved libraries, exports, and AI-assisted tools — are
+        available free of charge to signed-in users.
       </p>
       <p>
         We may modify, suspend, or discontinue features with reasonable notice where practicable.
@@ -87,18 +86,6 @@ export default function TermsOfServicePage() {
         You are responsible for what you share.
       </p>
 
-      <h2>Subscriptions, fees, and taxes</h2>
-      <p>
-        Paid plans are billed through Stripe. Fees are as shown at checkout, plus applicable
-        taxes. Subscriptions renew until cancelled. You can manage billing in the Stripe
-        Customer Portal where we make it available.
-      </p>
-      <p>
-        Unless required by law or stated otherwise at purchase, payments are non-refundable. If
-        we materially reduce features tied to your paid tier, we will provide a remedy
-        consistent with applicable consumer law.
-      </p>
-
       <h2>Intellectual property</h2>
       <p>
         The Service, including software, branding, and documentation, is owned by RegexLens or
@@ -109,8 +96,8 @@ export default function TermsOfServicePage() {
       <h2>Third-party services</h2>
       <p>
         The Service integrates with third parties (for example authentication providers,
-        Stripe, hosting, analytics, email delivery, and AI providers for Pro features). Your use
-        of those services may be subject to their terms and privacy policies.
+        hosting, analytics, email delivery, and AI providers). Your use of those services may
+        be subject to their terms and privacy policies.
       </p>
 
       <h2>Disclaimers</h2>

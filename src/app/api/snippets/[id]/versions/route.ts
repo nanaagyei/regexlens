@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requirePro, isGuardOk } from "@/lib/entitlements/proGuard";
+import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
 import { combinedRateLimit } from "@/lib/security/rateLimit";
 import { query, queryOne } from "@/lib/db/pool";
 import {
@@ -44,18 +44,18 @@ async function verifySnippetOwnership(
 }
 
 /**
- * POST /api/snippets/:id/versions - Create a version snapshot (Pro only)
+ * POST /api/snippets/:id/versions - Create a version snapshot (requires auth)
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     // Check rate limit
-    const rateLimitResponse = await combinedRateLimit(request, "api_pro");
+    const rateLimitResponse = await combinedRateLimit(request, "api_free");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
-    // Require Pro subscription
-    const guard = await requirePro();
+    // Require authentication
+    const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
     }
@@ -143,18 +143,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 }
 
 /**
- * GET /api/snippets/:id/versions - List versions for a snippet (Pro only)
+ * GET /api/snippets/:id/versions - List versions for a snippet (requires auth)
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     // Check rate limit
-    const rateLimitResponse = await combinedRateLimit(request, "api_pro");
+    const rateLimitResponse = await combinedRateLimit(request, "api_free");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
-    // Require Pro subscription
-    const guard = await requirePro();
+    // Require authentication
+    const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
     }

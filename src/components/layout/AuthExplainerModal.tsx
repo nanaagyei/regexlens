@@ -122,11 +122,17 @@ export function AuthExplainerModal({
           setIsLoading(false);
           return;
         }
-        await signIn("resend", {
+        const result = await signIn("resend", {
           email,
           callbackUrl: "/?auth=success",
+          redirect: false,
         });
-        setEmailSent(true);
+        if (result?.ok) {
+          setEmailSent(true);
+        } else if (result?.error) {
+          console.error("Sign in error:", result.error);
+        }
+        setIsLoading(false);
       } else {
         // For OAuth providers, redirect immediately
         await signIn(provider, { callbackUrl: "/?auth=success" });
@@ -225,18 +231,17 @@ export function AuthExplainerModal({
             </div>
           )}
 
-          {/* Pro benefits reminder */}
+          {/* Account benefits */}
           {!emailSent && (
-            <div className="p-3 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
-              <div className="flex items-center gap-2 text-amber-500 mb-1.5">
-                <Sparkles className="h-4 w-4" />
+            <div className="p-3 rounded-lg bg-muted/50 border border-border/60">
+              <div className="flex items-center gap-2 text-foreground mb-1.5">
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
                 <span className="text-sm font-medium">
-                  Unlock Pro after signing in
+                  Why sign in?
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Save regex patterns, export explanations, advanced analysis, and
-                more.
+                Signing in unlocks saving patterns, exports, deeper analysis, and Copilot when your environment provides the required API keys. RegexLens remains free and open source — no tiers or paywalls.
               </p>
             </div>
           )}

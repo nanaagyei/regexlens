@@ -12,10 +12,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useEntitlement } from "@/hooks/useEntitlement";
+import { useUser } from "@/hooks/useUser";
+import { SignInCallout } from "@/components/auth/SignInCallout";
 import { Snippet, CreateSnippetInput, UpdateSnippetInput } from "./types";
-import { Lock, Loader2, X, Plus, GitBranch } from "lucide-react";
-import Link from "next/link";
+import { Loader2, X, Plus, GitBranch } from "lucide-react";
 
 interface SaveSnippetModalProps {
   open: boolean;
@@ -34,7 +34,7 @@ export function SaveSnippetModal({
   snippet,
   onSaved,
 }: SaveSnippetModalProps) {
-  const { isPro, isLoading: isEntitlementLoading, user } = useEntitlement();
+  const { user, isLoading: isUserLoading } = useUser();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -80,7 +80,7 @@ export function SaveSnippetModal({
   );
 
   const handleSave = useCallback(async () => {
-    if (!isPro || !name.trim()) return;
+    if (!user || !name.trim()) return;
 
     setIsSaving(true);
 
@@ -125,10 +125,10 @@ export function SaveSnippetModal({
     } finally {
       setIsSaving(false);
     }
-  }, [isPro, name, description, tags, pattern, flags, isEditing, snippet, onSaved, onOpenChange]);
+  }, [user, name, description, tags, pattern, flags, isEditing, snippet, onSaved, onOpenChange]);
 
   const handleSaveAsVersion = useCallback(async () => {
-    if (!isPro || !snippet) return;
+    if (!user || !snippet) return;
 
     setIsSavingVersion(true);
 
@@ -157,7 +157,7 @@ export function SaveSnippetModal({
     } finally {
       setIsSavingVersion(false);
     }
-  }, [isPro, snippet, pattern, flags, description]);
+  }, [user, snippet, pattern, flags, description]);
 
   const handleClose = useCallback(() => {
     setName("");
@@ -167,7 +167,7 @@ export function SaveSnippetModal({
     onOpenChange(false);
   }, [onOpenChange]);
 
-  const showUpgradePrompt = !isEntitlementLoading && !isPro;
+  const showSignInPrompt = !isUserLoading && !user;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -183,23 +183,12 @@ export function SaveSnippetModal({
           </DialogDescription>
         </DialogHeader>
 
-        {showUpgradePrompt ? (
-          <div className="py-6 text-center space-y-4">
-            <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-              <Lock className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-semibold">Pro Feature</h3>
-              <p className="text-sm text-muted-foreground">
-                Save and organize your regex patterns with RegexLens Pro.
-              </p>
-            </div>
-            <Button asChild className="mt-4">
-              <Link href="/pricing">
-                {user ? "Upgrade to Pro" : "Sign in to upgrade"}
-              </Link>
-            </Button>
-          </div>
+        {showSignInPrompt ? (
+          <SignInCallout
+            className="py-6 space-y-0"
+            title="Sign in required"
+            description="Sign in to save and organize your regex patterns."
+          />
         ) : (
           <div className="space-y-4">
             {/* Pattern preview */}
