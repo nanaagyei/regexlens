@@ -189,6 +189,10 @@ GitHub may show the exact DNS targets under **Custom domain** (verify and troubl
 
 The repo includes `docs/public/CNAME` with `docs.regexlens.dev` so static export publishes the domain hint for Pages.
 
+**GitHub Pages URL vs styling (`user.github.io/repo`).** Project sites are served under a path prefix (`/regexlens`), but static export without `basePath` emits asset links like `/_next/...`, which load from the site root and 404 — you see HTML with no CSS. The workflow `.github/workflows/docs-pages.yml` sets `GH_PAGES_BASEPATH=/<repository>` (see `docs/next.config.mjs`) so `https://<user>.github.io/<repo>/` loads styles and scripts correctly.
+
+**Custom domain at the root (`https://docs.regexlens.dev/`).** GitHub serves that hostname from the same artifact without the `/repo` prefix in URLs. A non-empty `basePath` can make asset URLs wrong on the custom domain. If you **only** use the custom domain as the canonical docs URL, create a repository **Actions** variable `DOCS_USE_ROOT_ASSET_PATHS` = `true` (Settings → Secrets and variables → Actions → Variables) so the workflow clears `GH_PAGES_BASEPATH`. Do not use that if you need the default `github.io/<repo>` URL to be styled.
+
 #### C. Application environment (Vercel)
 
 1. Set **`NEXT_PUBLIC_DOCS_URL=https://docs.regexlens.dev`** for **Production** (and Preview if you use a preview docs URL).

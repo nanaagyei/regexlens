@@ -1,6 +1,9 @@
 # Optional: deploy the Nextra site in docs/ to GitHub Pages (static export).
 # Requires: Repo Settings → Pages → Source: GitHub Actions.
-# Custom subdomain: no basePath (see docs/next.config.mjs + DEPLOYMENT.md §7b).
+#
+# Asset URLs: project sites are served at https://USER.github.io/REPO/, so Next.js
+# needs basePath=/REPO for CSS/JS to load (see docs/next.config.mjs, GH_PAGES_BASEPATH).
+# For a root custom domain only, set repo variable DOCS_USE_ROOT_ASSET_PATHS=true — see DEPLOYMENT.md §6b.
 
 name: Deploy docs to GitHub Pages
 
@@ -26,6 +29,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set GitHub Pages base path for static assets
+        run: |
+          if [ "${{ vars.DOCS_USE_ROOT_ASSET_PATHS }}" = "true" ]; then
+            echo "GH_PAGES_BASEPATH=(root — custom domain layout; github.io/REPO may lack CSS)"
+            echo "GH_PAGES_BASEPATH=" >> "$GITHUB_ENV"
+          else
+            echo "GH_PAGES_BASEPATH=/${{ github.event.repository.name }}"
+            echo "GH_PAGES_BASEPATH=/${{ github.event.repository.name }}" >> "$GITHUB_ENV"
+          fi
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -36,7 +49,6 @@ jobs:
         working-directory: docs
         env:
           GITHUB_PAGES: "1"
-          # Custom subdomain (docs.regexlens.dev): leave GH_PAGES_BASEPATH unset — see DEPLOYMENT.md
         run: |
           npm ci
           npm run build
