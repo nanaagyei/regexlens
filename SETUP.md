@@ -147,22 +147,21 @@ Email authentication uses [Resend](https://resend.com) for sending magic link em
 
 ---
 
-## Rate Limiting (Vercel KV)
+## Rate Limiting (Redis)
 
-Rate limiting uses Vercel KV (Redis) to prevent abuse.
+Rate limiting uses Redis to prevent abuse.
 
 ### Local Development
 
-**Rate limiting is automatically disabled** when `KV_REST_API_URL` and `KV_REST_API_TOKEN` are not set. This is fine for local development.
+**Rate limiting is automatically disabled** when `REDIS_URL` is not set. This is fine for local development.
 
 ### Production Setup
 
 1. Go to your [Vercel Dashboard](https://vercel.com/dashboard)
 2. Select your project
-3. Go to **Storage** > **Create Database** > **KV**
-4. Copy the credentials to your environment variables:
-   - `KV_REST_API_URL`
-   - `KV_REST_API_TOKEN`
+3. Go to **Storage** > **Create Database** > **Redis** (via Upstash or your preferred provider)
+4. Copy the connection URL to your environment variables:
+   - `REDIS_URL`
 
 ---
 
@@ -195,10 +194,9 @@ AUTH_RESEND_KEY=
 EMAIL_FROM=noreply@localhost
 
 # ===========================================
-# Rate Limiting - Vercel KV (optional)
+# Rate Limiting - Redis (optional)
 # ===========================================
-KV_REST_API_URL=
-KV_REST_API_TOKEN=
+REDIS_URL=
 ```
 
 ### Variable Descriptions
@@ -213,8 +211,7 @@ KV_REST_API_TOKEN=
 | `AUTH_GOOGLE_SECRET` | No | Google OAuth client secret |
 | `AUTH_RESEND_KEY` | No | Resend API key for email auth |
 | `EMAIL_FROM` | No | Sender email address |
-| `KV_REST_API_URL` | No | Vercel KV REST API URL |
-| `KV_REST_API_TOKEN` | No | Vercel KV REST API token |
+| `REDIS_URL` | No | Redis connection URL for rate limiting |
 
 *At least one OAuth provider is required for authentication.
 

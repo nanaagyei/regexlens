@@ -153,10 +153,10 @@ Follow these steps in order once the codebase is committed and CI is green on `d
   - Set `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` in Vercel.
 3. **AUTH_SECRET:** Generate with `openssl rand -base64 32` and set in Vercel for both scopes.
 
-### 5. Vercel KV — Rate Limiting (optional)
+### 5. Redis — Rate Limiting (optional)
 
-1. In the Vercel dashboard, go to **Storage → Create Database → KV**.
-2. This auto-sets `KV_REST_API_URL` and `KV_REST_API_TOKEN`. Rate limiting activates automatically when these are present.
+1. In the Vercel dashboard, go to **Storage → Create Database → Redis** (via Upstash or your preferred provider).
+2. Set `REDIS_URL` in your Vercel environment variables. Rate limiting activates automatically when this is present.
 
 ### 6. DNS / Custom Domain
 
