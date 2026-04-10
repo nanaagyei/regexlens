@@ -46,7 +46,7 @@ export function WorkspaceProvider({
     undefined,
     matchFixtureTimeoutMs
   );
-  const explanation = useExplanation(parseResult);
+  const explanation = useExplanation(parseResult, state.explanationMode);
   const warnings = useWarnings(state.pattern, state.flags, parseResult, matchResult);
 
   // URL state sync

@@ -20,7 +20,7 @@
     "db:logs": "docker compose logs -f postgres"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.80.0",
+    "@anthropic-ai/sdk": "^0.88.0",
     "@auth/pg-adapter": "^1.11.1",
     "@gsap/react": "^2.1.2",
     "@monaco-editor/react": "^4.6.0",
