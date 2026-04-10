@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useCallback, useImperativeHandle, forwardRef } from "react";
+import { useRef, useCallback, useImperativeHandle, forwardRef, useEffect } from "react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import { ParseResult } from "@/types";
+import { useHoverSelector } from "@/hooks/useHoverSync";
 
 interface RegexEditorProps {
   value: string;
@@ -19,6 +20,36 @@ export const RegexEditor = forwardRef<RegexEditorRef, RegexEditorProps>(
   function RegexEditor({ value, onChange, parseResult: _parseResult }, ref) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
+  const decorationIdsRef = useRef<string[]>([]);
+
+  const hoveredRange = useHoverSelector((s) => s.hoveredRange);
+  const lockedStepId = useHoverSelector((s) => s.lockedStepId);
+
+  // Apply Monaco decorations when hoveredRange changes
+  useEffect(() => {
+    const ed = editorRef.current;
+    const monaco = monacoRef.current;
+    if (!ed || !monaco) return;
+
+    if (!hoveredRange) {
+      decorationIdsRef.current = ed.deltaDecorations(decorationIdsRef.current, []);
+      return;
+    }
+
+    const isLocked = lockedStepId !== null;
+    const decoClass = isLocked ? "regex-locked-decoration" : "regex-hover-decoration";
+    const inlineClass = isLocked ? "regex-locked-inline" : "regex-hover-inline";
+
+    decorationIdsRef.current = ed.deltaDecorations(decorationIdsRef.current, [
+      {
+        range: new monaco.Range(1, hoveredRange.start + 1, 1, hoveredRange.end + 1),
+        options: {
+          className: decoClass,
+          inlineClassName: inlineClass,
+        },
+      },
+    ]);
+  }, [hoveredRange, lockedStepId]);
 
   // Expose focus method via ref
   useImperativeHandle(ref, () => ({
@@ -135,6 +166,18 @@ export const RegexEditor = forwardRef<RegexEditorRef, RegexEditorProps>(
         .regex-hover-inline {
           background-color: rgba(59, 130, 246, 0.3);
           border-radius: 2px;
+          transition: background-color 150ms ease;
+        }
+        .regex-locked-decoration {
+          background-color: rgba(59, 130, 246, 0.3);
+          transition: background-color 150ms ease;
+        }
+        .regex-locked-inline {
+          background-color: rgba(59, 130, 246, 0.45);
+          border-radius: 2px;
+          outline: 1.5px solid rgba(59, 130, 246, 0.6);
+          outline-offset: -1px;
+          transition: background-color 150ms ease;
         }
       `}</style>
     </div>
