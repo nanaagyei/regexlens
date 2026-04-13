@@ -8,6 +8,49 @@ import {
   REGEX_CONFIG,
 } from "@/types";
 import { walkAst, getNodeRange } from "@/lib/regex/parse";
+import { calculateRiskScore } from "./scoring";
+
+/**
+ * Find the first occurrence of a character in a pattern,
+ * skipping escaped characters and characters inside character classes.
+ */
+function findUnescapedChar(
+  pattern: string,
+  target: string
+): number {
+  let inCharClass = false;
+  let escaped = false;
+
+  for (let i = 0; i < pattern.length; i++) {
+    const char = pattern[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+
+    if (char === "[") {
+      inCharClass = true;
+      continue;
+    }
+
+    if (char === "]" && inCharClass) {
+      inCharClass = false;
+      continue;
+    }
+
+    if (char === target && !inCharClass) {
+      return i;
+    }
+  }
+
+  return -1;
+}
 
 /**
  * Run all warning heuristics on a regex pattern
@@ -57,6 +100,7 @@ function checkPatternLength(pattern: string, warnings: Warning[]): void {
     warnings.push({
       id: WARNING_IDS.EXCESSIVE_PATTERN_LENGTH,
       severity: pattern.length > REGEX_CONFIG.MAX_PATTERN_LENGTH ? "danger" : "warn",
+      category: "maintainability",
       title: "Very long pattern",
       message: `This pattern is ${pattern.length} characters long.`,
       hint: "Very long patterns are harder to maintain and may impact performance. Consider splitting into smaller patterns.",
@@ -106,9 +150,10 @@ function checkUnescapedDot(pattern: string, warnings: Warning[]): void {
         warnings.push({
           id: WARNING_IDS.UNESCAPED_DOT,
           severity: "info",
+          category: "correctness",
           title: "Unescaped dot",
           message: "The dot (.) matches any character, not just a literal dot.",
-          hint: "If you want to match a literal dot, use \\. instead.",
+          hint: "Use \\. to match a literal dot. Unescaped . matches any character — foo.bar also matches fooXbar.",
           range: { start: i, end: i + 1 },
           score: 25,
         });
@@ -130,9 +175,10 @@ function checkPipeInCharClass(pattern: string, warnings: Warning[]): void {
     warnings.push({
       id: WARNING_IDS.PIPE_IN_CHARCLASS,
       severity: "info",
+      category: "correctness",
       title: "Pipe inside character class",
       message: "Inside [...], the | is a literal pipe character, not OR.",
-      hint: "For alternation, use (A|B) instead of [A|B].",
+      hint: "Inside [...], pipe is literal. Use (A|B) for alternation, or [AB] for a character class.",
       range: { start: match.index, end: match.index + match[0].length },
       score: 30,
     });
@@ -161,9 +207,10 @@ function checkEmptyAlternative(pattern: string, warnings: Warning[]): void {
       warnings.push({
         id: WARNING_IDS.EMPTY_ALTERNATIVE,
         severity: "warn",
+        category: "correctness",
         title: "Empty alternative",
         message: "This alternation includes an empty option.",
-        hint: "Empty alternatives can match zero characters, which may not be intended.",
+        hint: "If optional, use (foo)? instead. Otherwise, remove the extra |.",
         range: { start: positions[0], end: positions[0] + 2 },
         score: 45,
       });
@@ -182,9 +229,10 @@ function checkNestedQuantifiers(ast: AstNode, warnings: Warning[]): void {
       warnings.push({
         id: WARNING_IDS.NESTED_QUANTIFIERS,
         severity: "danger",
+        category: "performance",
         title: "Nested quantifiers detected",
         message: "This pattern has a quantifier inside another quantifier.",
-        hint: "This can cause catastrophic backtracking on non-matching input. Consider rewriting to avoid nested repetition.",
+        hint: "Rewrite to remove nesting — e.g. (a+)+ can be simplified to a+. Nested quantifiers cause exponential backtracking on non-matching input.",
         range,
         score: 90,
       });
@@ -217,9 +265,10 @@ function checkNestedQuantifiers(ast: AstNode, warnings: Warning[]): void {
             warnings.push({
               id: WARNING_IDS.NESTED_QUANTIFIERS,
               severity: "danger",
+              category: "performance",
               title: "Nested quantifiers in group",
               message: "A quantified group contains another quantifier.",
-              hint: "Patterns like (a+)+ can cause exponential backtracking. Rewrite to avoid this.",
+              hint: "Rewrite (a+)+ as a+. Nested quantifiers cause O(2^n) backtracking on non-matching input.",
               range,
               score: 95,
             });
@@ -249,9 +298,10 @@ function checkAmbiguousDotStar(
       warnings.push({
         id: WARNING_IDS.AMBIGUOUS_DOT_STAR,
         severity: "warn",
+        category: "performance",
         title: "Greedy .* or .+ before more pattern",
         message: "This pattern uses .* or .+ followed by more characters.",
-        hint: "This can cause excessive backtracking. Consider using a more specific character class or making it lazy with ?",
+        hint: "Replace .* with a specific class like [^\\n]* or make it lazy: .*? — greedy dot-star backtracks over every character.",
         range: { start: match.index, end: match.index + 2 },
         score: 55,
       });
@@ -275,9 +325,10 @@ function checkAlternationInRepetition(ast: AstNode, warnings: Warning[]): void {
             warnings.push({
               id: WARNING_IDS.ALTERNATION_IN_REPETITION,
               severity: "warn",
+              category: "performance",
               title: "Alternation in repeated group",
               message: "A repeated group contains alternation (|).",
-              hint: "If alternatives can match overlapping text, this may backtrack heavily.",
+              hint: "If alternatives can match overlapping text, this may backtrack heavily. Ensure each branch matches distinct characters.",
               range,
               score: 50,
             });
@@ -297,12 +348,19 @@ function checkMultilineAnchors(
   warnings: Warning[]
 ): void {
   if (flags.includes("m") && (pattern.includes("^") || pattern.includes("$"))) {
+    const caretPos = findUnescapedChar(pattern, "^");
+    const dollarPos = findUnescapedChar(pattern, "$");
+    const anchorPos = caretPos >= 0 ? caretPos : dollarPos;
+    const range = anchorPos >= 0 ? { start: anchorPos, end: anchorPos + 1 } : undefined;
+
     warnings.push({
       id: WARNING_IDS.MULTILINE_ANCHORS,
       severity: "info",
+      category: "readability",
       title: "Multiline mode affects anchors",
-      message: "With the 'm' flag, ^ and $ match start/end of each line.",
-      hint: "If you want to match only the start/end of the entire string, use \\A and \\z (not supported in JS) or remove the 'm' flag.",
+      message: "With the 'm' flag, ^ and $ match start/end of each line, not the entire string.",
+      hint: "Remove the m flag if you only want to match start/end of the entire string.",
+      range,
       score: 20,
     });
   }
@@ -317,12 +375,17 @@ function checkDotAllDot(
   warnings: Warning[]
 ): void {
   if (flags.includes("s") && pattern.includes(".")) {
+    const dotPos = findUnescapedChar(pattern, ".");
+    const range = dotPos >= 0 ? { start: dotPos, end: dotPos + 1 } : undefined;
+
     warnings.push({
       id: WARNING_IDS.DOTALL_DOT,
       severity: "info",
+      category: "readability",
       title: "dotAll mode affects dot",
       message: "With the 's' flag, dot (.) also matches newlines.",
-      hint: "Be aware that . will match across line boundaries.",
+      hint: "Use [^\\n] instead of . if you want to exclude newlines.",
+      range,
       score: 15,
     });
   }
@@ -339,6 +402,7 @@ function checkExcessiveMatches(
     warnings.push({
       id: WARNING_IDS.EXCESSIVE_MATCHES,
       severity: "warn",
+      category: "performance",
       title: "Many matches",
       message: `Found ${matchResult.totalCount} matches (showing first ${REGEX_CONFIG.MAX_MATCHES}).`,
       hint: "Consider using a more specific pattern to reduce matches.",
@@ -347,17 +411,3 @@ function checkExcessiveMatches(
   }
 }
 
-/**
- * Calculate aggregate risk score
- */
-function calculateRiskScore(warnings: Warning[]): number {
-  if (warnings.length === 0) return 0;
-  
-  // Use the maximum score as the primary factor
-  const maxScore = Math.max(...warnings.map((w) => w.score));
-  
-  // Add a small bonus for multiple warnings
-  const bonus = Math.min(warnings.length * 2, 10);
-  
-  return Math.min(maxScore + bonus, 100);
-}
