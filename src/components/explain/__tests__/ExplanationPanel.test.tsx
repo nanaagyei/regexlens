@@ -20,6 +20,7 @@ vi.mock("@/hooks/useHoverSync", () => ({
       hoveredMatchIndex: null,
       selectedMatchIndex: null,
       lockedStepId: null,
+      lockedWarningId: null,
     },
     setHoveredRange: vi.fn(),
     setHoveredStepId: vi.fn(),

@@ -10,6 +10,7 @@ import {
   setHoveredMatchIndex,
   setSelectedMatchIndex,
   toggleLockedStep,
+  toggleLockedWarning,
   clearAll,
 } from "@/lib/stores/hoverStore";
 import { Range } from "@/types";
@@ -23,6 +24,7 @@ export interface HoverSyncContextValue {
   setHoveredMatchIndex: (index: number | null) => void;
   setSelectedMatchIndex: (index: number | null) => void;
   toggleLockedStep: (stepId: string) => void;
+  toggleLockedWarning: (warningId: string) => void;
   clearAll: () => void;
 }
 
@@ -41,6 +43,7 @@ export function useHoverSync(): HoverSyncContextValue {
       setHoveredMatchIndex,
       setSelectedMatchIndex,
       toggleLockedStep,
+      toggleLockedWarning,
       clearAll,
     }),
     [hoverState]

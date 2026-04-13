@@ -6,6 +6,7 @@ export interface HoverState {
   hoveredMatchIndex: number | null;
   selectedMatchIndex: number | null;
   lockedStepId: string | null;
+  lockedWarningId: string | null;
 }
 
 type Listener = () => void;
@@ -16,6 +17,7 @@ const DEFAULT_STATE: HoverState = {
   hoveredMatchIndex: null,
   selectedMatchIndex: null,
   lockedStepId: null,
+  lockedWarningId: null,
 };
 
 let state: HoverState = { ...DEFAULT_STATE };
@@ -74,6 +76,16 @@ export function toggleLockedStep(stepId: string) {
   state = {
     ...state,
     lockedStepId: state.lockedStepId === stepId ? null : stepId,
+    lockedWarningId: null,
+  };
+  notify();
+}
+
+export function toggleLockedWarning(warningId: string) {
+  state = {
+    ...state,
+    lockedWarningId: state.lockedWarningId === warningId ? null : warningId,
+    lockedStepId: null,
   };
   notify();
 }
@@ -84,7 +96,8 @@ export function clearAll() {
     state.hoveredStepId === null &&
     state.hoveredMatchIndex === null &&
     state.selectedMatchIndex === null &&
-    state.lockedStepId === null;
+    state.lockedStepId === null &&
+    state.lockedWarningId === null;
   if (isAlreadyDefault) return;
   state = { ...DEFAULT_STATE };
   notify();
