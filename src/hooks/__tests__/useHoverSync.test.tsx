@@ -18,6 +18,7 @@ describe("useHoverSync", () => {
       selectedMatchIndex: null,
       lockedStepId: null,
       lockedWarningId: null,
+      lockedFailureId: null,
     });
   });
 
@@ -77,6 +78,7 @@ describe("useHoverSync", () => {
       selectedMatchIndex: null,
       lockedStepId: null,
       lockedWarningId: null,
+      lockedFailureId: null,
     });
   });
 });
