@@ -14,6 +14,7 @@ vi.mock("@/hooks/useHoverSync", () => ({
       selectedMatchIndex: null,
       lockedStepId: null,
       lockedWarningId: null,
+      lockedFailureId: null,
     },
     setHoveredRange: vi.fn(),
     toggleLockedWarning: vi.fn(),
