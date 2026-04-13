@@ -11,6 +11,7 @@ import { ExplanationPanel } from "@/components/explain/ExplanationPanel";
 import { AstPanel } from "@/components/structure/AstPanel";
 import { RailroadDiagramPanel } from "@/components/structure/RailroadDiagramPanel";
 import { WarningsPanel } from "@/components/warnings/WarningsPanel";
+import { FailurePanel } from "@/components/failure/FailurePanel";
 import { AnalysisPanel } from "@/components/analysis/AnalysisPanel";
 import { RegexCopilot } from "@/components/ai/RegexCopilot";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -21,11 +22,12 @@ import {
   Search,
   Route,
   Sparkles,
+  XCircle,
 } from "lucide-react";
 
 export function AnalysisSection() {
   const [activeTab, setActiveTab] = useState("explanation");
-  const { state, actions, parseResult, matchResult, explanation, warnings } = useWorkspace();
+  const { state, actions, parseResult, matchResult, explanation, warnings, failureAnalysis } = useWorkspace();
 
   return (
     <div className="min-h-[200px] sm:min-h-[250px] xl:min-h-0 shrink-0 col-span-full xl:col-span-1">
@@ -61,6 +63,15 @@ export function AnalysisSection() {
               </span>
             )}
           </SegmentedControlTrigger>
+          <SegmentedControlTrigger value="failure" className="gap-1.5 relative">
+            <XCircle className="h-3.5 w-3.5 shrink-0" />
+            <span>Failure</span>
+            {failureAnalysis && (
+              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium flex items-center justify-center text-white">
+                !
+              </span>
+            )}
+          </SegmentedControlTrigger>
           <SegmentedControlTrigger value="copilot" className="gap-1.5">
             <Sparkles className="h-3.5 w-3.5 shrink-0" />
             <span>AI</span>
@@ -68,7 +79,7 @@ export function AnalysisSection() {
         </SegmentedControl>
 
         {/* Desktop: grid tabs */}
-        <TabsList className="hidden md:grid w-full grid-cols-6 h-9">
+        <TabsList className="hidden md:grid w-full grid-cols-7 h-9">
           <TabsTrigger value="explanation" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
             <FileText className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Explain</span>
@@ -96,6 +107,16 @@ export function AnalysisSection() {
             {warnings.warnings.length > 0 && (
               <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-warning-warn text-[10px] font-medium flex items-center justify-center text-black">
                 {warnings.warnings.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="failure" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2 relative">
+            <XCircle className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Failure</span>
+            <span className="sm:hidden">Fail</span>
+            {failureAnalysis && (
+              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium flex items-center justify-center text-white">
+                !
               </span>
             )}
           </TabsTrigger>
@@ -154,6 +175,18 @@ export function AnalysisSection() {
             <Panel className="h-full">
               <PanelContent>
                 <WarningsPanel warnings={warnings} parseResult={parseResult} />
+              </PanelContent>
+            </Panel>
+          </TabsContent>
+
+          <TabsContent value="failure" className="h-full m-0">
+            <Panel className="h-full">
+              <PanelContent>
+                <FailurePanel
+                  failureAnalysis={failureAnalysis}
+                  matchResult={matchResult}
+                  hasText={state.text.length > 0}
+                />
               </PanelContent>
             </Panel>
           </TabsContent>
