@@ -51,6 +51,7 @@ function mapToWarning(
 ): Warning {
   return {
     ...w,
+    category: "correctness",
     score: severityToScore(w.severity),
   };
 }

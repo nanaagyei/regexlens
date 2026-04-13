@@ -6,9 +6,16 @@ import { Range } from "./regex";
 
 export type WarningSeverity = "info" | "warn" | "danger";
 
+export type WarningCategory =
+  | "performance"
+  | "correctness"
+  | "readability"
+  | "maintainability";
+
 export interface Warning {
   id: string;
   severity: WarningSeverity;
+  category: WarningCategory;
   title: string;
   message: string;
   hint?: string;
@@ -40,4 +47,12 @@ export const SEVERITY_SCORES = {
   danger: { min: 80, max: 100 },
   warn: { min: 40, max: 79 },
   info: { min: 10, max: 39 },
+} as const;
+
+// Category display labels
+export const CATEGORY_LABELS: Record<WarningCategory, string> = {
+  performance: "Performance",
+  correctness: "Correctness",
+  readability: "Readability",
+  maintainability: "Maintainability",
 } as const;
