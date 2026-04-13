@@ -373,6 +373,78 @@ describe("category assignment", () => {
 });
 
 // ---------------------------------------------------------------------------
+// findUnescapedChar edge cases (exercised via multiline/dotAll)
+// ---------------------------------------------------------------------------
+describe("findUnescapedChar via multiline anchors", () => {
+  it("skips escaped ^ in multiline mode", () => {
+    // \\^ is escaped (2 chars), then "foo$" — $ is at index 5
+    const warnings = getWarnings("\\^foo$", "m");
+    const w = findWarning(warnings, "multiline-anchors");
+    expect(w).toBeDefined();
+    expect(w!.range).toEqual({ start: 5, end: 6 }); // $ position
+  });
+
+  it("skips ^ inside character class", () => {
+    const warnings = getWarnings("[^a]foo$", "m");
+    const w = findWarning(warnings, "multiline-anchors");
+    expect(w).toBeDefined();
+    // [^a] is char class, real $ is at position 7
+    expect(w!.range).toEqual({ start: 7, end: 8 });
+  });
+});
+
+describe("findUnescapedChar via dotAll", () => {
+  it("skips escaped dot in dotAll mode", () => {
+    const warnings = getWarnings("\\.a.b", "s");
+    const w = findWarning(warnings, "dotall-dot");
+    expect(w).toBeDefined();
+    // \\. is escaped, real dot is at position 3
+    expect(w!.range).toEqual({ start: 3, end: 4 });
+  });
+
+  it("skips dot inside character class", () => {
+    const warnings = getWarnings("[.]a.b", "s");
+    const w = findWarning(warnings, "dotall-dot");
+    expect(w).toBeDefined();
+    // [.] is char class, real dot is at position 4
+    expect(w!.range).toEqual({ start: 4, end: 5 });
+  });
+
+  it("returns no range when all dots are escaped or in char classes", () => {
+    const warnings = getWarnings("[.]\\.", "s");
+    const w = findWarning(warnings, "dotall-dot");
+    // pattern.includes(".") is true (raw string has dots), but findUnescapedChar returns -1
+    // The warning is still emitted because the pattern-level check uses includes(".")
+    // but range should be undefined since findUnescapedChar returns -1
+    expect(w).toBeDefined();
+    expect(w!.range).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Nested quantifiers — additional coverage
+// ---------------------------------------------------------------------------
+describe("checkNestedQuantifiers coverage", () => {
+  it("detects quantified group with inner quantifier and dedup works", () => {
+    // (a+)+ triggers both the direct check AND the group check
+    // The dedup logic should prevent duplicate warnings for the same range
+    const warnings = getWarnings("(a+)+");
+    const nested = warnings.filter((w) => w.id === "nested-quantifiers");
+    // Each unique range should appear only once
+    const rangeKeys = nested.map((w) => `${w.range?.start}-${w.range?.end}`);
+    const uniqueRanges = new Set(rangeKeys);
+    expect(uniqueRanges.size).toBe(nested.length);
+  });
+
+  it("detects (x{2}){3} as nested quantifiers in group", () => {
+    const warnings = getWarnings("(a{2}){3}");
+    const w = warnings.find((w) => w.id === "nested-quantifiers");
+    expect(w).toBeDefined();
+    expect(w!.title).toBe("Nested quantifiers in group");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Edge cases
 // ---------------------------------------------------------------------------
 describe("edge cases", () => {
@@ -383,6 +455,18 @@ describe("edge cases", () => {
 
   it("handles pattern with only special chars", () => {
     const warnings = getWarnings(".*+?");
+    expect(Array.isArray(warnings)).toBe(true);
+  });
+
+  it("handles parse failure gracefully (no AST-based checks)", () => {
+    const parseResult = parseRegex("(", "");
+    const { warnings } = analyzeWarnings("(", "", parseResult, emptyMatches);
+    // Should not crash, may still have pattern-level warnings
+    expect(Array.isArray(warnings)).toBe(true);
+  });
+
+  it("handles pattern with escaped characters throughout", () => {
+    const warnings = getWarnings("\\[\\]\\(\\)\\{\\}");
     expect(Array.isArray(warnings)).toBe(true);
   });
 });

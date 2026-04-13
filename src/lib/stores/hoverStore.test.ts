@@ -7,6 +7,7 @@ import {
   setHoveredMatchIndex,
   setSelectedMatchIndex,
   toggleLockedStep,
+  toggleLockedWarning,
   clearAll,
   _reset,
 } from "./hoverStore";
@@ -144,6 +145,43 @@ describe("hoverStore", () => {
     });
   });
 
+  describe("toggleLockedWarning", () => {
+    it("sets lockedWarningId when null", () => {
+      toggleLockedWarning("warn-1");
+      expect(getSnapshot().lockedWarningId).toBe("warn-1");
+    });
+
+    it("clears lockedWarningId when toggling same warning", () => {
+      toggleLockedWarning("warn-1");
+      toggleLockedWarning("warn-1");
+      expect(getSnapshot().lockedWarningId).toBeNull();
+    });
+
+    it("switches to new warning when toggling different warning", () => {
+      toggleLockedWarning("warn-1");
+      toggleLockedWarning("warn-2");
+      expect(getSnapshot().lockedWarningId).toBe("warn-2");
+    });
+
+    it("clears lockedStepId when locking a warning", () => {
+      toggleLockedStep("step-1");
+      expect(getSnapshot().lockedStepId).toBe("step-1");
+      toggleLockedWarning("warn-1");
+      expect(getSnapshot().lockedStepId).toBeNull();
+      expect(getSnapshot().lockedWarningId).toBe("warn-1");
+    });
+  });
+
+  describe("toggleLockedStep clears lockedWarningId", () => {
+    it("clears lockedWarningId when locking a step", () => {
+      toggleLockedWarning("warn-1");
+      expect(getSnapshot().lockedWarningId).toBe("warn-1");
+      toggleLockedStep("step-1");
+      expect(getSnapshot().lockedWarningId).toBeNull();
+      expect(getSnapshot().lockedStepId).toBe("step-1");
+    });
+  });
+
   describe("clearAll", () => {
     it("resets all fields to null", () => {
       setHoveredRange({ start: 0, end: 5 });
@@ -151,6 +189,7 @@ describe("hoverStore", () => {
       setHoveredMatchIndex(2);
       setSelectedMatchIndex(3);
       toggleLockedStep("step-3");
+      toggleLockedWarning("warn-1");
 
       clearAll();
 
@@ -160,6 +199,7 @@ describe("hoverStore", () => {
       expect(state.hoveredMatchIndex).toBeNull();
       expect(state.selectedMatchIndex).toBeNull();
       expect(state.lockedStepId).toBeNull();
+      expect(state.lockedWarningId).toBeNull();
     });
 
     it("no-ops when already default", () => {
