@@ -73,7 +73,7 @@ export function formatSimple(units: SemanticUnit[]): ExplanationStep[] {
         return [
           {
             id: id(),
-            label: SIMPLE_ESCAPE[unit.escapeType] ?? `Literal "${unit.raw.replace("\\", "")}"`,
+            label: SIMPLE_ESCAPE[unit.escapeType] ?? `Literal "${unit.raw.replace(/\\/g, "")}"`,
             detail: SIMPLE_ESCAPE_DETAIL[unit.escapeType],
             kind: "escape",
             depth,
