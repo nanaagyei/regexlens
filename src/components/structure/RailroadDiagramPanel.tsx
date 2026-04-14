@@ -61,7 +61,7 @@ export function RailroadDiagramPanel({
       )}
     >
       <div
-        className="railroad-diagram-wrapper inline-block min-w-full"
+        className="railroad-diagram-wrapper inline-block max-w-full"
         dangerouslySetInnerHTML={{ __html: svgContent }}
       />
     </div>
