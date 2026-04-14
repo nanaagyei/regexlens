@@ -13,6 +13,7 @@ const defaultHoverState: HoverState = {
   selectedMatchIndex: null,
   lockedStepId: null,
   lockedWarningId: null,
+  lockedFailureId: null,
 };
 
 vi.mock("@/hooks/useHoverSync", () => ({
