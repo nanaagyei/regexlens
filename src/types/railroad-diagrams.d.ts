@@ -6,6 +6,9 @@ declare module "@prantlf/railroad-diagrams" {
   export class Sequence {
     constructor(...items: unknown[]);
   }
+  export class Stack {
+    constructor(...items: unknown[]);
+  }
   export class Choice {
     constructor(defaultIndex: number, ...items: unknown[]);
   }
