@@ -12,6 +12,7 @@ import { AstPanel } from "@/components/structure/AstPanel";
 import { RailroadDiagramPanel } from "@/components/structure/RailroadDiagramPanel";
 import { WarningsPanel } from "@/components/warnings/WarningsPanel";
 import { FailurePanel } from "@/components/failure/FailurePanel";
+import { DiffPanel } from "@/components/diff/DiffPanel";
 import { AnalysisPanel } from "@/components/analysis/AnalysisPanel";
 import { RegexCopilot } from "@/components/ai/RegexCopilot";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -23,6 +24,7 @@ import {
   Route,
   Sparkles,
   XCircle,
+  ArrowLeftRight,
 } from "lucide-react";
 
 export function AnalysisSection() {
@@ -72,6 +74,10 @@ export function AnalysisSection() {
               </span>
             )}
           </SegmentedControlTrigger>
+          <SegmentedControlTrigger value="diff" className="gap-1.5">
+            <ArrowLeftRight className="h-3.5 w-3.5 shrink-0" />
+            <span>Diff</span>
+          </SegmentedControlTrigger>
           <SegmentedControlTrigger value="copilot" className="gap-1.5">
             <Sparkles className="h-3.5 w-3.5 shrink-0" />
             <span>AI</span>
@@ -79,7 +85,7 @@ export function AnalysisSection() {
         </SegmentedControl>
 
         {/* Desktop: grid tabs */}
-        <TabsList className="hidden md:grid w-full grid-cols-7 h-9">
+        <TabsList className="hidden md:grid w-full grid-cols-8 h-9">
           <TabsTrigger value="explanation" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
             <FileText className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Explain</span>
@@ -119,6 +125,11 @@ export function AnalysisSection() {
                 !
               </span>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="diff" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
+            <ArrowLeftRight className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Diff</span>
+            <span className="sm:hidden">Diff</span>
           </TabsTrigger>
           <TabsTrigger value="copilot" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
             <Sparkles className="h-3.5 w-3.5" />
@@ -186,6 +197,21 @@ export function AnalysisSection() {
                   failureAnalysis={failureAnalysis}
                   matchResult={matchResult}
                   hasText={state.text.length > 0}
+                />
+              </PanelContent>
+            </Panel>
+          </TabsContent>
+
+          <TabsContent value="diff" className="h-full m-0">
+            <Panel className="h-full">
+              <PanelContent className="p-0">
+                <DiffPanel
+                  pattern={state.pattern}
+                  flags={state.flags}
+                  comparisonPattern={state.comparisonPattern}
+                  comparisonFlags={state.comparisonFlags}
+                  onComparisonPatternChange={actions.setComparisonPattern}
+                  onComparisonFlagsChange={actions.setComparisonFlags}
                 />
               </PanelContent>
             </Panel>
