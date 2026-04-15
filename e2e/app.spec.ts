@@ -55,8 +55,9 @@ test.describe("workspace integration", () => {
     await editor.click();
     await page.keyboard.type("abc");
 
-    // Click on the Structure tab
-    await page.getByRole("tab", { name: /Structure|AST/i }).click();
+    // Open the "More" dropdown and click Structure
+    await page.getByRole("button", { name: /More tabs/i }).click();
+    await page.getByRole("menuitem", { name: /Structure/i }).click();
     await expect(page.getByText(/how it.*built/i)).toBeVisible({ timeout: 5_000 });
 
     // Click back to Explanation tab
@@ -83,8 +84,9 @@ test.describe("workspace integration", () => {
       page.getByText(/fix the pattern/i)
     ).toBeVisible({ timeout: 10_000 });
 
-    // Switch to Structure tab - should also show fallback
-    await page.getByRole("tab", { name: /Structure|AST/i }).click();
+    // Open the "More" dropdown and switch to Structure tab - should also show fallback
+    await page.getByRole("button", { name: /More tabs/i }).click();
+    await page.getByRole("menuitem", { name: /Structure/i }).click();
     await expect(
       page.getByText(/invalid pattern/i)
     ).toBeVisible({ timeout: 5_000 });

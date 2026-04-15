@@ -9,3 +9,4 @@ export * from "./warnings";
 export * from "./failure";
 export * from "./templates";
 export * from "./ai";
+export * from "./diff";

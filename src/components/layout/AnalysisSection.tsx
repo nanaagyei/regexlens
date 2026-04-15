@@ -6,15 +6,23 @@ import {
   SegmentedControl,
   SegmentedControlTrigger,
 } from "@/components/ui/segmented-control";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Panel, PanelContent } from "./Panel";
 import { ExplanationPanel } from "@/components/explain/ExplanationPanel";
 import { AstPanel } from "@/components/structure/AstPanel";
 import { RailroadDiagramPanel } from "@/components/structure/RailroadDiagramPanel";
 import { WarningsPanel } from "@/components/warnings/WarningsPanel";
 import { FailurePanel } from "@/components/failure/FailurePanel";
+import { DiffPanel } from "@/components/diff/DiffPanel";
 import { AnalysisPanel } from "@/components/analysis/AnalysisPanel";
 import { RegexCopilot } from "@/components/ai/RegexCopilot";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { cn } from "@/lib/utils";
 import {
   FileText,
   AlertTriangle,
@@ -23,11 +31,119 @@ import {
   Route,
   Sparkles,
   XCircle,
+  ArrowLeftRight,
+  ChevronDown,
+  type LucideIcon,
 } from "lucide-react";
+
+interface TabDef {
+  value: string;
+  label: string;
+  shortLabel: string;
+  icon: LucideIcon;
+}
+
+const PRIMARY_TABS: TabDef[] = [
+  { value: "explanation", label: "Explain", shortLabel: "Exp", icon: FileText },
+  { value: "analysis", label: "Analysis", shortLabel: "Analyze", icon: Search },
+  { value: "warnings", label: "Warnings", shortLabel: "Warn", icon: AlertTriangle },
+  { value: "failure", label: "Failure", shortLabel: "Fail", icon: XCircle },
+  { value: "copilot", label: "Copilot", shortLabel: "AI", icon: Sparkles },
+];
+
+const OVERFLOW_TABS: TabDef[] = [
+  { value: "structure", label: "Structure", shortLabel: "AST", icon: TreeDeciduous },
+  { value: "railroad", label: "Railroad", shortLabel: "RR", icon: Route },
+  { value: "diff", label: "Diff", shortLabel: "Diff", icon: ArrowLeftRight },
+];
+
+const OVERFLOW_VALUES = new Set(OVERFLOW_TABS.map((t) => t.value));
 
 export function AnalysisSection() {
   const [activeTab, setActiveTab] = useState("explanation");
   const { state, actions, parseResult, matchResult, explanation, warnings, failureAnalysis } = useWorkspace();
+
+  const activeOverflow = OVERFLOW_TABS.find((t) => t.value === activeTab);
+  const isOverflowActive = OVERFLOW_VALUES.has(activeTab);
+
+  const renderBadge = (tabValue: string, position: "mobile" | "desktop") => {
+    const offset = position === "mobile" ? "-top-0.5 -right-0.5" : "-top-1 -right-1";
+    if (tabValue === "warnings" && warnings.warnings.length > 0) {
+      return (
+        <span className={cn("absolute h-4 w-4 rounded-full bg-warning-warn text-[10px] font-medium flex items-center justify-center text-black", offset)}>
+          {warnings.warnings.length}
+        </span>
+      );
+    }
+    if (tabValue === "failure" && failureAnalysis) {
+      return (
+        <span className={cn("absolute h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium flex items-center justify-center text-white", offset)}>
+          !
+        </span>
+      );
+    }
+    return null;
+  };
+
+  const overflowDropdown = (variant: "mobile" | "desktop") => {
+    const ActiveIcon = activeOverflow?.icon ?? ChevronDown;
+    const triggerLabel = activeOverflow?.label ?? "More";
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            className={cn(
+              "inline-flex items-center justify-center gap-1 whitespace-nowrap font-medium transition-all",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              variant === "mobile"
+                ? cn(
+                    "rounded-md px-3 py-2 text-sm shrink-0 min-h-[36px] min-w-[64px] touch-manipulation",
+                    "ring-offset-background",
+                    isOverflowActive
+                      ? "bg-background text-foreground shadow"
+                      : "text-muted-foreground",
+                  )
+                : cn(
+                    "rounded-md px-1.5 sm:px-2 text-xs sm:text-sm h-full",
+                    isOverflowActive
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  ),
+            )}
+            aria-label={isOverflowActive ? `${activeOverflow!.label} tab (active)` : "More tabs"}
+          >
+            <ActiveIcon className="h-3.5 w-3.5 shrink-0" />
+            {variant === "mobile" ? (
+              <span>{triggerLabel}</span>
+            ) : (
+              <>
+                <span className="hidden sm:inline">{triggerLabel}</span>
+                <span className="sm:hidden">{activeOverflow?.shortLabel ?? "More"}</span>
+              </>
+            )}
+            {!isOverflowActive && <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-[160px]">
+          {OVERFLOW_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.value;
+            return (
+              <DropdownMenuItem
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={cn("gap-2", isActive && "bg-accent")}
+              >
+                <Icon className="h-4 w-4" />
+                <span>{tab.label}</span>
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
 
   return (
     <div className="min-h-[200px] sm:min-h-[250px] xl:min-h-0 shrink-0 col-span-full xl:col-span-1">
@@ -38,93 +154,43 @@ export function AnalysisSection() {
       >
         {/* Mobile: pill-style segmented control */}
         <SegmentedControl className="md:hidden w-full">
-          <SegmentedControlTrigger value="explanation" className="gap-1.5">
-            <FileText className="h-3.5 w-3.5 shrink-0" />
-            <span>Explain</span>
-          </SegmentedControlTrigger>
-          <SegmentedControlTrigger value="structure" className="gap-1.5">
-            <TreeDeciduous className="h-3.5 w-3.5 shrink-0" />
-            <span>Structure</span>
-          </SegmentedControlTrigger>
-          <SegmentedControlTrigger value="railroad" className="gap-1.5">
-            <Route className="h-3.5 w-3.5 shrink-0" />
-            <span>Railroad</span>
-          </SegmentedControlTrigger>
-          <SegmentedControlTrigger value="analysis" className="gap-1.5">
-            <Search className="h-3.5 w-3.5 shrink-0" />
-            <span>Analysis</span>
-          </SegmentedControlTrigger>
-          <SegmentedControlTrigger value="warnings" className="gap-1.5 relative">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-            <span>Warnings</span>
-            {warnings.warnings.length > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-warning-warn text-[10px] font-medium flex items-center justify-center text-black">
-                {warnings.warnings.length}
-              </span>
-            )}
-          </SegmentedControlTrigger>
-          <SegmentedControlTrigger value="failure" className="gap-1.5 relative">
-            <XCircle className="h-3.5 w-3.5 shrink-0" />
-            <span>Failure</span>
-            {failureAnalysis && (
-              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium flex items-center justify-center text-white">
-                !
-              </span>
-            )}
-          </SegmentedControlTrigger>
-          <SegmentedControlTrigger value="copilot" className="gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 shrink-0" />
-            <span>AI</span>
-          </SegmentedControlTrigger>
+          {PRIMARY_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const badge = renderBadge(tab.value, "mobile");
+            return (
+              <SegmentedControlTrigger
+                key={tab.value}
+                value={tab.value}
+                className={cn("gap-1.5", badge && "relative")}
+              >
+                <Icon className="h-3.5 w-3.5 shrink-0" />
+                <span>{tab.label}</span>
+                {badge}
+              </SegmentedControlTrigger>
+            );
+          })}
+          {overflowDropdown("mobile")}
         </SegmentedControl>
 
         {/* Desktop: grid tabs */}
-        <TabsList className="hidden md:grid w-full grid-cols-7 h-9">
-          <TabsTrigger value="explanation" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
-            <FileText className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Explain</span>
-            <span className="sm:hidden">Exp</span>
-          </TabsTrigger>
-          <TabsTrigger value="structure" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
-            <TreeDeciduous className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Structure</span>
-            <span className="sm:hidden">AST</span>
-          </TabsTrigger>
-          <TabsTrigger value="railroad" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
-            <Route className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Railroad</span>
-            <span className="sm:hidden">RR</span>
-          </TabsTrigger>
-          <TabsTrigger value="analysis" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
-            <Search className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Analysis</span>
-            <span className="sm:hidden">Analyze</span>
-          </TabsTrigger>
-          <TabsTrigger value="warnings" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2 relative">
-            <AlertTriangle className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Warnings</span>
-            <span className="sm:hidden">Warn</span>
-            {warnings.warnings.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-warning-warn text-[10px] font-medium flex items-center justify-center text-black">
-                {warnings.warnings.length}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="failure" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2 relative">
-            <XCircle className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Failure</span>
-            <span className="sm:hidden">Fail</span>
-            {failureAnalysis && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium flex items-center justify-center text-white">
-                !
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="copilot" className="gap-1 text-xs sm:text-sm px-1.5 sm:px-2">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Copilot</span>
-            <span className="sm:hidden">AI</span>
-          </TabsTrigger>
+        <TabsList className="hidden md:grid w-full grid-cols-6 h-9">
+          {PRIMARY_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const badge = renderBadge(tab.value, "desktop");
+            return (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className={cn("gap-1 text-xs sm:text-sm px-1.5 sm:px-2", badge && "relative")}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.shortLabel}</span>
+                {badge}
+              </TabsTrigger>
+            );
+          })}
+          {overflowDropdown("desktop")}
         </TabsList>
 
         <div className="flex-1 mt-2 min-h-0">
@@ -186,6 +252,21 @@ export function AnalysisSection() {
                   failureAnalysis={failureAnalysis}
                   matchResult={matchResult}
                   hasText={state.text.length > 0}
+                />
+              </PanelContent>
+            </Panel>
+          </TabsContent>
+
+          <TabsContent value="diff" className="h-full m-0">
+            <Panel className="h-full">
+              <PanelContent className="p-0">
+                <DiffPanel
+                  pattern={state.pattern}
+                  flags={state.flags}
+                  comparisonPattern={state.comparisonPattern}
+                  comparisonFlags={state.comparisonFlags}
+                  onComparisonPatternChange={actions.setComparisonPattern}
+                  onComparisonFlagsChange={actions.setComparisonFlags}
                 />
               </PanelContent>
             </Panel>
