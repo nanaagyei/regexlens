@@ -5,6 +5,7 @@ import { SyntaxDiffView } from "./SyntaxDiffView";
 import { FlagDiffView } from "./FlagDiffView";
 import { StructuralDiffPanel } from "./StructuralDiffPanel";
 import { ExplanationDiffPanel } from "./ExplanationDiffPanel";
+import { BehaviorSummaryPanel } from "./BehaviorSummaryPanel";
 import { ArrowLeftRight, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { ParseResult, ExplanationResult } from "@/types";
+import type { ParseResult, ExplanationResult, WarningsResult } from "@/types";
 
 const COMPARISON_FLAGS = [
   { flag: "g", name: "global" },
@@ -33,6 +34,7 @@ interface DiffPanelProps {
   onComparisonFlagsChange: (flags: string) => void;
   parseResult: ParseResult;
   explanation: ExplanationResult;
+  warnings: WarningsResult;
 }
 
 export function DiffPanel({
@@ -44,6 +46,7 @@ export function DiffPanel({
   onComparisonFlagsChange,
   parseResult,
   explanation,
+  warnings,
 }: DiffPanelProps) {
   const diff = useRegexDiff(
     comparisonPattern,
@@ -52,6 +55,7 @@ export function DiffPanel({
     flags,
     parseResult,
     explanation,
+    warnings,
   );
 
   const toggleComparisonFlag = (flag: string) => {
@@ -137,6 +141,10 @@ export function DiffPanel({
           </div>
         ) : (
           <div className="p-4 space-y-4">
+            <BehaviorSummaryPanel
+              behaviorSummary={diff.behaviorSummary}
+              warningDiff={diff.warnings}
+            />
             <SyntaxDiffView syntaxDiff={diff.syntax} />
             <FlagDiffView flagDiff={diff.flags} />
             {diff.structural ? (

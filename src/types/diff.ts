@@ -7,6 +7,7 @@
 
 import type { ComparableNode, ComparableNodeType } from "./ast";
 import type { ExplanationStep } from "./explain";
+import type { Warning, WarningSeverity } from "./warnings";
 
 export type DiffOpKind = "equal" | "insert" | "delete";
 
@@ -77,6 +78,45 @@ export interface ExplanationDiff {
   hasChanges: boolean;
 }
 
+// ── Warning Diff ─────────────────────────────────────────
+
+export type WarningChangeKind = "added" | "removed" | "severity_changed";
+
+export interface WarningChange {
+  kind: WarningChangeKind;
+  warningId: string;
+  oldWarning?: Warning;
+  newWarning?: Warning;
+  oldSeverity?: WarningSeverity;
+  newSeverity?: WarningSeverity;
+}
+
+export interface WarningDiff {
+  changes: WarningChange[];
+  hasChanges: boolean;
+}
+
+// ── Behavior Summary ─────────────────────────────────────
+
+export type BehaviorSummarySource =
+  | "flags"
+  | "structural"
+  | "explanation"
+  | "warnings";
+
+export type BehaviorImportance = "high" | "medium" | "low";
+
+export interface BehaviorSummary {
+  message: string;
+  importance: BehaviorImportance;
+  source: BehaviorSummarySource;
+}
+
+export interface BehaviorSummaryResult {
+  summaries: BehaviorSummary[];
+  hasSummaries: boolean;
+}
+
 // ── Combined Diff ──────────────────────────────────────────
 
 export interface RegexDiff {
@@ -84,4 +124,6 @@ export interface RegexDiff {
   flags: FlagDiff;
   structural: StructuralDiff | null;
   explanation: ExplanationDiff | null;
+  warnings: WarningDiff | null;
+  behaviorSummary: BehaviorSummaryResult;
 }
