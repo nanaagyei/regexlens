@@ -4,6 +4,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { DiffPanel } from "../DiffPanel";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { parseRegex } from "@/lib/regex/parse";
+import { generateExplanation } from "@/lib/explain/explain";
 
 function renderWithProviders(ui: React.ReactElement) {
   return render(<TooltipProvider>{ui}</TooltipProvider>);
@@ -13,6 +15,15 @@ beforeEach(() => {
   cleanup();
 });
 
+function makeParseAndExplain(pattern: string, flags: string) {
+  const parseResult = parseRegex(pattern, flags);
+  const explanation = generateExplanation(parseResult);
+  return { parseResult, explanation };
+}
+
+const { parseResult: defaultParseResult, explanation: defaultExplanation } =
+  makeParseAndExplain("[a-z]+", "gi");
+
 const defaults = {
   pattern: "[a-z]+",
   flags: "gi",
@@ -20,6 +31,8 @@ const defaults = {
   comparisonFlags: "",
   onComparisonPatternChange: vi.fn(),
   onComparisonFlagsChange: vi.fn(),
+  parseResult: defaultParseResult,
+  explanation: defaultExplanation,
 };
 
 describe("DiffPanel", () => {
@@ -67,12 +80,15 @@ describe("DiffPanel", () => {
   });
 
   it("renders when current pattern is invalid regex", () => {
+    const { parseResult, explanation } = makeParseAndExplain("(unclosed", "gi");
     renderWithProviders(
       <DiffPanel
         {...defaults}
         pattern="(unclosed"
         comparisonPattern="[a-z]+"
         comparisonFlags="g"
+        parseResult={parseResult}
+        explanation={explanation}
       />,
     );
     expect(screen.getByLabelText("Syntax diff")).toBeInTheDocument();

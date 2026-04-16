@@ -267,6 +267,8 @@ export function AnalysisSection() {
                   comparisonFlags={state.comparisonFlags}
                   onComparisonPatternChange={actions.setComparisonPattern}
                   onComparisonFlagsChange={actions.setComparisonFlags}
+                  parseResult={parseResult}
+                  explanation={explanation}
                 />
               </PanelContent>
             </Panel>

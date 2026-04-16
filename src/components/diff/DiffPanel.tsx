@@ -3,7 +3,9 @@
 import { useRegexDiff } from "@/hooks/useRegexDiff";
 import { SyntaxDiffView } from "./SyntaxDiffView";
 import { FlagDiffView } from "./FlagDiffView";
-import { ArrowLeftRight } from "lucide-react";
+import { StructuralDiffPanel } from "./StructuralDiffPanel";
+import { ExplanationDiffPanel } from "./ExplanationDiffPanel";
+import { ArrowLeftRight, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -11,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import type { ParseResult, ExplanationResult } from "@/types";
 
 const COMPARISON_FLAGS = [
   { flag: "g", name: "global" },
@@ -28,6 +31,8 @@ interface DiffPanelProps {
   comparisonFlags: string;
   onComparisonPatternChange: (pattern: string) => void;
   onComparisonFlagsChange: (flags: string) => void;
+  parseResult: ParseResult;
+  explanation: ExplanationResult;
 }
 
 export function DiffPanel({
@@ -37,8 +42,17 @@ export function DiffPanel({
   comparisonFlags,
   onComparisonPatternChange,
   onComparisonFlagsChange,
+  parseResult,
+  explanation,
 }: DiffPanelProps) {
-  const diff = useRegexDiff(comparisonPattern, comparisonFlags, pattern, flags);
+  const diff = useRegexDiff(
+    comparisonPattern,
+    comparisonFlags,
+    pattern,
+    flags,
+    parseResult,
+    explanation,
+  );
 
   const toggleComparisonFlag = (flag: string) => {
     const hasFlag = comparisonFlags.includes(flag);
@@ -117,7 +131,7 @@ export function DiffPanel({
               Enter a pattern to compare
             </h3>
             <p className="text-xs text-muted-foreground max-w-[250px]">
-              Type the old regex pattern above to see a character-level diff
+              Type the old regex pattern above to see a structural diff
               against the current pattern
             </p>
           </div>
@@ -125,6 +139,22 @@ export function DiffPanel({
           <div className="p-4 space-y-4">
             <SyntaxDiffView syntaxDiff={diff.syntax} />
             <FlagDiffView flagDiff={diff.flags} />
+            {diff.structural ? (
+              <StructuralDiffPanel structuralDiff={diff.structural} />
+            ) : diff.syntax.hasChanges ? (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground italic">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                <span>Structural diff unavailable — one or both patterns could not be parsed</span>
+              </div>
+            ) : null}
+            {diff.explanation ? (
+              <ExplanationDiffPanel explanationDiff={diff.explanation} />
+            ) : diff.syntax.hasChanges ? (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground italic">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                <span>Explanation diff unavailable — one or both patterns could not be parsed</span>
+              </div>
+            ) : null}
           </div>
         )}
       </div>
