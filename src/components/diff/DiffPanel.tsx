@@ -121,7 +121,7 @@ export function DiffPanel({
       </div>
 
       {/* Diff content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {!diff ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
             <div className="text-muted-foreground mb-3">

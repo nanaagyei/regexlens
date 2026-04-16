@@ -22,7 +22,7 @@ export function SyntaxDiffView({ syntaxDiff }: SyntaxDiffViewProps) {
         Pattern changes
       </h4>
       <code
-        className="block rounded-md border bg-muted/50 px-3 py-2 font-mono text-sm leading-relaxed break-all"
+        className="block rounded-md border bg-muted/50 px-3 py-2 font-mono text-sm leading-relaxed break-all overflow-hidden"
         aria-label="Syntax diff"
       >
         {syntaxDiff.ops.map((op, i) => (

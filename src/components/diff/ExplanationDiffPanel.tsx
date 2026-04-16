@@ -45,10 +45,19 @@ export function ExplanationDiffPanel({ explanationDiff }: ExplanationDiffPanelPr
 
   return (
     <div>
-      <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-        Explanation Changes
-      </h4>
-      <div className="space-y-1" role="list" aria-label="Explanation changes">
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          Explanation Changes
+        </h4>
+        <span className="text-[10px] text-muted-foreground">
+          {meaningful.length} change{meaningful.length !== 1 ? "s" : ""}
+        </span>
+      </div>
+      <div
+        className="space-y-1 max-h-[300px] overflow-y-auto scrollbar-thin"
+        role="list"
+        aria-label="Explanation changes"
+      >
         {meaningful.map((change, i) => (
           <ExplanationChangeRow key={i} change={change} />
         ))}
@@ -66,7 +75,7 @@ function ExplanationChangeRow({ change }: { change: ExplanationChange }) {
   if (change.kind === "added") {
     return (
       <div
-        className="flex items-start gap-2 px-2 py-1.5 rounded-md bg-emerald-500/10"
+        className="flex items-start gap-2 px-2 py-1.5 rounded-md bg-emerald-500/10 overflow-hidden"
         role="listitem"
       >
         <Plus className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
@@ -76,8 +85,8 @@ function ExplanationChangeRow({ change }: { change: ExplanationChange }) {
         )}>
           {step.kind}
         </span>
-        <div className="min-w-0">
-          <span className="text-xs text-foreground/90">{step.label}</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-foreground/90 truncate">{step.label}</p>
           {step.detail && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -98,7 +107,7 @@ function ExplanationChangeRow({ change }: { change: ExplanationChange }) {
   if (change.kind === "removed") {
     return (
       <div
-        className="flex items-start gap-2 px-2 py-1.5 rounded-md bg-red-500/10"
+        className="flex items-start gap-2 px-2 py-1.5 rounded-md bg-red-500/10 overflow-hidden"
         role="listitem"
       >
         <Minus className="h-3.5 w-3.5 text-red-400 shrink-0 mt-0.5" />
@@ -108,8 +117,8 @@ function ExplanationChangeRow({ change }: { change: ExplanationChange }) {
         )}>
           {step.kind}
         </span>
-        <div className="min-w-0">
-          <span className="text-xs text-foreground/60 line-through">{step.label}</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-foreground/60 line-through truncate">{step.label}</p>
           {step.detail && (
             <p className="text-xs text-muted-foreground/50 truncate line-through">
               {step.detail}
@@ -126,7 +135,7 @@ function ExplanationChangeRow({ change }: { change: ExplanationChange }) {
 
   return (
     <div
-      className="flex items-start gap-2 px-2 py-1.5 rounded-md bg-amber-500/10"
+      className="flex items-start gap-2 px-2 py-1.5 rounded-md bg-amber-500/10 overflow-hidden"
       role="listitem"
     >
       <Pencil className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
@@ -136,32 +145,32 @@ function ExplanationChangeRow({ change }: { change: ExplanationChange }) {
       )}>
         {step.kind}
       </span>
-      <div className="min-w-0 space-y-0.5">
+      <div className="min-w-0 flex-1 space-y-0.5">
         {change.labelChanged && oldStep && newStep ? (
-          <div className="text-xs">
+          <div className="text-xs truncate">
             <span className="text-red-400/70 line-through">{oldStep.label}</span>
             <span className="text-muted-foreground mx-1">&rarr;</span>
             <span className="text-foreground/90">{newStep.label}</span>
           </div>
         ) : (
-          <span className="text-xs text-foreground/90">{step.label}</span>
+          <p className="text-xs text-foreground/90 truncate">{step.label}</p>
         )}
         {change.detailChanged && oldStep && newStep && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="text-xs cursor-help">
-                <span className="text-red-400/50 line-through truncate">
+              <div className="text-xs cursor-help truncate">
+                <span className="text-red-400/50 line-through">
                   {oldStep.detail ?? "(none)"}
                 </span>
                 <span className="text-muted-foreground mx-1">&rarr;</span>
-                <span className="text-muted-foreground truncate">
+                <span className="text-muted-foreground">
                   {newStep.detail ?? "(none)"}
                 </span>
               </div>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-[350px]">
-              <p className="text-xs"><strong>Before:</strong> {oldStep.detail ?? "(none)"}</p>
-              <p className="text-xs"><strong>After:</strong> {newStep.detail ?? "(none)"}</p>
+              <p className="text-xs break-all"><strong>Before:</strong> {oldStep.detail ?? "(none)"}</p>
+              <p className="text-xs break-all"><strong>After:</strong> {newStep.detail ?? "(none)"}</p>
             </TooltipContent>
           </Tooltip>
         )}

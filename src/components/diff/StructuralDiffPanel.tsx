@@ -66,7 +66,7 @@ export function StructuralDiffPanel({ structuralDiff }: StructuralDiffPanelProps
           {structuralDiff.summary}
         </span>
       </div>
-      <div className="space-y-1" role="list" aria-label="Structural changes">
+      <div className="space-y-1 max-h-[250px] overflow-y-auto overflow-x-hidden scrollbar-thin" role="list" aria-label="Structural changes">
         {structuralDiff.changes.map((change, i) => (
           <ChangeRow key={`${change.kind}-${change.path}-${i}`} change={change} depth={0} />
         ))}
@@ -91,7 +91,7 @@ function ChangeRow({ change, depth }: { change: StructuralChange; depth: number 
       <button
         onClick={() => hasDetails && setExpanded(!expanded)}
         className={cn(
-          "w-full flex items-start gap-2 px-2 py-1.5 rounded-md text-left transition-colors",
+          "w-full flex items-start gap-2 px-2 py-1.5 rounded-md text-left transition-colors overflow-hidden",
           style.bg,
           hasDetails && "cursor-pointer hover:brightness-110",
           !hasDetails && "cursor-default",
@@ -122,12 +122,12 @@ function ChangeRow({ change, depth }: { change: StructuralChange; depth: number 
         {/* Description */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="text-xs text-foreground/90 truncate min-w-0">
+            <span className="text-xs text-foreground/90 truncate min-w-0 flex-1">
               {change.description}
             </span>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="max-w-[350px]">
-            <p className="text-xs">{change.description}</p>
+            <p className="text-xs break-all">{change.description}</p>
           </TooltipContent>
         </Tooltip>
       </button>

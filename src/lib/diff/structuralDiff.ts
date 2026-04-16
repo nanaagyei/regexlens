@@ -575,7 +575,7 @@ function describeAdded(node: ComparableNode): string {
     case "alternation":
       return "Alternation added";
     case "alternative":
-      return `Branch "${node.text}" added`;
+      return `Branch "${truncateText(node.text, 30)}" added`;
     case "assertion": {
       const p = node.props as AssertionProps;
       return `${p.polarity} ${p.assertionType} assertion added`;
@@ -618,7 +618,7 @@ function describeRemoved(node: ComparableNode): string {
     case "alternation":
       return "Alternation removed";
     case "alternative":
-      return `Branch "${node.text}" removed`;
+      return `Branch "${truncateText(node.text, 30)}" removed`;
     case "assertion": {
       const p = node.props as AssertionProps;
       return `${p.polarity} ${p.assertionType} assertion removed`;
@@ -668,6 +668,11 @@ function anchorLabel(kind: AnchorProps["kind"]): string {
     case "wordBoundary": return "Word boundary (\\b)";
     case "nonWordBoundary": return "Non-word boundary (\\B)";
   }
+}
+
+function truncateText(text: string, maxLen: number): string {
+  if (text.length <= maxLen) return text;
+  return text.slice(0, maxLen) + "…";
 }
 
 function quantifierLabel(min: number, max: number | null): string {
