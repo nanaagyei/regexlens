@@ -11,19 +11,21 @@ function makeParseAndExplain(pattern: string, flags: string) {
   return { parseResult, explanation };
 }
 
+const emptyWarnings = { warnings: [], riskScore: 0 };
+
 describe("useRegexDiff", () => {
   const current = makeParseAndExplain("[a-z]+", "g");
 
   it("returns null when both old pattern and old flags are empty", () => {
     const { result } = renderHook(() =>
-      useRegexDiff("", "", "[a-z]+", "g", current.parseResult, current.explanation),
+      useRegexDiff("", "", "[a-z]+", "g", current.parseResult, current.explanation, emptyWarnings),
     );
     expect(result.current).toBeNull();
   });
 
   it("returns a diff when old pattern is non-empty", () => {
     const { result } = renderHook(() =>
-      useRegexDiff("[a-z]+", "g", "[A-Z]*", "gi", current.parseResult, current.explanation),
+      useRegexDiff("[a-z]+", "g", "[A-Z]*", "gi", current.parseResult, current.explanation, emptyWarnings),
     );
     expect(result.current).not.toBeNull();
     expect(result.current!.syntax.hasChanges).toBe(true);
@@ -32,7 +34,7 @@ describe("useRegexDiff", () => {
 
   it("returns a diff with no changes for identical inputs", () => {
     const { result } = renderHook(() =>
-      useRegexDiff("[a-z]+", "g", "[a-z]+", "g", current.parseResult, current.explanation),
+      useRegexDiff("[a-z]+", "g", "[a-z]+", "g", current.parseResult, current.explanation, emptyWarnings),
     );
     expect(result.current).not.toBeNull();
     expect(result.current!.syntax.hasChanges).toBe(false);
@@ -42,7 +44,7 @@ describe("useRegexDiff", () => {
   it("detects flag-only changes", () => {
     const curDp = makeParseAndExplain("\\d+", "gi");
     const { result } = renderHook(() =>
-      useRegexDiff("\\d+", "g", "\\d+", "gi", curDp.parseResult, curDp.explanation),
+      useRegexDiff("\\d+", "g", "\\d+", "gi", curDp.parseResult, curDp.explanation, emptyWarnings),
     );
     expect(result.current).not.toBeNull();
     expect(result.current!.syntax.hasChanges).toBe(false);
@@ -53,7 +55,7 @@ describe("useRegexDiff", () => {
 
   it("returns diff when old flags are non-empty but old pattern is empty", () => {
     const { result } = renderHook(() =>
-      useRegexDiff("", "g", "[a-z]+", "gi", current.parseResult, current.explanation),
+      useRegexDiff("", "g", "[a-z]+", "gi", current.parseResult, current.explanation, emptyWarnings),
     );
     expect(result.current).not.toBeNull();
     expect(result.current!.syntax.hasChanges).toBe(true);
@@ -62,7 +64,7 @@ describe("useRegexDiff", () => {
   it("is memoized across renders with same inputs", () => {
     const { result, rerender } = renderHook(
       ({ old, oldF, cur, curF }) =>
-        useRegexDiff(old, oldF, cur, curF, current.parseResult, current.explanation),
+        useRegexDiff(old, oldF, cur, curF, current.parseResult, current.explanation, emptyWarnings),
       { initialProps: { old: "a", oldF: "g", cur: "b", curF: "g" } },
     );
     const first = result.current;
@@ -73,7 +75,7 @@ describe("useRegexDiff", () => {
   it("includes structural diff when both patterns parse", () => {
     const curDp = makeParseAndExplain("^abc", "");
     const { result } = renderHook(() =>
-      useRegexDiff("abc", "", "^abc", "", curDp.parseResult, curDp.explanation),
+      useRegexDiff("abc", "", "^abc", "", curDp.parseResult, curDp.explanation, emptyWarnings),
     );
     expect(result.current).not.toBeNull();
     expect(result.current!.structural).not.toBeNull();
@@ -83,7 +85,7 @@ describe("useRegexDiff", () => {
   it("includes explanation diff when both patterns parse", () => {
     const curDp = makeParseAndExplain("^abc", "");
     const { result } = renderHook(() =>
-      useRegexDiff("abc", "", "^abc", "", curDp.parseResult, curDp.explanation),
+      useRegexDiff("abc", "", "^abc", "", curDp.parseResult, curDp.explanation, emptyWarnings),
     );
     expect(result.current).not.toBeNull();
     expect(result.current!.explanation).not.toBeNull();
@@ -93,7 +95,7 @@ describe("useRegexDiff", () => {
   it("returns null structural/explanation when comparison pattern is invalid", () => {
     const curDp = makeParseAndExplain("[a-z]+", "g");
     const { result } = renderHook(() =>
-      useRegexDiff("[unclosed", "g", "[a-z]+", "g", curDp.parseResult, curDp.explanation),
+      useRegexDiff("[unclosed", "g", "[a-z]+", "g", curDp.parseResult, curDp.explanation, emptyWarnings),
     );
     expect(result.current).not.toBeNull();
     expect(result.current!.structural).toBeNull();

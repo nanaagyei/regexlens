@@ -33,6 +33,7 @@ const defaults = {
   onComparisonFlagsChange: vi.fn(),
   parseResult: defaultParseResult,
   explanation: defaultExplanation,
+  warnings: { warnings: [], riskScore: 0 },
 };
 
 describe("DiffPanel", () => {
@@ -120,5 +121,31 @@ describe("DiffPanel", () => {
   it("has accessible label for comparison input", () => {
     renderWithProviders(<DiffPanel {...defaults} />);
     expect(screen.getByLabelText("Compare against")).toBeInTheDocument();
+  });
+
+  it("renders behavior summary panel when comparison produces changes", () => {
+    renderWithProviders(
+      <DiffPanel
+        {...defaults}
+        comparisonPattern="abc"
+        comparisonFlags=""
+      />,
+    );
+    // The BehaviorSummaryPanel should render (either with summaries or empty state)
+    expect(
+      screen.getByText(/Review Summary|No behavioral changes detected/),
+    ).toBeInTheDocument();
+  });
+
+  it("renders behavior summary with flag changes", () => {
+    renderWithProviders(
+      <DiffPanel
+        {...defaults}
+        comparisonPattern="[a-z]+"
+        comparisonFlags=""
+      />,
+    );
+    // Flags g and i are added (current has "gi", comparison has "")
+    expect(screen.getByText("Review Summary")).toBeInTheDocument();
   });
 });
