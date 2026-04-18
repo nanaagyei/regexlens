@@ -3,26 +3,56 @@
 import { useEffect, useRef } from "react";
 import { useQueryState, parseAsString } from "nuqs";
 import { RegexState } from "@/types";
+import { buildShareUrl, decodeState, encodeState } from "@/lib/regex/serialize";
+
+/** Actions needed by useUrlState to apply decoded URL state */
+export interface UrlStateActions {
+  setPattern: (pattern: string) => void;
+  setFlags: (flags: string) => void;
+  setText: (text: string) => void;
+  setComparisonPattern: (pattern: string) => void;
+  setComparisonFlags: (flags: string) => void;
+  setExplanationMode: (mode: "simple" | "technical") => void;
+  setSelectedTemplate: (templateId: string | null) => void;
+}
+
+const THROTTLE = { throttleMs: 500 };
 
 /**
- * Sync regex state with URL query parameters
- * Uses nuqs for type-safe URL state management
+ * Sync regex state with URL query parameters.
+ * Uses nuqs for type-safe URL state management.
  */
-export function useUrlState(
-  state: RegexState,
-  actions: Pick<ReturnType<typeof import("./useRegexState").useRegexState>["actions"], "setPattern" | "setFlags" | "setText">
-) {
+export function useUrlState(state: RegexState, actions: UrlStateActions) {
+  // Core params
   const [urlPattern, setUrlPattern] = useQueryState(
     "p",
-    parseAsString.withDefault("").withOptions({ throttleMs: 500 })
+    parseAsString.withDefault("").withOptions(THROTTLE)
   );
   const [urlFlags, setUrlFlags] = useQueryState(
     "f",
-    parseAsString.withDefault("g").withOptions({ throttleMs: 500 })
+    parseAsString.withDefault("g").withOptions(THROTTLE)
   );
   const [urlText, setUrlText] = useQueryState(
     "t",
-    parseAsString.withDefault("").withOptions({ throttleMs: 500 })
+    parseAsString.withDefault("").withOptions(THROTTLE)
+  );
+
+  // Extended params
+  const [urlCompPattern, setUrlCompPattern] = useQueryState(
+    "cp",
+    parseAsString.withDefault("").withOptions(THROTTLE)
+  );
+  const [urlCompFlags, setUrlCompFlags] = useQueryState(
+    "cf",
+    parseAsString.withDefault("").withOptions(THROTTLE)
+  );
+  const [urlMode, setUrlMode] = useQueryState(
+    "m",
+    parseAsString.withDefault("").withOptions(THROTTLE)
+  );
+  const [urlTemplate, setUrlTemplate] = useQueryState(
+    "tpl",
+    parseAsString.withDefault("").withOptions(THROTTLE)
   );
 
   const isInitialized = useRef(false);
@@ -33,74 +63,65 @@ export function useUrlState(
     if (isInitialized.current) return;
     isInitialized.current = true;
 
-    // Decode and apply URL state
-    if (urlPattern) {
-      try {
-        const decoded = decodeURIComponent(atob(urlPattern));
-        isUpdatingFromUrl.current = true;
-        actions.setPattern(decoded);
-      } catch {
-        // Invalid encoding, try as-is
-        isUpdatingFromUrl.current = true;
-        actions.setPattern(urlPattern);
-      }
-    }
+    // Collect raw URL params and decode via centralized logic
+    const rawParams: Record<string, string | undefined> = {
+      p: urlPattern || undefined,
+      f: urlFlags !== "g" ? urlFlags : undefined,
+      t: urlText || undefined,
+      cp: urlCompPattern || undefined,
+      cf: urlCompFlags || undefined,
+      m: urlMode || undefined,
+      tpl: urlTemplate || undefined,
+    };
 
-    if (urlFlags && urlFlags !== "g") {
-      isUpdatingFromUrl.current = true;
-      actions.setFlags(urlFlags);
-    }
+    const decoded = decodeState(rawParams);
 
-    if (urlText) {
-      try {
-        const decoded = decodeURIComponent(atob(urlText));
-        isUpdatingFromUrl.current = true;
-        actions.setText(decoded);
-      } catch {
-        isUpdatingFromUrl.current = true;
-        actions.setText(urlText);
-      }
-    }
+    if (Object.keys(decoded).length === 0) return;
+
+    isUpdatingFromUrl.current = true;
+
+    if (decoded.pattern !== undefined) actions.setPattern(decoded.pattern);
+    if (decoded.flags !== undefined) actions.setFlags(decoded.flags);
+    if (decoded.text !== undefined) actions.setText(decoded.text);
+    if (decoded.comparisonPattern !== undefined) actions.setComparisonPattern(decoded.comparisonPattern);
+    if (decoded.comparisonFlags !== undefined) actions.setComparisonFlags(decoded.comparisonFlags);
+    if (decoded.explanationMode !== undefined) actions.setExplanationMode(decoded.explanationMode);
+    if (decoded.selectedTemplate !== undefined) actions.setSelectedTemplate(decoded.selectedTemplate);
 
     // Reset flag after a tick
     setTimeout(() => {
       isUpdatingFromUrl.current = false;
     }, 0);
-  }, [urlPattern, urlFlags, urlText, actions]);
+  }, [urlPattern, urlFlags, urlText, urlCompPattern, urlCompFlags, urlMode, urlTemplate, actions]);
 
   // Update URL when state changes (but not when URL changed state)
   useEffect(() => {
     if (isUpdatingFromUrl.current) return;
 
-    // Encode state for URL
-    const encodedPattern = state.pattern
-      ? btoa(encodeURIComponent(state.pattern))
-      : null;
-    const encodedText = state.text
-      ? btoa(encodeURIComponent(state.text))
-      : null;
+    const encoded = encodeState(state);
 
-    setUrlPattern(encodedPattern);
-    setUrlFlags(state.flags || null);
-    setUrlText(encodedText);
-  }, [state.pattern, state.flags, state.text, setUrlPattern, setUrlFlags, setUrlText]);
+    setUrlPattern(encoded.p ?? null);
+    setUrlFlags(encoded.f ?? null);
+    setUrlText(encoded.t ?? null);
+    setUrlCompPattern(encoded.cp ?? null);
+    setUrlCompFlags(encoded.cf ?? null);
+    setUrlMode(encoded.m ?? null);
+    setUrlTemplate(encoded.tpl ?? null);
+  }, [
+    state,
+    setUrlPattern,
+    setUrlFlags,
+    setUrlText,
+    setUrlCompPattern,
+    setUrlCompFlags,
+    setUrlMode,
+    setUrlTemplate,
+  ]);
 }
 
 /**
- * Get the current share URL
+ * Get the current share URL. Delegates to serialize.ts.
  */
 export function getShareUrl(state: RegexState): string {
-  const url = new URL(window.location.origin + window.location.pathname);
-
-  if (state.pattern) {
-    url.searchParams.set("p", btoa(encodeURIComponent(state.pattern)));
-  }
-  if (state.flags) {
-    url.searchParams.set("f", state.flags);
-  }
-  if (state.text) {
-    url.searchParams.set("t", btoa(encodeURIComponent(state.text)));
-  }
-
-  return url.toString();
+  return buildShareUrl(state);
 }

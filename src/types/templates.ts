@@ -2,6 +2,13 @@
  * Template types for built-in regex examples
  */
 
+export type TemplateCategoryId =
+  | "validation"
+  | "extraction"
+  | "code"
+  | "advanced"
+  | "learning";
+
 export interface RegexTemplate {
   id: string;
   name: string;
@@ -9,12 +16,12 @@ export interface RegexTemplate {
   pattern: string;
   flags: string;
   text: string;
+  category: TemplateCategoryId;
   notes?: string[];
   tags?: string[];
 }
 
 export interface TemplateCategory {
-  id: string;
-  name: string;
-  templates: RegexTemplate[];
+  id: TemplateCategoryId;
+  label: string;
 }

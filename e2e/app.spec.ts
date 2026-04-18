@@ -93,3 +93,101 @@ test.describe("workspace integration", () => {
   });
 });
 
+test.describe("URL state sharing", () => {
+  test("shared URL with encoded state restores pattern and text", async ({ page }) => {
+    // Encode a known pattern and text as URL params
+    const pattern = btoa(encodeURIComponent("\\d+"));
+    const text = btoa(encodeURIComponent("abc 123 def"));
+    const flags = "gi";
+
+    await page.goto(`/app?p=${pattern}&f=${flags}&t=${text}`);
+
+    // Wait for workspace to load
+    await expect(
+      page.getByRole("heading", { name: "Pattern", exact: true })
+    ).toBeVisible({ timeout: 20_000 });
+
+    // The test text should appear in the textarea
+    await expect(page.getByText("abc 123 def")).toBeVisible({ timeout: 10_000 });
+
+    // Explanation panel should update based on the restored pattern
+    await expect(
+      page.getByText(/one or more/i)
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("invalid URL params do not crash the app", async ({ page }) => {
+    // Navigate with malformed base64 in params
+    await page.goto("/app?p=!!!invalid-base64!!!&f=xyz&t=also-broken");
+
+    // App should still load without crashing
+    await expect(
+      page.getByRole("heading", { name: "Pattern", exact: true })
+    ).toBeVisible({ timeout: 20_000 });
+
+    // Monaco editor should be visible (app not broken)
+    await expect(page.locator(".monaco-editor").first()).toBeVisible({
+      timeout: 30_000,
+    });
+  });
+});
+
+test.describe("template library", () => {
+  test("selecting a template updates workspace", async ({ page }) => {
+    await page.goto("/app");
+
+    // Wait for workspace to load
+    await expect(page.locator(".monaco-editor").first()).toBeVisible({
+      timeout: 30_000,
+    });
+
+    // Open template library dialog
+    await page.getByRole("button", { name: /Examples/i }).first().click();
+
+    // Dialog should appear with template library title
+    await expect(
+      page.getByRole("heading", { name: /Template Library/i })
+    ).toBeVisible({ timeout: 5_000 });
+
+    // Click the "Basic email" template
+    await page.getByText("Basic email").first().click();
+
+    // Dialog should close and workspace should update
+    await expect(
+      page.getByRole("heading", { name: /Template Library/i })
+    ).not.toBeVisible({ timeout: 5_000 });
+
+    // Test text from the email template should be visible
+    await expect(page.getByText("test@example.com")).toBeVisible({
+      timeout: 10_000,
+    });
+  });
+
+  test("template search filters results", async ({ page }) => {
+    await page.goto("/app");
+
+    await expect(page.locator(".monaco-editor").first()).toBeVisible({
+      timeout: 30_000,
+    });
+
+    // Open template library
+    await page.getByRole("button", { name: /Examples/i }).first().click();
+    await expect(
+      page.getByRole("heading", { name: /Template Library/i })
+    ).toBeVisible({ timeout: 5_000 });
+
+    // Search for "email"
+    const searchInput = page.getByPlaceholder("Search templates...");
+    await searchInput.fill("email");
+
+    // Should see email-related templates
+    await expect(page.getByText("Basic email")).toBeVisible({ timeout: 3_000 });
+    await expect(page.getByText("Brutal email validator")).toBeVisible({
+      timeout: 3_000,
+    });
+
+    // Non-email templates should not be visible
+    await expect(page.getByText("US phone number")).not.toBeVisible();
+  });
+});
+
