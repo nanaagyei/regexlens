@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { toast } from "sonner";
 import { RegexState, ExplanationStep, Warning } from "@/types";
+import { buildShareUrl } from "@/lib/regex/serialize";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -24,24 +26,13 @@ export function ShareBar({ state, steps = [], warnings = [] }: ShareBarProps) {
 
   const handleCopyLink = useCallback(async () => {
     try {
-      // Build share URL
-      const url = new URL(window.location.origin + window.location.pathname);
-
-      if (state.pattern) {
-        url.searchParams.set("p", btoa(encodeURIComponent(state.pattern)));
-      }
-      if (state.flags) {
-        url.searchParams.set("f", state.flags);
-      }
-      if (state.text) {
-        url.searchParams.set("t", btoa(encodeURIComponent(state.text)));
-      }
-
-      await navigator.clipboard.writeText(url.toString());
+      const url = buildShareUrl(state);
+      await navigator.clipboard.writeText(url);
       setCopied(true);
+      toast.success("Share link copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy:", error);
+    } catch {
+      toast.error("Failed to copy link");
     }
   }, [state]);
 

@@ -8,7 +8,7 @@ import { WorkspaceProvider, useWorkspace } from "@/contexts/WorkspaceContext";
 import { HoverSyncProvider } from "@/hooks/useHoverSync";
 import { useHoverSync } from "@/hooks/useHoverSync";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { getShareUrl } from "@/hooks/useUrlState";
+import { buildShareUrl } from "@/lib/regex/serialize";
 import { FIXTURE_TIMEOUT_MS } from "@/hooks/useRegexMatches";
 import { AppHeader } from "./AppHeader";
 import { PatternSection, PatternSectionRef } from "./PatternSection";
@@ -90,7 +90,7 @@ function AppShellLayout({
 
   const handleCopyShareLink = useCallback(async () => {
     try {
-      const url = getShareUrl(state);
+      const url = buildShareUrl(state);
       await navigator.clipboard.writeText(url);
     } catch (error) {
       console.error("Failed to copy share link:", error);

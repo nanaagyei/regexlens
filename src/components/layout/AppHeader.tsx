@@ -20,7 +20,7 @@ import { FixturePicker } from "@/components/fixtures/FixturePicker";
 import { ShareBar } from "@/components/share/ShareBar";
 import { UserMenu } from "./UserMenu";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { getShareUrl } from "@/hooks/useUrlState";
+import { buildShareUrl } from "@/lib/regex/serialize";
 import {
   BookText,
   Save,
@@ -230,7 +230,7 @@ function MobileNav({
           <DropdownMenuItem
             onClick={async () => {
               try {
-                const url = getShareUrl(state);
+                const url = buildShareUrl(state);
                 await navigator.clipboard.writeText(url);
                 toast.success("Link copied to clipboard");
               } catch (error) {

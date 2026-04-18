@@ -9,6 +9,7 @@ export { useRegexMatches } from "./useRegexMatches";
 export { useExplanation } from "./useExplanation";
 export { useWarnings } from "./useWarnings";
 export { useUrlState, getShareUrl } from "./useUrlState";
+export type { UrlStateActions } from "./useUrlState";
 export { useHoverSync, HoverSyncProvider } from "./useHoverSync";
 export { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 export { useUser } from "./useUser";
