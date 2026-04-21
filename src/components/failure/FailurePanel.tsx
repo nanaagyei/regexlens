@@ -17,9 +17,9 @@ export function FailurePanel({ failureAnalysis, matchResult, hasText }: FailureP
         <div className="text-muted-foreground mb-3">
           <FileText className="h-8 w-8" />
         </div>
-        <h3 className="text-sm font-medium mb-1">Enter test text</h3>
+        <h3 className="text-sm font-medium mb-1">Paste test input</h3>
         <p className="text-xs text-muted-foreground max-w-[250px]">
-          Type or paste text in the test field to check for matches
+          Paste the input that should (or shouldn&apos;t) match to diagnose failures
         </p>
       </div>
     );
@@ -48,7 +48,7 @@ export function FailurePanel({ failureAnalysis, matchResult, hasText }: FailureP
         </div>
         <h3 className="text-sm font-medium mb-1">No failure data</h3>
         <p className="text-xs text-muted-foreground max-w-[250px]">
-          Enter a valid pattern and test text to see failure analysis
+          Paste a valid pattern and test input to see failure analysis
         </p>
       </div>
     );

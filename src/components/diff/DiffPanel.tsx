@@ -85,7 +85,7 @@ export function DiffPanel({
             type="text"
             value={comparisonPattern}
             onChange={(e) => onComparisonPatternChange(e.target.value)}
-            placeholder="Enter old pattern..."
+            placeholder="Paste the previous regex..."
             className="flex-1 min-w-0 bg-muted/50 border rounded-md px-2 py-1.5 font-mono text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-ring"
             spellCheck={false}
             autoComplete="off"
@@ -132,11 +132,11 @@ export function DiffPanel({
               <ArrowLeftRight className="h-8 w-8" />
             </div>
             <h3 className="text-sm font-medium mb-1">
-              Enter a pattern to compare
+              Compare two regex versions
             </h3>
             <p className="text-xs text-muted-foreground max-w-[250px]">
-              Type the old regex pattern above to see a structural diff
-              against the current pattern
+              Paste the previous version above to see what changed between
+              two regex patterns
             </p>
           </div>
         ) : (

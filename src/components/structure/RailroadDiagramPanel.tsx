@@ -31,7 +31,7 @@ export function RailroadDiagramPanel({
           className
         )}
       >
-        <p>Enter a valid regex to see the railroad diagram.</p>
+        <p>Paste a valid regex to see its railroad diagram.</p>
         {parseResult.errorMessage && (
           <p className="mt-2 text-xs">{parseResult.errorMessage}</p>
         )}
