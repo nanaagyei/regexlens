@@ -176,10 +176,10 @@ export function SavedLibrary({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FolderOpen className="h-5 w-5" />
-              My Library
+              Saved Patterns
             </DialogTitle>
             <DialogDescription>
-              Your saved regex patterns. Click to load one into the editor.
+              Your saved regex patterns. Click to load one for review.
             </DialogDescription>
           </DialogHeader>
 
@@ -187,7 +187,7 @@ export function SavedLibrary({
             <SignInCallout
               className="py-8 space-y-0"
               title="Sign in required"
-              description="Sign in to save and organize your regex patterns."
+              description="Sign in to save patterns you review frequently."
             />
           ) : (
             <div className="flex flex-col flex-1 min-h-0">
@@ -244,7 +244,7 @@ export function SavedLibrary({
                     <p className="text-sm text-muted-foreground">
                       {searchQuery || selectedTag
                         ? "No snippets match your filters"
-                        : "No saved snippets yet"}
+                        : "No saved patterns yet"}
                     </p>
                     {(searchQuery || selectedTag) && (
                       <Button

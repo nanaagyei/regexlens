@@ -90,7 +90,7 @@ describe("ExplanationPanel", () => {
         parseResult={emptyParseResult}
       />
     );
-    expect(screen.getByText("Type a regex to see what it does")).toBeInTheDocument();
+    expect(screen.getByText("Paste a regex to understand what it does")).toBeInTheDocument();
   });
 
   it("renders error empty state with error message", () => {
@@ -100,7 +100,7 @@ describe("ExplanationPanel", () => {
         parseResult={errorParseResult}
       />
     );
-    expect(screen.getByText("Fix the pattern to generate an explanation")).toBeInTheDocument();
+    expect(screen.getByText("Fix the pattern to see its explanation")).toBeInTheDocument();
     expect(screen.getByText("Unterminated group")).toBeInTheDocument();
   });
 
@@ -121,7 +121,7 @@ describe("ExplanationPanel", () => {
         parseResult={validParseResult}
       />
     );
-    expect(screen.getByText("Empty pattern")).toBeInTheDocument();
+    expect(screen.getByText("No pattern yet")).toBeInTheDocument();
   });
 
   it("renders explanation steps when pattern is valid", () => {

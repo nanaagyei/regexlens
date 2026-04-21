@@ -47,11 +47,11 @@ const sampleFailure: FailureDiagnosis = {
 };
 
 describe("FailurePanel", () => {
-  it("renders 'Enter test text' when hasText is false", () => {
+  it("renders 'Paste test input' when hasText is false", () => {
     render(
       <FailurePanel failureAnalysis={null} matchResult={EMPTY_MATCH} hasText={false} />,
     );
-    expect(screen.getByText("Enter test text")).toBeInTheDocument();
+    expect(screen.getByText("Paste test input")).toBeInTheDocument();
   });
 
   it("renders 'Pattern matches' when match succeeds", () => {

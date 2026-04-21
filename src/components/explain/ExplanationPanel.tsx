@@ -89,8 +89,8 @@ export function ExplanationPanel({
   if (!parseResult.ok && !parseResult.errorMessage) {
     return (
       <EmptyState
-        title="Type a regex to see what it does"
-        description="Enter a pattern above to get a plain-English explanation"
+        title="Paste a regex to understand what it does"
+        description="Drop a pattern above to get a plain-English review"
       />
     );
   }
@@ -106,8 +106,8 @@ export function ExplanationPanel({
   if (explanation.steps.length === 0) {
     return (
       <EmptyState
-        title="Empty pattern"
-        description="Enter a regex pattern to see its explanation"
+        title="No pattern yet"
+        description="Paste a regex to see its explanation"
       />
     );
   }
@@ -260,7 +260,7 @@ function ErrorEmptyState({ errorMessage }: { errorMessage: string }) {
       <div className="text-red-400/60 mb-4">
         <RegexIllustration error />
       </div>
-      <h3 className="text-sm font-medium mb-1">Fix the pattern to generate an explanation</h3>
+      <h3 className="text-sm font-medium mb-1">Fix the pattern to see its explanation</h3>
       <p className="text-xs text-red-400 max-w-[280px] mb-2">{errorMessage}</p>
       {hint && (
         <p className="text-xs text-muted-foreground max-w-[280px] italic">{hint}</p>

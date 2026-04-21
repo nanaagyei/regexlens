@@ -45,10 +45,10 @@ interface TabDef {
 
 const PRIMARY_TABS: TabDef[] = [
   { value: "explanation", label: "Explain", shortLabel: "Exp", icon: FileText },
-  { value: "analysis", label: "Analysis", shortLabel: "Analyze", icon: Search },
+  { value: "analysis", label: "Safety", shortLabel: "Safe", icon: Search },
   { value: "warnings", label: "Warnings", shortLabel: "Warn", icon: AlertTriangle },
   { value: "failure", label: "Failure", shortLabel: "Fail", icon: XCircle },
-  { value: "copilot", label: "Copilot", shortLabel: "AI", icon: Sparkles },
+  { value: "copilot", label: "Review", shortLabel: "Rev", icon: Sparkles },
 ];
 
 const OVERFLOW_TABS: TabDef[] = [

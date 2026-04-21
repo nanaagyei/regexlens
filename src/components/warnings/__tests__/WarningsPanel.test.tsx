@@ -80,13 +80,13 @@ describe("WarningsPanel", () => {
   it("shows 'No issues detected' when there are no warnings", () => {
     render(<WarningsPanel warnings={emptyWarnings} parseResult={validParse} />);
     expect(screen.getByText("No issues detected")).toBeInTheDocument();
-    expect(screen.getByText("This pattern looks good!")).toBeInTheDocument();
+    expect(screen.getByText("This pattern passes all safety checks.")).toBeInTheDocument();
   });
 
   it("shows 'Invalid pattern' for failed parseResult", () => {
     render(<WarningsPanel warnings={emptyWarnings} parseResult={errorParse} />);
     expect(screen.getByText("Invalid pattern")).toBeInTheDocument();
-    expect(screen.getByText("Fix the pattern to check for warnings")).toBeInTheDocument();
+    expect(screen.getByText("Fix the pattern to run safety checks")).toBeInTheDocument();
   });
 
   // -- Normal rendering --
@@ -97,9 +97,9 @@ describe("WarningsPanel", () => {
     expect(screen.getByText("Unescaped dot")).toBeInTheDocument();
   });
 
-  it("shows Potential issues header", () => {
+  it("shows Safety review header", () => {
     render(<WarningsPanel warnings={multipleWarnings} parseResult={validParse} />);
-    expect(screen.getByText("Potential issues")).toBeInTheDocument();
+    expect(screen.getByText("Safety review")).toBeInTheDocument();
   });
 
   // -- Risk indicator --
