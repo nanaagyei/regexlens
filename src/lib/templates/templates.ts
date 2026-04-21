@@ -204,7 +204,7 @@ bad-key==oops`,
     id: "danger-demo",
     name: "Danger: Catastrophic backtracking",
     description: "Demonstrates catastrophic backtracking — matching may time out",
-    // codeql[js/redos] Intentional: this template demonstrates catastrophic backtracking for educational purposes
+// codeql[js/redos] Intentional: this template demonstrates catastrophic backtracking for educational purposes
     pattern: "^(a+)+$",
     flags: "",
     text: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaX`,
