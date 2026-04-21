@@ -86,6 +86,7 @@ export function DiffPanel({
             value={comparisonPattern}
             onChange={(e) => onComparisonPatternChange(e.target.value)}
             placeholder="Paste the previous regex..."
+            data-testid="comparison-pattern-input"
             className="flex-1 min-w-0 bg-muted/50 border rounded-md px-2 py-1.5 font-mono text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-ring"
             spellCheck={false}
             autoComplete="off"
@@ -105,6 +106,8 @@ export function DiffPanel({
                     variant={isActive ? "default" : "outline"}
                     size="sm"
                     onClick={() => toggleComparisonFlag(flag)}
+                    data-testid={`comparison-flag-${flag}`}
+                    data-active={isActive ? "true" : "false"}
                     className={cn(
                       "h-6 w-6 p-0 font-mono text-xs",
                       isActive
