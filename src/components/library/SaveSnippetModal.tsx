@@ -174,12 +174,12 @@ export function SaveSnippetModal({
       <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Edit Snippet" : "Save Regex"}
+            {isEditing ? "Edit Pattern" : "Save Pattern"}
           </DialogTitle>
           <DialogDescription>
             {isEditing
-              ? "Update your saved regex snippet."
-              : "Save this regex pattern to your library for quick access later."}
+              ? "Update your saved regex pattern."
+              : "Save this pattern to your library for future reference and review."}
           </DialogDescription>
         </DialogHeader>
 
@@ -187,7 +187,7 @@ export function SaveSnippetModal({
           <SignInCallout
             className="py-6 space-y-0"
             title="Sign in required"
-            description="Sign in to save and organize your regex patterns."
+            description="Sign in to save patterns you review frequently."
           />
         ) : (
           <div className="space-y-4">
@@ -229,7 +229,7 @@ export function SaveSnippetModal({
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="What does this regex do?"
+                placeholder="What does this pattern do? Why is it here?"
                 maxLength={2000}
                 rows={3}
                 className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"

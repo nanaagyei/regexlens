@@ -51,7 +51,7 @@ const FORMAT_OPTIONS: FormatOption[] = [
   {
     id: "pr_comment",
     name: "PR Comment",
-    description: "GitHub-friendly collapsible format",
+    description: "Ready to paste into a PR review",
     icon: <MessageSquare className="h-5 w-5" />,
   },
   {
@@ -97,7 +97,7 @@ export function ExportModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           format: selectedFormat,
-          title: "Regex Explanation",
+          title: "Regex Review",
           pattern,
           flags,
           steps: steps.map((step) => ({
@@ -158,7 +158,7 @@ export function ExportModal({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `regex-explanation.${extensions[selectedFormat]}`;
+    a.download = `regex-review.${extensions[selectedFormat]}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -182,10 +182,10 @@ export function ExportModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Export Explanation
+            Export Review
           </DialogTitle>
           <DialogDescription>
-            Export your regex explanation in various formats for documentation or sharing.
+            Export this regex review for documentation, PR comments, or team sharing.
           </DialogDescription>
         </DialogHeader>
 
@@ -197,7 +197,7 @@ export function ExportModal({
             <div className="space-y-2">
               <h3 className="font-semibold">Sign in required</h3>
               <p className="text-sm text-muted-foreground">
-                Sign in to export explanations to Markdown, PR comments, and more.
+                Sign in to export regex reviews to Markdown, PR comments, and more.
               </p>
             </div>
           </div>

@@ -66,11 +66,11 @@ export function ShareBar({ state, steps = [], warnings = [] }: ShareBarProps) {
           <TooltipContent className="flex items-center gap-2">
             {canShare ? (
               <>
-                Copy shareable link
+                Copy review link
                 <Kbd keys={["mod", "Shift", "C"]} />
               </>
             ) : (
-              "Enter a pattern to share"
+              "Paste a pattern to share"
             )}
           </TooltipContent>
         </Tooltip>
@@ -90,8 +90,8 @@ export function ShareBar({ state, steps = [], warnings = [] }: ShareBarProps) {
           </TooltipTrigger>
           <TooltipContent>
             {state.pattern
-              ? "Export explanation"
-              : "Enter a pattern to export"}
+              ? "Export review"
+              : "Paste a pattern to export"}
           </TooltipContent>
         </Tooltip>
       </div>

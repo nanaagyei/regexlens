@@ -91,9 +91,9 @@ export function TemplatePicker({
 
       <DialogContent className="max-w-2xl w-[calc(100%-2rem)] max-h-[85vh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4 space-y-3">
-          <DialogTitle>Template Library</DialogTitle>
+          <DialogTitle>Example Patterns</DialogTitle>
           <DialogDescription className="sr-only">
-            Browse and select curated regex templates
+            Browse curated regex patterns to review and learn from
           </DialogDescription>
 
           {/* Search input */}
@@ -102,7 +102,7 @@ export function TemplatePicker({
             <input
               ref={searchRef}
               type="text"
-              placeholder="Search templates..."
+              placeholder="Search patterns..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
