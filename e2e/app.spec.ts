@@ -10,7 +10,7 @@ test.describe("smoke", () => {
       })
     ).toBeVisible({ timeout: 20_000 });
 
-    await page.getByRole("link", { name: /Open the app/i }).first().click();
+    await page.getByRole("link", { name: /Open RegexLens/i }).first().click();
     await expect(page).toHaveURL(/\/app/, { timeout: 20_000 });
   });
 
@@ -58,7 +58,9 @@ test.describe("workspace integration", () => {
     // Open the "More" dropdown and click Structure
     await page.getByRole("button", { name: /More tabs/i }).click();
     await page.getByRole("menuitem", { name: /Structure/i }).click();
-    await expect(page.getByText(/how it.*built/i)).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText(/pattern structure/i)).toBeVisible({
+      timeout: 5_000,
+    });
 
     // Click back to Explanation tab
     await page.getByRole("tab", { name: /Explain|Exp/i }).click();
@@ -146,7 +148,7 @@ test.describe("template library", () => {
 
     // Dialog should appear with template library title
     await expect(
-      page.getByRole("heading", { name: /Template Library/i })
+      page.getByRole("heading", { name: /Example Patterns/i })
     ).toBeVisible({ timeout: 5_000 });
 
     // Click the "Basic email" template
@@ -154,7 +156,7 @@ test.describe("template library", () => {
 
     // Dialog should close and workspace should update
     await expect(
-      page.getByRole("heading", { name: /Template Library/i })
+      page.getByRole("heading", { name: /Example Patterns/i })
     ).not.toBeVisible({ timeout: 5_000 });
 
     // Test text from the email template should be visible
@@ -173,11 +175,11 @@ test.describe("template library", () => {
     // Open template library
     await page.getByRole("button", { name: /Examples/i }).first().click();
     await expect(
-      page.getByRole("heading", { name: /Template Library/i })
+      page.getByRole("heading", { name: /Example Patterns/i })
     ).toBeVisible({ timeout: 5_000 });
 
     // Search for "email"
-    const searchInput = page.getByPlaceholder("Search templates...");
+    const searchInput = page.getByPlaceholder("Search patterns...");
     await searchInput.fill("email");
 
     // Should see email-related templates
