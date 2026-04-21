@@ -55,9 +55,9 @@ import {
 const HOW_IT_WORKS = [
   {
     step: "01",
-    title: "Paste your regex",
+    title: "Paste a regex you inherited",
     description:
-      "Drop any regex pattern into the editor. Start from scratch or pick from built-in templates — email validators, URL parsers, log matchers, and more.",
+      "Paste any regex from a PR, config file, or codebase. No need to start from scratch — you're here to understand what's already written.",
     icon: Copy,
     image:
       "images/first.png",
@@ -65,9 +65,9 @@ const HOW_IT_WORKS = [
   },
   {
     step: "02",
-    title: "Get instant clarity",
+    title: "Understand it instantly",
     description:
-      "See plain-English explanations, live match highlighting, and a visual AST tree — all updating in real time as you type.",
+      "Read a plain-English breakdown, inspect the visual syntax tree, and verify matches — all updating in real time.",
     icon: Sparkles,
     image:
       "images/second.png",
@@ -75,9 +75,9 @@ const HOW_IT_WORKS = [
   },
   {
     step: "03",
-    title: "Ship with confidence",
+    title: "Review and share with your team",
     description:
-      "Share regex links with your team, export analysis, and catch performance issues before they reach production.",
+      "Generate a shareable link for code reviews, export the analysis for documentation, and catch safety issues before they reach production.",
     icon: Download,
     image:
       "images/third.png",
@@ -90,7 +90,7 @@ const FEATURES = [
     icon: FileText,
     title: "Plain-English Explanations",
     description:
-      "Every regex breaks down into clear, human-readable steps. No more deciphering cryptic symbols.",
+      "Every regex breaks down into clear, human-readable steps. Understand inherited patterns in seconds, not minutes.",
     accent: "from-violet-500/20 to-fuchsia-500/20",
     iconColor: "text-violet-400",
   },
@@ -106,7 +106,7 @@ const FEATURES = [
     icon: TreeDeciduous,
     title: "Visual Structure Tree",
     description:
-      "Explore your regex as a collapsible AST. Click any node to jump to its position in the pattern.",
+      "Inspect the regex structure as a collapsible AST. Click any node to understand its role in the pattern.",
     accent: "from-emerald-500/20 to-teal-500/20",
     iconColor: "text-emerald-400",
   },
@@ -122,7 +122,7 @@ const FEATURES = [
     icon: Share2,
     title: "Instant Sharing",
     description:
-      "Generate shareable links that preserve pattern, flags, and test text. Your teammate sees exactly what you see.",
+      "Share regex review links in PRs and Slack. Your reviewer sees the pattern, explanation, and warnings in one click.",
     accent: "from-pink-500/20 to-rose-500/20",
     iconColor: "text-pink-400",
   },
@@ -162,7 +162,7 @@ const SOLUTION_POINTS = [
 const FAQ_ITEMS = [
   {
     q: "What is RegexLens?",
-    a: "RegexLens is an open-source developer tool for understanding, testing, and documenting JavaScript regular expressions. It provides plain-English explanations, live match highlighting, a visual structure tree, and built-in safety warnings.",
+    a: "RegexLens is an open-source developer tool for understanding, reviewing, and debugging JavaScript regular expressions. It provides plain-English explanations, safety analysis, a visual structure tree, and shareable review links.",
   },
   {
     q: "Do I need an account?",
@@ -178,7 +178,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Can I use it for code reviews?",
-    a: "Yes. Generate a shareable link and paste it into a PR comment. Reviewers see the pattern, test text, explanations, and warnings in one click.",
+    a: "Absolutely — that's what it's built for. Generate a shareable link and paste it into a PR comment. Reviewers see the pattern, explanation, safety warnings, and match behavior in one click.",
   },
   {
     q: "Is RegexLens open source?",
@@ -400,7 +400,7 @@ export function LandingPage() {
             </Button>
             <Button size="sm" asChild>
               <Link href="/app" className="gap-1.5">
-                Open the app
+                Open RegexLens
                 <ArrowRight className="ml-1.5 h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             </Button>
@@ -432,7 +432,7 @@ export function LandingPage() {
                   )
                 )}
                 <DropdownMenuItem asChild>
-                  <Link href="/app">Open the app</Link>
+                  <Link href="/app">Open RegexLens</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -464,15 +464,15 @@ export function LandingPage() {
             </h1>
 
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              RegexLens explains JavaScript regular expressions with interactive structure,
-              live matches, and safety insights — built in public for developers who review,
-              teach, and ship regex every week.
+              The fastest way to understand, review, and safely modify regular expressions.
+              Paste any pattern and get instant clarity — plain-English breakdowns, safety
+              warnings, and shareable analysis.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4" aria-label="Primary calls to action">
               <Button size="lg" asChild className="text-base h-12 px-8 shadow-lg shadow-primary/20">
                 <Link href="/app">
-                  Open the app
+                  Start reviewing
                   <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
@@ -489,7 +489,7 @@ export function LandingPage() {
             </div>
 
             <p className="text-sm text-muted-foreground/80 mb-16">
-              No account required for the core workbench. Self-host or contribute on GitHub.
+              No account required. Runs in your browser. Self-host or contribute on GitHub.
             </p>
 
             <AnimatedRegex reducedMotion={reducedMotion} />
@@ -521,8 +521,8 @@ export function LandingPage() {
                 How it works
               </p>
               <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold max-w-3xl mx-auto leading-tight">
-                From regex confusion to{" "}
-                <span className="text-primary">clarity</span> in three steps
+                From inherited regex to{" "}
+                <span className="text-primary">confident review</span> in three steps
               </h2>
             </div>
 
@@ -548,7 +548,7 @@ export function LandingPage() {
                     </p>
                     <Button variant="outline" size="sm" asChild className="mt-2 group">
                       <Link href="/app">
-                        Open in the app
+                        Try in RegexLens
                         <ArrowRight className="ml-1.5 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                       </Link>
                     </Button>
@@ -601,7 +601,7 @@ export function LandingPage() {
                 <div className="absolute bottom-6 left-6 right-6">
                   <Button size="lg" asChild className="shadow-lg">
                     <Link href="/app">
-                      Open the app
+                      Open RegexLens
                       <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                     </Link>
                   </Button>
@@ -626,12 +626,14 @@ export function LandingPage() {
                 </h2>
                 <div className="space-y-4 text-muted-foreground text-lg leading-relaxed">
                   <p>
-                    Regular expressions are hard to read, harder to explain, easy
-                    to break, and dangerous when inefficient.
+                    You inherited a regex you didn&apos;t write. It&apos;s hard to read,
+                    harder to explain to reviewers, easy to break, and dangerous
+                    when inefficient.
                   </p>
                   <p>
-                    Most tools tell you <em>if</em> a regex matches. Very few
-                    explain <strong className="text-foreground">why</strong>.
+                    Most tools tell you <em>if</em> a regex matches. RegexLens
+                    tells you <strong className="text-foreground">why</strong>,
+                    where it&apos;s risky, and whether it&apos;s safe to approve.
                   </p>
                 </div>
 
@@ -640,8 +642,8 @@ export function LandingPage() {
                     {"/^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$/"}
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Can you tell what this does in 5 seconds? Your teammates
-                    {" can\u2019t"} either.
+                    This just showed up in a PR. Can you review it in 5 seconds?
+                    Neither can your teammates.
                   </p>
                 </div>
               </div>
@@ -651,7 +653,7 @@ export function LandingPage() {
                   The solution
                 </p>
                 <h2 className="font-serif text-2xl sm:text-3xl font-bold mb-8">
-                  RegexLens shows you everything.
+                  RegexLens gives you a complete review.
                 </h2>
                 <div className="grid gap-4">
                   {SOLUTION_POINTS.map((point) => (
@@ -686,11 +688,11 @@ export function LandingPage() {
                 Feature highlights
               </p>
               <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold">
-                Built for clarity
+                Built for review
               </h2>
               <p className="text-muted-foreground text-lg mt-4 max-w-2xl mx-auto">
-                Every feature is designed to make regex less mysterious and more
-                productive.
+                Every feature is designed to help you understand, review, and
+                safely approve regex changes.
               </p>
             </div>
 
@@ -974,7 +976,7 @@ export function LandingPage() {
             </div>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
               <Button size="lg" asChild className="h-12 px-8">
-                <Link href="/app">Open the app</Link>
+                <Link href="/app">Open RegexLens</Link>
               </Button>
               <Button size="lg" variant="outline" asChild className="h-12 px-8 border-border/60">
                 <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" className="gap-2">
@@ -1002,12 +1004,12 @@ export function LandingPage() {
             <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
               Ready to{" "}
               <span className="bg-gradient-to-r from-primary to-violet-400 bg-clip-text text-transparent">
-                decode
+                review
               </span>{" "}
               your next regex?
             </h2>
             <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-              Ship regex reviews with a shared, inspectable tool — no account required to get started.
+              Understand inherited regex in seconds. Share a review link with your team — no account required.
             </p>
             <Button
               size="lg"
@@ -1015,7 +1017,7 @@ export function LandingPage() {
               className="h-14 px-10 shadow-lg shadow-primary/20 text-lg"
             >
               <Link href="/app">
-                Open the app
+                Start reviewing
                 <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
               </Link>
             </Button>
@@ -1038,7 +1040,7 @@ export function LandingPage() {
                 />
               </Link>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Understand any regex instantly. Open-source visual analysis for JavaScript RegExp.
+                The fastest way to understand, review, and safely modify regular expressions.
               </p>
             </div>
             <div>
@@ -1049,7 +1051,7 @@ export function LandingPage() {
                     href="/app"
                     className="hover:text-foreground transition-colors"
                   >
-                    Open the app
+                    Open RegexLens
                   </Link>
                 </li>
                 <li>

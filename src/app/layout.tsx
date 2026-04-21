@@ -22,9 +22,9 @@ const sora = Sora({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://regexlens.dev";
 const siteName = "RegexLens";
-const siteTitle = "RegexLens - Regex Tester, Debugger & Visualizer";
+const siteTitle = "RegexLens — Understand, Review & Debug Regular Expressions";
 const siteDescription =
-  "A powerful, UI-first developer tool for understanding, testing, and documenting regular expressions. See what it matches, why it matches, and how it's structured. Features real-time testing, visual AST explorer, step-by-step explanations, and pattern warnings.";
+  "The fastest way to understand, review, and safely modify regular expressions. Paste any regex for plain-English explanations, safety warnings, structural analysis, and shareable review links — all in your browser.";
 
 export const metadata: Metadata = {
   // Basic metadata
@@ -39,22 +39,21 @@ export const metadata: Metadata = {
   keywords: [
     "regex",
     "regular expressions",
-    "regex tester",
+    "regex review",
     "regex debugger",
     "regex visualizer",
     "regex explanation",
     "regex validator",
-    "regex builder",
+    "regex code review",
     "regex parser",
     "regex analyzer",
+    "regex safety",
+    "regex understanding",
     "pattern matching",
     "developer tools",
     "programming tools",
     "JavaScript regex",
     "regex online",
-    "regex playground",
-    "regex cheat sheet",
-    "regex tutorial",
     "regex examples",
     "regex patterns",
     "text matching",
@@ -103,7 +102,7 @@ export const metadata: Metadata = {
         url: `${siteUrl}/regexlens-logo.png`,
         width: 512,
         height: 512,
-        alt: "RegexLens - Regex Tester & Debugger",
+        alt: "RegexLens — Understand, Review & Debug Regular Expressions",
         type: "image/png",
       },
     ],
@@ -207,16 +206,16 @@ export default function RootLayout({
                 "@type": "Offer",
                 price: "0",
                 priceCurrency: "USD",
-                description: "Free tier available",
+                description: "Free and open source",
               },
               featureList: [
-                "Real-time regex testing",
+                "Plain-English regex explanations",
                 "Visual AST explorer",
-                "Step-by-step pattern explanations",
+                "Regex safety and risk analysis",
                 "Pattern warnings and suggestions",
                 "Match highlighting",
                 "Capture group visualization",
-                "Shareable regex links",
+                "Shareable regex review links",
                 "Export to multiple formats",
               ],
               screenshot: `${siteUrl}/regexlens-logo.png`,
