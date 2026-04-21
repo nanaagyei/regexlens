@@ -148,7 +148,7 @@ export function AnalysisPanel({ pattern, flags, parseResult }: AnalysisPanelProp
         </div>
         <h3 className="text-sm font-medium mb-1">Invalid pattern</h3>
         <p className="text-xs text-red-400 max-w-[250px]">
-          Fix the pattern to run analysis
+          Fix the pattern to run safety analysis
         </p>
       </div>
     );
@@ -164,7 +164,7 @@ export function AnalysisPanel({ pattern, flags, parseResult }: AnalysisPanelProp
         </div>
         <h3 className="font-semibold mb-2">Sign in required</h3>
         <p className="text-sm text-muted-foreground mb-4 max-w-[280px]">
-          Sign in to run advanced regex analysis with risk scoring, backtracking detection, and rewrite suggestions.
+          Sign in to run deep safety analysis with risk scoring, backtracking detection, and safe rewrite suggestions.
         </p>
       </div>
     );
@@ -175,7 +175,7 @@ export function AnalysisPanel({ pattern, flags, parseResult }: AnalysisPanelProp
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
         <Search className="h-10 w-10 text-muted-foreground mb-3" />
         <p className="text-sm text-muted-foreground">
-          Enter a regex pattern to run advanced analysis.
+          Paste a regex pattern to run deep safety analysis.
         </p>
       </div>
     );
@@ -197,7 +197,7 @@ export function AnalysisPanel({ pattern, flags, parseResult }: AnalysisPanelProp
           ) : (
             <>
               <Search className="h-4 w-4" />
-              Run Analysis
+              Run Safety Analysis
             </>
           )}
         </Button>

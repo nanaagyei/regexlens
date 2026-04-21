@@ -27,7 +27,7 @@ export function PatternGenerator({
     <div className="border border-dashed border-border/60 rounded-lg p-3 space-y-2">
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Wand2 className="h-3.5 w-3.5" />
-        <span className="font-medium">Describe what you want to match</span>
+        <span className="font-medium">Describe what you need to match</span>
       </div>
       <div className="flex gap-2">
         <input

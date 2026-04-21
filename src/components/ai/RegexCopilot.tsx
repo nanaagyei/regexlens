@@ -112,8 +112,8 @@ export function RegexCopilot({
     return (
       <div className="flex flex-col items-center justify-center h-full p-8">
         <SignInCallout
-          title="Regex Copilot"
-          description="Sign in to get AI-powered pattern analysis, smart suggestions, edge case detection, and pattern generation."
+          title="Review Assistant"
+          description="Sign in for AI-powered review assistance — edge case detection, safety checks, optimization suggestions, and plain-English summaries."
         />
       </div>
     );
@@ -127,7 +127,7 @@ export function RegexCopilot({
       <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-medium">Regex Copilot</h3>
+          <h3 className="text-sm font-medium">Review Assistant</h3>
         </div>
         {messages.length > 0 && (
           <Button
@@ -201,8 +201,8 @@ export function RegexCopilot({
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleFreeform()}
             placeholder={
               hasPattern
-                ? "Ask about this pattern..."
-                : "Enter a pattern first..."
+                ? "Ask a review question..."
+                : "Paste a pattern first..."
             }
             disabled={!hasPattern || isStreaming}
             className={cn(
@@ -258,11 +258,11 @@ function EmptyState({
         <div className="mx-auto w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
           <Sparkles className="h-5 w-5 text-primary" />
         </div>
-        <h3 className="text-sm font-medium">Regex Copilot</h3>
+        <h3 className="text-sm font-medium">Review Assistant</h3>
         <p className="text-xs text-muted-foreground max-w-[240px] mx-auto">
           {hasPattern
-            ? "Ask me anything about your pattern, or try a smart action below."
-            : "Enter a pattern to get started, or describe what you want to match."}
+            ? "Ask anything about this pattern, or use a quick review action below."
+            : "Paste a pattern to get started with AI-assisted review."}
         </p>
       </div>
 
