@@ -80,23 +80,23 @@ describe("StepRow", () => {
 
   it("calls setHoveredStepId and setHoveredRange on mouse enter", () => {
     const step = makeStep({ range: { start: 0, end: 3 } });
-    renderWithProviders(<StepRow step={step} index={0} />);
-    fireEvent.mouseEnter(screen.getByRole("button"));
+    const { container } = renderWithProviders(<StepRow step={step} index={0} />);
+    fireEvent.mouseEnter(container.firstElementChild!);
     expect(mockSetHoveredStepId).toHaveBeenCalledWith("step-1");
     expect(mockSetHoveredRange).toHaveBeenCalledWith({ start: 0, end: 3 });
   });
 
   it("clears hover state on mouse leave when not locked", () => {
-    renderWithProviders(<StepRow step={makeStep()} index={0} />);
-    fireEvent.mouseLeave(screen.getByRole("button"));
+    const { container } = renderWithProviders(<StepRow step={makeStep()} index={0} />);
+    fireEvent.mouseLeave(container.firstElementChild!);
     expect(mockSetHoveredStepId).toHaveBeenCalledWith(null);
     expect(mockSetHoveredRange).toHaveBeenCalledWith(null);
   });
 
   it("does not clear hover state on mouse leave when locked", () => {
     currentHoverState = { ...defaultHoverState, lockedStepId: "step-1" };
-    renderWithProviders(<StepRow step={makeStep()} index={0} />);
-    fireEvent.mouseLeave(screen.getByRole("button"));
+    const { container } = renderWithProviders(<StepRow step={makeStep()} index={0} />);
+    fireEvent.mouseLeave(container.firstElementChild!);
     expect(mockSetHoveredStepId).not.toHaveBeenCalled();
     expect(mockSetHoveredRange).not.toHaveBeenCalled();
   });
@@ -121,13 +121,15 @@ describe("StepRow", () => {
 
   it("renders pin icon when step is locked", () => {
     currentHoverState = { ...defaultHoverState, lockedStepId: "step-1" };
-    renderWithProviders(<StepRow step={makeStep()} index={0} />);
-    expect(screen.getByLabelText("Locked")).toBeInTheDocument();
+    const { container } = renderWithProviders(<StepRow step={makeStep()} index={0} />);
+    const pin = container.querySelector(".lucide-pin");
+    expect(pin).toBeInTheDocument();
   });
 
   it("does not render pin icon when step is not locked", () => {
-    renderWithProviders(<StepRow step={makeStep()} index={0} />);
-    expect(screen.queryByLabelText("Locked")).not.toBeInTheDocument();
+    const { container } = renderWithProviders(<StepRow step={makeStep()} index={0} />);
+    const pin = container.querySelector(".lucide-pin");
+    expect(pin).not.toBeInTheDocument();
   });
 
   it("renders depth connector for nested steps", () => {
@@ -186,9 +188,8 @@ describe("StepRow", () => {
 
   it("has accessible role and label", () => {
     renderWithProviders(<StepRow step={makeStep()} index={0} />);
-    const btn = screen.getByRole("button");
+    const btn = screen.getByRole("button", { name: "Step 1: One or more digits" });
     expect(btn).toHaveAttribute("aria-label", "Step 1: One or more digits");
-    expect(btn).toHaveAttribute("tabindex", "0");
   });
 
   it("renders detail text when present", () => {

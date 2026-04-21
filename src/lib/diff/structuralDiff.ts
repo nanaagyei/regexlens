@@ -140,9 +140,8 @@ function matchChildrenByKey(
   const newByKey = groupByKey(newChildren);
   const allKeys = new Set([...oldByKey.keys(), ...newByKey.keys()]);
 
-  // Track processed nodes
-  const processedOld = new Set<number>();
-  const processedNew = new Set<number>();
+  const pairedOld = new Set<number>();
+  const pairedNew = new Set<number>();
 
   // Phase 1: Match by exact key
   for (const key of allKeys) {
@@ -151,28 +150,20 @@ function matchChildrenByKey(
     const matchCount = Math.min(oldGroup.length, newGroup.length);
 
     for (let i = 0; i < matchCount; i++) {
-      processedOld.add(oldGroup[i].index);
-      processedNew.add(newGroup[i].index);
+      pairedOld.add(oldGroup[i].index);
+      pairedNew.add(newGroup[i].index);
       changes.push(...diffNode(oldGroup[i].node, newGroup[i].node, parentPath));
     }
-
-    // Mark excess as unmatched (don't emit yet — Phase 2 may pair them)
-    for (let i = matchCount; i < oldGroup.length; i++) processedOld.add(oldGroup[i].index);
-    for (let i = matchCount; i < newGroup.length; i++) processedNew.add(newGroup[i].index);
   }
 
-  // Collect truly unmatched nodes (those processed by key but with no pair)
+  // Collect unmatched nodes (not paired in Phase 1)
   const unmatchedOld: ComparableNode[] = [];
   const unmatchedNew: ComparableNode[] = [];
   for (let i = 0; i < oldChildren.length; i++) {
-    if (!isKeyMatched(oldChildren[i].key, oldByKey, newByKey)) {
-      unmatchedOld.push(oldChildren[i]);
-    }
+    if (!pairedOld.has(i)) unmatchedOld.push(oldChildren[i]);
   }
   for (let i = 0; i < newChildren.length; i++) {
-    if (!isKeyMatched(newChildren[i].key, newByKey, oldByKey)) {
-      unmatchedNew.push(newChildren[i]);
-    }
+    if (!pairedNew.has(i)) unmatchedNew.push(newChildren[i]);
   }
 
   // Phase 2: Match remaining unmatched by type (modification detection)
@@ -210,15 +201,6 @@ function matchChildrenByKey(
   }
 
   return changes;
-}
-
-/** Check if a key exists in the counterpart grouping (i.e., was matched by key). */
-function isKeyMatched(
-  key: string,
-  _ownGroup: Map<string, IndexedNode[]>,
-  otherGroup: Map<string, IndexedNode[]>,
-): boolean {
-  return otherGroup.has(key);
 }
 
 interface IndexedNode {

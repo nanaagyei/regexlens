@@ -68,14 +68,12 @@ export function analyzeFailure(
 
   const ctx: SimContext = { text, caseInsensitive, multiline, dotAll };
 
-  // For non-global or non-anchored patterns, try from each position
-  const hasStartAnchor = patternStartsWithAnchor(normalized);
-  const maxStart = hasStartAnchor ? 0 : text.length - 1;
+  const candidatePositions = getCandidateStartPositions(normalized, text, multiline);
 
   let bestFailure: SimFailure | null = null;
   let bestProgress = -1;
 
-  for (let startPos = 0; startPos <= maxStart; startPos++) {
+  for (const startPos of candidatePositions) {
     const result = simulateNode(normalized, startPos, ctx);
     if (result.matched) {
       // Shouldn't happen since matchResult says no matches, but be safe
@@ -571,6 +569,26 @@ function isWordBoundary(text: string, pos: number): boolean {
 
 function isWordChar(ch: string): boolean {
   return /[a-zA-Z0-9_]/.test(ch);
+}
+
+function getCandidateStartPositions(
+  node: ComparableNode,
+  text: string,
+  multiline: boolean,
+): number[] {
+  if (!patternStartsWithAnchor(node)) {
+    return Array.from({ length: text.length }, (_, i) => i);
+  }
+  if (multiline) {
+    const positions = [0];
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === "\n" && i + 1 < text.length) {
+        positions.push(i + 1);
+      }
+    }
+    return positions;
+  }
+  return [0];
 }
 
 function patternStartsWithAnchor(node: ComparableNode): boolean {

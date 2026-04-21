@@ -73,7 +73,7 @@ export function formatSimple(units: SemanticUnit[]): ExplanationStep[] {
         return [
           {
             id: id(),
-            label: SIMPLE_ESCAPE[unit.escapeType] ?? `Literal "${unit.raw.replace("\\", "")}"`,
+            label: SIMPLE_ESCAPE[unit.escapeType] ?? `Literal "${unit.raw.replace(/\\/g, "")}"`,
             detail: SIMPLE_ESCAPE_DETAIL[unit.escapeType],
             kind: "escape",
             depth,
@@ -85,7 +85,7 @@ export function formatSimple(units: SemanticUnit[]): ExplanationStep[] {
         return [charClassStep(unit, depth)];
 
       case "quantified":
-        return [quantifiedStep(unit, depth)];
+        return quantifiedSteps(unit, depth);
 
       case "group":
         return groupSteps(unit, depth);
@@ -138,33 +138,6 @@ export function formatSimple(units: SemanticUnit[]): ExplanationStep[] {
     };
   }
 
-  function quantifiedStep(
-    unit: QuantifiedUnit,
-    depth: number
-  ): ExplanationStep {
-    const { min, max } = unit;
-    const [singular, plural] = targetNoun(unit.target);
-    const label = fuseQuantity(min, max, singular, plural);
-
-    const steps: ExplanationStep[] = [];
-    steps.push({
-      id: id(),
-      label,
-      kind: "quantifier",
-      depth,
-      range: unit.range,
-    });
-
-    // If target is a group, add its body as children
-    if (unit.target.kind === "group") {
-      const body = formatUnits(unit.target.group.body, depth + 1);
-      steps.push(...body);
-    }
-
-    return steps.length === 1 ? steps[0] : steps[0];
-  }
-
-  // For quantified groups we need all steps
   function quantifiedSteps(
     unit: QuantifiedUnit,
     depth: number
@@ -193,8 +166,6 @@ export function formatSimple(units: SemanticUnit[]): ExplanationStep[] {
     unit: GroupUnit,
     depth: number
   ): ExplanationStep[] {
-    // Non-capturing groups are already inlined by the caller
-    // This handles only capturing groups
     const label = unit.name
       ? `Capture as "${unit.name}"`
       : `Capture group #${unit.number}`;
@@ -254,33 +225,7 @@ export function formatSimple(units: SemanticUnit[]): ExplanationStep[] {
     return steps;
   }
 
-  // Override formatUnit for quantified to use quantifiedSteps
-  function formatUnitFull(
-    unit: SemanticUnit,
-    depth: number
-  ): ExplanationStep[] {
-    if (unit.type === "quantified") {
-      return quantifiedSteps(unit, depth);
-    }
-    return formatUnit(unit, depth);
-  }
-
-  // Re-define formatUnits to use formatUnitFull
-  function formatUnitsFull(
-    units: SemanticUnit[],
-    depth: number
-  ): ExplanationStep[] {
-    const inlined = inlineNonCapturingGroups(units);
-    const merged = mergeAdjacentText(inlined);
-
-    const steps: ExplanationStep[] = [];
-    for (const u of merged) {
-      steps.push(...formatUnitFull(u, depth));
-    }
-    return steps;
-  }
-
-  return formatUnitsFull(units, 0);
+  return formatUnits(units, 0);
 }
 
 // ── Non-capturing group inlining ──────────────────────────
@@ -289,7 +234,6 @@ function inlineNonCapturingGroups(units: SemanticUnit[]): SemanticUnit[] {
   const result: SemanticUnit[] = [];
   for (const unit of units) {
     if (unit.type === "group" && !unit.capturing) {
-      // Inline body, recursively inlining nested non-capturing groups
       result.push(...inlineNonCapturingGroups(unit.body));
     } else {
       result.push(unit);

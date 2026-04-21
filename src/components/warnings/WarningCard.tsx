@@ -68,7 +68,9 @@ export function WarningCard({ warning }: WarningCardProps) {
   const handleClick = useCallback(() => {
     if (hasRange) {
       toggleLockedWarning(warning.id);
-      if (!isLocked && warning.range) {
+      if (isLocked) {
+        setHoveredRange(null);
+      } else if (warning.range) {
         setHoveredRange(warning.range);
       }
     }
@@ -79,7 +81,9 @@ export function WarningCard({ warning }: WarningCardProps) {
       if (hasRange && (e.key === "Enter" || e.key === " ")) {
         e.preventDefault();
         toggleLockedWarning(warning.id);
-        if (!isLocked && warning.range) {
+        if (isLocked) {
+          setHoveredRange(null);
+        } else if (warning.range) {
           setHoveredRange(warning.range);
         }
       }

@@ -7,13 +7,15 @@ const VALID_MODES: ExplanationMode[] = ["simple", "technical"];
  * URL-safe base64 encode a UTF-8 string.
  * Uses +/= → -/_ replacement and strips padding for shorter URLs.
  */
+const ENCODING_MARKER = "1:";
+
 function toUrlSafeBase64(value: string): string {
   const bytes = new TextEncoder().encode(value);
   let binary = "";
   for (let i = 0; i < bytes.length; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return ENCODING_MARKER + btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 /**
@@ -22,13 +24,21 @@ function toUrlSafeBase64(value: string): string {
  */
 function fromUrlSafeBase64(encoded: string): string {
   try {
+    let raw = encoded;
+    let isMarked = false;
+
+    if (raw.startsWith(ENCODING_MARKER)) {
+      raw = raw.slice(ENCODING_MARKER.length);
+      isMarked = true;
+    }
+
     // Restore standard base64 chars and padding
-    const standard = encoded.replace(/-/g, "+").replace(/_/g, "/");
+    const standard = raw.replace(/-/g, "+").replace(/_/g, "/");
     const padded = standard + "=".repeat((4 - (standard.length % 4)) % 4);
     const binary = atob(padded);
 
-    // Check if this looks like legacy encodeURIComponent output (contains %XX sequences)
-    if (/%[0-9A-Fa-f]{2}/.test(binary)) {
+    // Only try legacy decodeURIComponent for unmarked (pre-marker) payloads
+    if (!isMarked && /%[0-9A-Fa-f]{2}/.test(binary)) {
       try {
         return decodeURIComponent(binary);
       } catch {
@@ -48,9 +58,8 @@ function fromUrlSafeBase64(encoded: string): string {
  * Validate and sanitize regex flags.
  */
 function sanitizeFlags(flags: string): string {
-  return flags
-    .split("")
-    .filter((f) => VALID_FLAGS.includes(f))
+  return VALID_FLAGS.split("")
+    .filter((f) => flags.includes(f))
     .join("");
 }
 

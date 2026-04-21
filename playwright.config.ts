@@ -30,8 +30,8 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: "iphone-12-smoke",
-      use: { ...devices["iPhone 12"], browserName: "chromium" },
+      name: "mobile-smoke",
+      use: { ...devices["Pixel 5"] },
       grep: /@smoke/,
     },
   ],

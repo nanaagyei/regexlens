@@ -41,6 +41,7 @@ interface RateLimitResult {
  * Reconnects automatically if the connection drops.
  */
 let redisClient: ReturnType<typeof createClient> | null = null;
+let connectPromise: Promise<void> | null = null;
 
 async function getRedis() {
   if (!process.env.REDIS_URL) return null;
@@ -49,15 +50,24 @@ async function getRedis() {
     redisClient = createClient({ url: process.env.REDIS_URL });
     redisClient.on("error", (err) => {
       console.error("Redis client error:", err);
+      connectPromise = null;
     });
   }
 
   if (!redisClient.isOpen) {
-    await redisClient.connect();
+    if (!connectPromise) {
+      connectPromise = redisClient.connect().then(
+        () => { connectPromise = null; },
+        (err) => { connectPromise = null; throw err; },
+      );
+    }
+    await connectPromise;
   }
 
   return redisClient;
 }
+
+let warnedAboutMissingRedis = false;
 
 /**
  * Get client IP from request headers
@@ -112,11 +122,19 @@ export async function checkRateLimit(
     const redis = await getRedis();
 
     if (!redis) {
-      // Redis not configured - allow request but log warning in development
-      if (process.env.NODE_ENV === "development") {
-        console.warn(
-          "Rate limiting disabled: REDIS_URL not configured"
+      if (!warnedAboutMissingRedis) {
+        warnedAboutMissingRedis = true;
+        console.error(
+          `Rate limiting disabled: REDIS_URL not configured (type=${type}, maxRequests=${config.maxRequests}, windowMs=${config.windowMs})`,
         );
+      }
+      if (type === "auth") {
+        return {
+          success: false,
+          limit: config.maxRequests,
+          remaining: 0,
+          reset: Date.now() + config.windowMs,
+        };
       }
       return {
         success: true,
@@ -126,14 +144,13 @@ export async function checkRateLimit(
       };
     }
 
-    // Increment counter and get current value
-    const current = await redis.incr(key);
+    const results = await redis
+      .multi()
+      .incr(key)
+      .expire(key, Math.ceil(config.windowMs / 1000), "NX")
+      .exec();
 
-    // Set expiry on first request in window
-    if (current === 1) {
-      await redis.expire(key, Math.ceil(config.windowMs / 1000));
-    }
-
+    const current = (results?.[0] as unknown as number) ?? 1;
     const remaining = Math.max(0, config.maxRequests - current);
     const reset = Date.now() + config.windowMs;
 

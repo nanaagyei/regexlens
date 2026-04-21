@@ -30,7 +30,7 @@ export function toSemanticUnits(root: ComparableNode): SemanticUnit[] {
   if (root.type === "pattern") {
     return unwrapChildren(root.children);
   }
-  return convertNodeList(root.children.length > 0 ? root.children : [root]);
+  return convertNodeList([root]);
 }
 
 /**

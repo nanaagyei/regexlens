@@ -16,24 +16,33 @@ const defaultHoverState: HoverState = {
   lockedFailureId: null,
 };
 
-let currentHoverState = { ...defaultHoverState };
-
-const mockSetHoveredRange = vi.fn();
-const mockToggleLockedWarning = vi.fn();
+const hoisted = vi.hoisted(() => ({
+  currentHoverState: {
+    hoveredRange: null,
+    hoveredStepId: null,
+    hoveredMatchIndex: null,
+    selectedMatchIndex: null,
+    lockedStepId: null,
+    lockedWarningId: null,
+    lockedFailureId: null,
+  } as import("@/lib/stores/hoverStore").HoverState,
+  mockSetHoveredRange: vi.fn(),
+  mockToggleLockedWarning: vi.fn(),
+}));
 
 vi.mock("@/hooks/useHoverSync", () => ({
   useHoverSync: () => ({
-    hoverState: currentHoverState,
-    setHoveredRange: mockSetHoveredRange,
-    toggleLockedWarning: mockToggleLockedWarning,
+    hoverState: hoisted.currentHoverState,
+    setHoveredRange: hoisted.mockSetHoveredRange,
+    toggleLockedWarning: hoisted.mockToggleLockedWarning,
   }),
 }));
 
 beforeEach(() => {
   cleanup();
-  currentHoverState = { ...defaultHoverState };
-  mockSetHoveredRange.mockReset();
-  mockToggleLockedWarning.mockReset();
+  hoisted.currentHoverState = { ...defaultHoverState };
+  hoisted.mockSetHoveredRange.mockReset();
+  hoisted.mockToggleLockedWarning.mockReset();
 });
 
 const dangerWarning: Warning = {
@@ -95,27 +104,27 @@ describe("WarningCard", () => {
   it("calls setHoveredRange on mouse enter when warning has range", () => {
     render(<WarningCard warning={dangerWarning} />);
     fireEvent.mouseEnter(screen.getByRole("button"));
-    expect(mockSetHoveredRange).toHaveBeenCalledWith({ start: 0, end: 5 });
+    expect(hoisted.mockSetHoveredRange).toHaveBeenCalledWith({ start: 0, end: 5 });
   });
 
   it("clears hovered range on mouse leave when not locked", () => {
     render(<WarningCard warning={dangerWarning} />);
     fireEvent.mouseLeave(screen.getByRole("button"));
-    expect(mockSetHoveredRange).toHaveBeenCalledWith(null);
+    expect(hoisted.mockSetHoveredRange).toHaveBeenCalledWith(null);
   });
 
   it("does not clear hovered range on mouse leave when locked", () => {
-    currentHoverState = { ...defaultHoverState, lockedWarningId: "nested-quantifiers" };
+    hoisted.currentHoverState = { ...defaultHoverState, lockedWarningId: "nested-quantifiers" };
     render(<WarningCard warning={dangerWarning} />);
     fireEvent.mouseLeave(screen.getByRole("button"));
-    expect(mockSetHoveredRange).not.toHaveBeenCalledWith(null);
+    expect(hoisted.mockSetHoveredRange).not.toHaveBeenCalledWith(null);
   });
 
   // -- Click --
   it("calls toggleLockedWarning on click", () => {
     render(<WarningCard warning={dangerWarning} />);
     fireEvent.click(screen.getByRole("button"));
-    expect(mockToggleLockedWarning).toHaveBeenCalledWith("nested-quantifiers");
+    expect(hoisted.mockToggleLockedWarning).toHaveBeenCalledWith("nested-quantifiers");
   });
 
   it("does not call toggleLockedWarning for warning without range", () => {
@@ -123,25 +132,25 @@ describe("WarningCard", () => {
     // No role="button" element for no-range
     const card = screen.getByText("Many matches").closest("div[class]")!;
     fireEvent.click(card);
-    expect(mockToggleLockedWarning).not.toHaveBeenCalled();
+    expect(hoisted.mockToggleLockedWarning).not.toHaveBeenCalled();
   });
 
   // -- Keyboard --
   it("toggles lock on Enter key", () => {
     render(<WarningCard warning={dangerWarning} />);
     fireEvent.keyDown(screen.getByRole("button"), { key: "Enter" });
-    expect(mockToggleLockedWarning).toHaveBeenCalledWith("nested-quantifiers");
+    expect(hoisted.mockToggleLockedWarning).toHaveBeenCalledWith("nested-quantifiers");
   });
 
   it("toggles lock on Space key", () => {
     render(<WarningCard warning={dangerWarning} />);
     fireEvent.keyDown(screen.getByRole("button"), { key: " " });
-    expect(mockToggleLockedWarning).toHaveBeenCalledWith("nested-quantifiers");
+    expect(hoisted.mockToggleLockedWarning).toHaveBeenCalledWith("nested-quantifiers");
   });
 
   // -- Locked state --
   it("shows pin icon when locked", () => {
-    currentHoverState = { ...defaultHoverState, lockedWarningId: "nested-quantifiers" };
+    hoisted.currentHoverState = { ...defaultHoverState, lockedWarningId: "nested-quantifiers" };
     render(<WarningCard warning={dangerWarning} />);
     // Pin icon is rendered with aria-hidden
     const pin = document.querySelector("[aria-hidden='true']");
@@ -161,7 +170,7 @@ describe("WarningCard", () => {
   });
 
   it("sets aria-pressed=true when locked", () => {
-    currentHoverState = { ...defaultHoverState, lockedWarningId: "nested-quantifiers" };
+    hoisted.currentHoverState = { ...defaultHoverState, lockedWarningId: "nested-quantifiers" };
     render(<WarningCard warning={dangerWarning} />);
     expect(screen.getByRole("button")).toHaveAttribute("aria-pressed", "true");
   });

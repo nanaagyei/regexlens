@@ -9,6 +9,7 @@ import type {
   BehaviorSummaryResult,
   BehaviorImportance,
   BehaviorSummarySource,
+  StructuralChange,
 } from "@/types/diff";
 
 const MAX_SUMMARIES = 6;
@@ -109,8 +110,10 @@ function collectStructuralSummaries(diff: RegexDiff): BehaviorSummary[] {
     summaries.push({ message, importance, source: "structural" });
   }
 
-  for (const change of diff.structural.changes) {
-    if (change.kind === "equal") continue;
+  const allChanges = diff.structural.changes;
+
+  function visit(change: StructuralChange) {
+    if (change.kind === "equal") return;
 
     if (change.nodeType === "anchor") {
       if (change.kind === "added") {
@@ -171,7 +174,7 @@ function collectStructuralSummaries(diff: RegexDiff): BehaviorSummary[] {
     if (
       change.nodeType === "literal" &&
       change.kind === "removed" &&
-      diff.structural.changes.some(
+      allChanges.some(
         (c) => c.nodeType === "dot" && c.kind === "added",
       )
     ) {
@@ -205,6 +208,16 @@ function collectStructuralSummaries(diff: RegexDiff): BehaviorSummary[] {
         add("group-removed", "Capture group removed", "low");
       }
     }
+
+    if (change.children) {
+      for (const child of change.children) {
+        visit(child);
+      }
+    }
+  }
+
+  for (const change of allChanges) {
+    visit(change);
   }
 
   return summaries;

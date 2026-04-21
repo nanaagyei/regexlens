@@ -48,13 +48,16 @@ export function ExplanationPanel({
     }
   }, [pattern, useAIPolish, messages.length, clearHistory]);
 
-  // Clear hover state when mode changes (step IDs change between modes)
+  // Clear hover state and AI polish when mode changes (step IDs change between modes)
   useEffect(() => {
     if (explanationMode !== prevModeRef.current) {
       prevModeRef.current = explanationMode;
       clearAll();
+      if (useAIPolish && messages.length > 0) {
+        clearHistory();
+      }
     }
-  }, [explanationMode, clearAll]);
+  }, [explanationMode, clearAll, useAIPolish, messages.length, clearHistory]);
 
   // Trigger AI polish when toggled on
   useEffect(() => {

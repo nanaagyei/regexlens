@@ -97,7 +97,7 @@ export function StepRow({ step, index, collapsible, collapsed, onToggleCollapse 
     <div
       className={cn(
         "group relative flex items-start gap-2 min-h-[44px] py-2 px-2 rounded-md border-l-2",
-        "transition-all duration-150 cursor-pointer select-none",
+        "transition-all duration-150 select-none",
         "animate-fade-up opacity-0",
         KIND_BORDER_COLORS[step.kind] || "border-l-gray-400/40",
         isLocked
@@ -113,12 +113,6 @@ export function StepRow({ step, index, collapsible, collapsed, onToggleCollapse 
       }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      role="button"
-      tabIndex={0}
-      aria-pressed={isLocked}
-      aria-label={`Step ${index + 1}: ${step.label}`}
     >
       {/* Depth connector line */}
       {step.depth > 0 && (
@@ -136,7 +130,6 @@ export function StepRow({ step, index, collapsible, collapsed, onToggleCollapse 
             onClick={handleCollapseClick}
             className="text-muted-foreground hover:text-foreground transition-colors p-0"
             aria-label={collapsed ? "Expand" : "Collapse"}
-            tabIndex={-1}
           >
             {collapsed ? (
               <ChevronRight className="h-3.5 w-3.5" />
@@ -153,11 +146,20 @@ export function StepRow({ step, index, collapsible, collapsed, onToggleCollapse 
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className={cn("text-sm", KIND_COLORS[step.kind] || "text-foreground")}>
+          <button
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
+            aria-pressed={isLocked}
+            aria-label={`Step ${index + 1}: ${step.label}`}
+            className={cn(
+              "text-sm text-left cursor-pointer bg-transparent border-0 p-0",
+              KIND_COLORS[step.kind] || "text-foreground"
+            )}
+          >
             {step.label}
-          </span>
+          </button>
           {isLocked && (
-            <Pin className="h-3 w-3 text-primary/70 shrink-0" aria-label="Locked" />
+            <Pin className="h-3 w-3 text-primary/70 shrink-0" aria-hidden="true" />
           )}
         </div>
         {step.detail && (

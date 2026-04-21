@@ -25,9 +25,10 @@ export function computeExplanationDiff(
   return { changes, hasChanges };
 }
 
-/** Composite key for matching: kind + normalized label. */
+/** Composite key for matching: stable structural identity (kind + depth + range). */
 function compositeKey(step: ExplanationStep): string {
-  return `${step.kind}:${step.label.trim().toLowerCase()}`;
+  const rangeStr = step.range ? `${step.range.start}-${step.range.end}` : "norange";
+  return `${step.kind}:${step.depth}:${rangeStr}`;
 }
 
 /**
