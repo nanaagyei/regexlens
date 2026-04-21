@@ -14,7 +14,7 @@ const webServerEnv = {
 };
 
 export default defineConfig({
-  testDir: "./e2e",
+  testDir: "./tests/e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -28,6 +28,11 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "iphone-12-smoke",
+      use: { ...devices["iPhone 12"], browserName: "chromium" },
+      grep: /@smoke/,
     },
   ],
   webServer: isCI
