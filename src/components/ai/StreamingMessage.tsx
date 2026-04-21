@@ -99,7 +99,7 @@ function CodeBlock({ content }: { content: string }) {
   const [copied, setCopied] = useState(false);
 
   // Extract language and code
-  const match = content.match(/^```(\w*)\n?([\s\S]*?)```$/);
+  const match = content.match(/^```(\w*)\n([\s\S]*?)```$/);
   const code = match ? match[2].trim() : content.replace(/```/g, "").trim();
 
   const handleCopy = useCallback(() => {

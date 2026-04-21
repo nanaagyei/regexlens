@@ -68,7 +68,7 @@ export function describeActual(text: string, pos: number): string {
   if (ch === "\t") return "a tab";
   if (ch === "\n") return "a newline";
   if (ch === "\r") return "a carriage return";
-  if (/[0-9]/.test(ch)) return `the digit '${ch}'`;
-  if (/[a-zA-Z]/.test(ch)) return `the letter '${ch}'`;
+  if (/\d/.test(ch)) return `the digit '${ch}'`;
+  if (/[a-z]/i.test(ch)) return `the letter '${ch}'`;
   return `the character '${ch}'`;
 }

@@ -146,7 +146,7 @@ function checkUnescapedDot(pattern: string, warnings: Warning[]): void {
       const before = pattern[i - 1] || "";
       const after = pattern[i + 1] || "";
       
-      if (/[a-zA-Z]/.test(before) && /[a-zA-Z]/.test(after)) {
+      if (/[a-z]/i.test(before) && /[a-z]/i.test(after)) {
         warnings.push({
           id: WARNING_IDS.UNESCAPED_DOT,
           severity: "info",
@@ -168,7 +168,7 @@ function checkUnescapedDot(pattern: string, warnings: Warning[]): void {
  */
 function checkPipeInCharClass(pattern: string, warnings: Warning[]): void {
   // Find [A|B] patterns
-  const charClassRegex = /\[([^\]]*\|[^\]]*)\]/g;
+  const charClassRegex = /\[[^\]|]*\|[^\]]*\]/g;
   let match;
   
   while ((match = charClassRegex.exec(pattern)) !== null) {
@@ -288,13 +288,13 @@ function checkAmbiguousDotStar(
   warnings: Warning[]
 ): void {
   // Simple heuristic: .* or .+ not at the end of the pattern
-  const dotStarRegex = /\.[\*\+]/g;
+  const dotStarRegex = /\.[*+]/g;
   let match;
   
   while ((match = dotStarRegex.exec(pattern)) !== null) {
     // Check if there's more pattern after this
     const afterMatch = pattern.slice(match.index + 2);
-    if (afterMatch.length > 0 && !/^[\)\]\}]*$/.test(afterMatch)) {
+    if (afterMatch.length > 0 && !/^[)\]}]*$/.test(afterMatch)) {
       warnings.push({
         id: WARNING_IDS.AMBIGUOUS_DOT_STAR,
         severity: "warn",

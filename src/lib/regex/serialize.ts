@@ -38,7 +38,7 @@ function fromUrlSafeBase64(encoded: string): string {
     const binary = atob(padded);
 
     // Only try legacy decodeURIComponent for unmarked (pre-marker) payloads
-    if (!isMarked && /%[0-9A-Fa-f]{2}/.test(binary)) {
+    if (!isMarked && /%[0-9A-F]{2}/i.test(binary)) {
       try {
         return decodeURIComponent(binary);
       } catch {

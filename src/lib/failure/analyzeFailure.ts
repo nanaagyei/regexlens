@@ -531,10 +531,10 @@ function simulateAlternation(
 
 function charMatchesEscape(ch: string, escapeType: EscapeProps["escapeType"]): boolean {
   switch (escapeType) {
-    case "digit": return /[0-9]/.test(ch);
-    case "nonDigit": return !/[0-9]/.test(ch);
-    case "word": return /[a-zA-Z0-9_]/.test(ch);
-    case "nonWord": return !/[a-zA-Z0-9_]/.test(ch);
+    case "digit": return /\d/.test(ch);
+    case "nonDigit": return !/\d/.test(ch);
+    case "word": return /\w/.test(ch);
+    case "nonWord": return !/\w/.test(ch);
     case "whitespace": return /\s/.test(ch);
     case "nonWhitespace": return !/\s/.test(ch);
     case "tab": return ch === "\t";
@@ -568,7 +568,7 @@ function isWordBoundary(text: string, pos: number): boolean {
 }
 
 function isWordChar(ch: string): boolean {
-  return /[a-zA-Z0-9_]/.test(ch);
+  return /\w/.test(ch);
 }
 
 function getCandidateStartPositions(
