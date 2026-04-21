@@ -39,7 +39,7 @@ const defaults = {
 describe("DiffPanel", () => {
   it("renders empty state when no comparison pattern is entered", () => {
     renderWithProviders(<DiffPanel {...defaults} />);
-    expect(screen.getByText("Enter a pattern to compare")).toBeInTheDocument();
+    expect(screen.getByText("Compare two regex versions")).toBeInTheDocument();
   });
 
   it("renders syntax diff for two different valid patterns", () => {
@@ -112,7 +112,7 @@ describe("DiffPanel", () => {
     renderWithProviders(
       <DiffPanel {...defaults} onComparisonPatternChange={onChange} />,
     );
-    fireEvent.change(screen.getByPlaceholderText("Enter old pattern..."), {
+    fireEvent.change(screen.getByPlaceholderText("Paste the previous regex..."), {
       target: { value: "abc" },
     });
     expect(onChange).toHaveBeenCalledWith("abc");
