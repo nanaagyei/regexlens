@@ -203,15 +203,17 @@ bad-key==oops`,
   {
     id: "danger-demo",
     name: "Danger: Catastrophic backtracking",
-    description: "Demonstrates catastrophic backtracking — matching may time out",
-    pattern: "^(a+)+$",
+    description:
+      "Explains catastrophic backtracking (classic (a+)+$) — this example uses a safe pattern",
+    pattern: "^(a+)b$",
     flags: "",
-    text: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaX`,
+    text: `aaab
+aaaX`,
     category: "advanced",
     notes: [
-      "WARNING: This pattern causes exponential backtracking on non-matching input",
-      "Matching will timeout after a few seconds (Web Worker protection)",
-      "Shows nested quantifier danger — use atomic groups or rewrite in PCRE",
+      "Patterns like (a+)+$ cause exponential backtracking on non-matching input",
+      "This template uses ^(a+)b$ instead — matching is linear, but illustrates nested + groups",
+      "In production, prefer possessive/atomic groups (where supported) or rewrites that avoid nested greed",
     ],
     tags: ["danger", "performance", "stress-test"],
   },
