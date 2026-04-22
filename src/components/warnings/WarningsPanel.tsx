@@ -19,7 +19,7 @@ export function WarningsPanel({ warnings, parseResult }: WarningsPanelProps) {
         </div>
         <h3 className="text-sm font-medium mb-1">Invalid pattern</h3>
         <p className="text-xs text-red-400 max-w-[250px]">
-          Fix the pattern to check for warnings
+          Fix the pattern to run safety checks
         </p>
       </div>
     );
@@ -33,23 +33,25 @@ export function WarningsPanel({ warnings, parseResult }: WarningsPanelProps) {
         </div>
         <h3 className="text-sm font-medium mb-1">No issues detected</h3>
         <p className="text-xs text-muted-foreground">
-          This pattern looks good!
+          This pattern passes all safety checks.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="p-4">
+    <div className="p-4 overflow-y-auto">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-medium text-muted-foreground">
-          Potential issues
+          Safety review
         </h3>
         <RiskIndicator score={warnings.riskScore} />
       </div>
-      <div className="space-y-2">
-        {warnings.warnings.map((warning) => (
-          <WarningCard key={warning.id} warning={warning} />
+      <div className="space-y-2" role="list" aria-label="Pattern warnings">
+        {warnings.warnings.map((warning, index) => (
+          <div role="listitem" key={`${warning.id}-${warning.range?.start ?? index}`}>
+            <WarningCard warning={warning} />
+          </div>
         ))}
       </div>
     </div>

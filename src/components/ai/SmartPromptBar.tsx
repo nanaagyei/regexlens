@@ -26,7 +26,7 @@ const SMART_PROMPTS: SmartPrompt[] = [
   },
   {
     action: "security_review",
-    label: "Production safe?",
+    label: "Safe to ship?",
     icon: <Shield className="h-3 w-3" />,
   },
   {
@@ -36,7 +36,7 @@ const SMART_PROMPTS: SmartPrompt[] = [
   },
   {
     action: "explain_simple",
-    label: "Explain simply",
+    label: "Summarize",
     icon: <GraduationCap className="h-3 w-3" />,
   },
   {

@@ -54,7 +54,7 @@ const tagSchema = z
   .string()
   .min(1)
   .max(LIMITS.TAG_MAX_LENGTH)
-  .regex(/^[a-zA-Z0-9_-]+$/, "Tags can only contain letters, numbers, underscores, and hyphens");
+  .regex(/^[\w-]+$/, "Tags can only contain letters, numbers, underscores, and hyphens");
 
 /**
  * Tags array schema

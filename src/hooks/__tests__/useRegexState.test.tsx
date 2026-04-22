@@ -99,6 +99,7 @@ describe("useRegexState", () => {
           pattern: "[^@]+@[^@]+",
           flags: "g",
           text: "user@example.com",
+          category: "validation",
         })
       );
 

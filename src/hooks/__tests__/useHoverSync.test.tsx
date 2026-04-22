@@ -17,6 +17,8 @@ describe("useHoverSync", () => {
       hoveredMatchIndex: null,
       selectedMatchIndex: null,
       lockedStepId: null,
+      lockedWarningId: null,
+      lockedFailureId: null,
     });
   });
 
@@ -75,6 +77,8 @@ describe("useHoverSync", () => {
       hoveredMatchIndex: null,
       selectedMatchIndex: null,
       lockedStepId: null,
+      lockedWarningId: null,
+      lockedFailureId: null,
     });
   });
 });

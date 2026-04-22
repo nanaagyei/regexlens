@@ -8,7 +8,7 @@ import { normalizeAst } from "./normalizeAst";
 function detectPcreRecursion(
   pattern: string
 ): { found: boolean; range?: { start: number; end: number } } {
-  const match = pattern.match(/\(\?(?:R|[0-9])\)/);
+  const match = pattern.match(/\(\?[R0-9]\)/);
   if (match && match.index !== undefined) {
     return {
       found: true,

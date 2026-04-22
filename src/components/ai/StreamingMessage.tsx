@@ -99,8 +99,10 @@ function CodeBlock({ content }: { content: string }) {
   const [copied, setCopied] = useState(false);
 
   // Extract language and code
-  const match = content.match(/^```(\w*)\n?([\s\S]*?)```$/);
-  const code = match ? match[2].trim() : content.replace(/```/g, "").trim();
+  const match = content.match(/^```(\w*)\r?\n([\s\S]*?)```$/);
+  const code = match
+    ? match[2].trim()
+    : content.replace(/^```\w*\r?\n?/, "").replace(/```$/, "").trim();
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(code);

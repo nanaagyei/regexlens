@@ -14,8 +14,8 @@ export function AstPanel({ parseResult }: AstPanelProps) {
     return (
       <EmptyState
         icon={<TreeDeciduous className="h-8 w-8" />}
-        title="No structure to display"
-        description="Enter a pattern to see its syntax tree"
+        title="No structure to inspect"
+        description="Paste a pattern to inspect its syntax tree"
       />
     );
   }
@@ -26,7 +26,7 @@ export function AstPanel({ parseResult }: AstPanelProps) {
       <EmptyState
         icon={<TreeDeciduous className="h-8 w-8 text-red-400" />}
         title="Invalid pattern"
-        description="Fix the pattern to see its structure"
+        description="Fix the pattern to inspect its structure"
         variant="error"
       />
     );
@@ -35,7 +35,7 @@ export function AstPanel({ parseResult }: AstPanelProps) {
   return (
     <div className="p-4">
       <h3 className="text-sm font-medium text-muted-foreground mb-3">
-        How it&apos;s built
+        Pattern structure
       </h3>
       <AstTree ast={parseResult.ast} />
     </div>

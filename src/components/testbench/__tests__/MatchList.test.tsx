@@ -12,6 +12,8 @@ const defaultHoverState: HoverState = {
   hoveredMatchIndex: null,
   selectedMatchIndex: null,
   lockedStepId: null,
+  lockedWarningId: null,
+  lockedFailureId: null,
 };
 
 const mockSetHoveredMatchIndex = vi.fn();

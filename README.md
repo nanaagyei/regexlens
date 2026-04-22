@@ -136,7 +136,7 @@ Copy `.env.example` to `.env.local` and configure:
 | `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | Yes (for auth) | [GitHub OAuth app](https://github.com/settings/developers) |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Optional | Google OAuth credentials |
 | `AUTH_RESEND_KEY` | Optional | [Resend](https://resend.com) API key for magic links |
-| `KV_REST_API_URL` / `KV_REST_API_TOKEN` | Optional | Vercel KV for rate limiting |
+| `REDIS_URL` | Optional | Redis connection URL for rate limiting |
 
 See [`.env.example`](.env.example) for the full list with inline documentation.
 

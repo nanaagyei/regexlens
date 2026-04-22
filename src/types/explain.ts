@@ -3,6 +3,7 @@
  */
 
 import { Range } from "./regex";
+import type { EscapeProps, CharClassMember } from "./ast";
 
 export type ExplanationKind =
   | "anchor"
@@ -86,3 +87,108 @@ export const QUANTIFIER_EXPLANATIONS = {
   "{n,}": (n: number) => `${n} or more times`,
   "{n,m}": (n: number, m: number) => `Between ${n} and ${m} times`,
 } as const;
+
+// ── Semantic Unit types ────────────────────────────────────
+
+export interface SemanticRange {
+  start: number;
+  end: number;
+}
+
+interface SemanticUnitBase {
+  type: SemanticUnitType;
+  range: SemanticRange;
+  sourceText: string;
+}
+
+export type SemanticUnitType =
+  | "text"
+  | "anchor"
+  | "dot"
+  | "escape"
+  | "charClass"
+  | "quantified"
+  | "group"
+  | "alternation"
+  | "assertion"
+  | "backreference";
+
+export interface TextUnit extends SemanticUnitBase {
+  type: "text";
+  value: string;
+}
+
+export interface AnchorUnit extends SemanticUnitBase {
+  type: "anchor";
+  anchorKind: "start" | "end" | "wordBoundary" | "nonWordBoundary";
+}
+
+export interface DotUnit extends SemanticUnitBase {
+  type: "dot";
+}
+
+export interface EscapeUnit extends SemanticUnitBase {
+  type: "escape";
+  escapeType: EscapeProps["escapeType"];
+  raw: string;
+}
+
+export interface CharClassUnit extends SemanticUnitBase {
+  type: "charClass";
+  negated: boolean;
+  members: CharClassMember[];
+}
+
+export interface QuantifiedUnit extends SemanticUnitBase {
+  type: "quantified";
+  min: number;
+  max: number | null;
+  greedy: boolean;
+  target: QuantifiedTarget;
+}
+
+export type QuantifiedTarget =
+  | { kind: "escape"; escapeType: EscapeProps["escapeType"]; raw: string }
+  | { kind: "charClass"; negated: boolean; members: CharClassMember[] }
+  | { kind: "dot" }
+  | { kind: "text"; value: string }
+  | { kind: "group"; group: GroupUnit }
+  | { kind: "backreference"; groupNumber: number | null; groupName: string | null };
+
+export interface GroupUnit extends SemanticUnitBase {
+  type: "group";
+  capturing: boolean;
+  name: string | null;
+  number: number | null;
+  body: SemanticUnit[];
+}
+
+export interface AlternationUnit extends SemanticUnitBase {
+  type: "alternation";
+  branches: SemanticUnit[][];
+}
+
+export interface AssertionUnit extends SemanticUnitBase {
+  type: "assertion";
+  assertionType: "lookahead" | "lookbehind";
+  polarity: "positive" | "negative";
+  body: SemanticUnit[];
+}
+
+export interface BackreferenceUnit extends SemanticUnitBase {
+  type: "backreference";
+  groupNumber: number | null;
+  groupName: string | null;
+}
+
+export type SemanticUnit =
+  | TextUnit
+  | AnchorUnit
+  | DotUnit
+  | EscapeUnit
+  | CharClassUnit
+  | QuantifiedUnit
+  | GroupUnit
+  | AlternationUnit
+  | AssertionUnit
+  | BackreferenceUnit;

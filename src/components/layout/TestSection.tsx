@@ -24,7 +24,7 @@ export function TestSection({
   onClearFixtureSuite,
 }: TestSectionProps) {
   const testTextEditorRef = useRef<TestTextEditorRef>(null);
-  const { state, actions, matchResult } = useWorkspace();
+  const { state, actions, matchResult, failureAnalysis } = useWorkspace();
   const { setHoveredMatchIndex } = useHoverSync();
 
   const handleMatchClick = useCallback(
@@ -54,6 +54,7 @@ export function TestSection({
             matches={matchResult}
             pattern={state.pattern}
             flags={state.flags}
+            failureAnalysis={failureAnalysis}
           />
         </PanelContent>
       </Panel>

@@ -118,9 +118,9 @@ function analyzePattern(pattern: string, flags: string): AnalysisResult {
 
   // Nested quantifiers (DANGER)
   const nestedQuantifierPatterns = [
-    /\([^)]*[+*][^)]*\)[+*]/,
-    /\([^)]*[+*][^)]*\)\{/,
-    /\([^)]*\{[^}]+\}[^)]*\)[+*]/,
+    /\([^)*+]*[*+][^)]*\)[+*]/,
+    /\([^)*+]*[*+][^)]*\)\{/,
+    /\([^){]*\{(?:[^)}]*\}[^){]*\{)*(?:\)[^}]*|[^)}]+(?:\)[^}]*)?)\}[^)]*\)[+*]/,
   ];
 
   for (const testPattern of nestedQuantifierPatterns) {
@@ -146,7 +146,7 @@ function analyzePattern(pattern: string, flags: string): AnalysisResult {
   }
 
   // Overlapping alternation in repetition (DANGER)
-  if (/\(([^|)]+\|)+[^)]+\)[+*]/.test(pattern)) {
+  if (/\((?:[^|)]+\|)+[^)]+\)[+*]/.test(pattern)) { // eslint-disable-line regexp/optimal-quantifier-concatenation -- readable as-is
     const hasOverlap = checkAlternationOverlap(pattern);
     if (hasOverlap) {
       warnings.push({
@@ -169,7 +169,7 @@ function analyzePattern(pattern: string, flags: string): AnalysisResult {
   }
 
   // Ambiguous .* or .+ (WARN)
-  if (/\.\*[^?]/.test(pattern) || /\.\+[^?]/.test(pattern)) {
+  if (/\.\*(?!\?)/.test(pattern) || /\.\+(?!\?)/.test(pattern)) {
     warnings.push({
       id: "greedy-dot-star",
       severity: "warn",
@@ -214,7 +214,7 @@ function analyzePattern(pattern: string, flags: string): AnalysisResult {
   }
 
   // Pipe in character class (INFO)
-  if (/\[[^\]]*\|[^\]]*\]/.test(pattern)) {
+  if (/\[[^\]|]*\|[^\]]*\]/.test(pattern)) {
     warnings.push({
       id: "pipe-in-class",
       severity: "info",
@@ -402,8 +402,8 @@ function checkAlternationOverlap(pattern: string): boolean {
   // Common overlapping patterns
   const overlappingPatterns = [
     /\(a\+?\|aa\+?\)/i, // (a|aa)
-    /\(\w\+?\|\w\w\+?\)/i, // Similar patterns
-    /\([^|]+\*\|[^|]+\*\)/i, // Both branches have *
+    /\(\w\+?\|\w\w\+?\)/, // Similar patterns
+    /\([^|]+\*\|[^|]+\*\)/, // Both branches have *
   ];
 
   return overlappingPatterns.some((p) => p.test(pattern));

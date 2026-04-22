@@ -1,4 +1,12 @@
-import { RegexTemplate } from "@/types";
+import { RegexTemplate, TemplateCategory, TemplateCategoryId } from "@/types";
+
+export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
+  { id: "validation", label: "Validation" },
+  { id: "extraction", label: "Extraction" },
+  { id: "code", label: "Code & Markup" },
+  { id: "advanced", label: "Advanced" },
+  { id: "learning", label: "Learning" },
+];
 
 export const TEMPLATES: RegexTemplate[] = [
   {
@@ -12,6 +20,7 @@ A99
 BBB00
 AC12
 AB123`,
+    category: "learning",
     notes: ["Only A or B allowed", "Exactly two digits at end"],
     tags: ["anchors", "groups", "quantifiers"],
   },
@@ -26,6 +35,7 @@ a@b.co
 bad@@example.com
 no-domain@
 space @example.com`,
+    category: "validation",
     notes: ["Simple validation", "Not full RFC 5322"],
     tags: ["validation", "email"],
   },
@@ -40,6 +50,7 @@ space @example.com`,
 +1 512 555 1212
 5125551212
 12-555-1212`,
+    category: "validation",
     notes: ["Flexible separators", "Optional country code"],
     tags: ["validation", "phone"],
   },
@@ -54,6 +65,7 @@ space @example.com`,
 2026-00-10
 2026-02-30
 1999-12-31`,
+    category: "validation",
     notes: ["Validates month range", "Validates day range (not month-aware)"],
     tags: ["validation", "date"],
   },
@@ -66,6 +78,7 @@ space @example.com`,
     text: `He said "hello" then "world".
 "escaped quote: \\" ok"
 not quoted here`,
+    category: "extraction",
     notes: ["Handles escaped quotes", "Shows capture groups"],
     tags: ["extraction", "groups"],
   },
@@ -79,6 +92,7 @@ not quoted here`,
 http://example.com/path?q=1
 ftp://example.com
 https://`,
+    category: "validation",
     notes: ["HTTP or HTTPS only", "Basic URL structure"],
     tags: ["validation", "url"],
   },
@@ -92,6 +106,7 @@ https://`,
 //TODO: fix bug
   // TODO: add tests
 /* TODO: not this style */`,
+    category: "code",
     notes: ["Matches // style comments", "Multiline mode"],
     tags: ["code", "extraction"],
   },
@@ -103,6 +118,7 @@ https://`,
     flags: "g",
     text: `This  line    has   extra spaces.
 Tabs\t\talso\tcount.`,
+    category: "extraction",
     notes: ["For text cleanup", "Matches 2+ spaces/tabs"],
     tags: ["cleanup", "whitespace"],
   },
@@ -118,6 +134,7 @@ Tabs\t\talso\tcount.`,
 Not a heading
 ###### Smallest
 ####### Too many`,
+    category: "extraction",
     notes: ["Captures level and text", "1-6 hashes only"],
     tags: ["markdown", "extraction"],
   },
@@ -128,6 +145,7 @@ Not a heading
     pattern: "\\b([A-Za-z]+)\\b",
     flags: "g",
     text: `Hello, world! 123 test_case.`,
+    category: "learning",
     notes: ["Shows \\b word boundary", "Captures alphabetic words only"],
     tags: ["boundaries", "groups"],
   },
@@ -142,6 +160,7 @@ password1
 PASSWORD1
 Pass1
 Pass_word1`,
+    category: "validation",
     notes: ["Shows lookaheads", "Min 8 chars, mixed case + digit"],
     tags: ["validation", "lookahead"],
   },
@@ -153,6 +172,7 @@ Pass_word1`,
     flags: "",
     text: `512-555-1212
 512-55-1212`,
+    category: "advanced",
     notes: ["Named groups: area, prefix, line", "ES2018+ feature"],
     tags: ["groups", "phone"],
   },
@@ -164,6 +184,7 @@ Pass_word1`,
     flags: "g",
     text: `user=prince role=admin active=true note="hello world"
 bad-key==oops`,
+    category: "extraction",
     notes: ["Handles quoted values", "Key must start with letter/_"],
     tags: ["extraction", "config"],
   },
@@ -175,6 +196,7 @@ bad-key==oops`,
     flags: "gs",
     text: `<div class="a">Hello <span>world</span></div>
 <p>One</p><p>Two</p>`,
+    category: "code",
     notes: ["Shows backreferences", "Use dotAll for newlines", "Not for real HTML parsing!"],
     tags: ["html", "backreference"],
   },
@@ -182,9 +204,11 @@ bad-key==oops`,
     id: "danger-demo",
     name: "Danger: Catastrophic backtracking",
     description: "Demonstrates catastrophic backtracking — matching may time out",
+    // codeql[js/redos] Intentional: this template demonstrates catastrophic backtracking for educational purposes
     pattern: "^(a+)+$",
     flags: "",
     text: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaX`,
+    category: "advanced",
     notes: [
       "WARNING: This pattern causes exponential backtracking on non-matching input",
       "Matching will timeout after a few seconds (Web Worker protection)",
@@ -215,6 +239,7 @@ user@domain-.com
 a@b.co
 verylonglocalpartaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com
 user_name@sub.sub.sub.domain.com`,
+    category: "validation",
     notes: [
       "Should match: valid emails (top block)",
       "Should NOT match: plainaddress, @no-local-part.com, etc.",
@@ -241,6 +266,7 @@ fe80::1ff:fe23:4567:890a
 2001:db8:85a3:8a2e:370:7334
 2001:dg8::1
 0:0:0:0:0:0:0:1`,
+    category: "validation",
     notes: [
       "Should match: full, compressed, ::1, ::, link-local",
       "Should NOT match: triple colon, double ::, invalid hex, too few groups",
@@ -257,6 +283,7 @@ fe80::1ff:fe23:4567:890a
     flags: "",
     text: `<div>Hello</div>
 <div><span>Nested</span></div>`,
+    category: "advanced",
     notes: [
       "Uses (?R) — PCRE recursion. JavaScript does not support this.",
       "Expected: parse error with helpful message about PCRE limitation",
@@ -272,4 +299,33 @@ export function getTemplateById(id: string): RegexTemplate | undefined {
 
 export function getTemplatesByTag(tag: string): RegexTemplate[] {
   return TEMPLATES.filter((t) => t.tags?.includes(tag));
+}
+
+export function getTemplatesByCategory(
+  category: TemplateCategoryId
+): RegexTemplate[] {
+  return TEMPLATES.filter((t) => t.category === category);
+}
+
+/**
+ * Search templates by query string. Matches against name, description, and tags.
+ * Case-insensitive, returns all templates if query is empty.
+ */
+export function searchTemplates(query: string): RegexTemplate[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return TEMPLATES;
+
+  return TEMPLATES.filter((t) => {
+    const categoryLabel = TEMPLATE_CATEGORIES.find((c) => c.id === t.category)?.label;
+    const haystack = [
+      t.name,
+      t.description,
+      ...(t.tags ?? []),
+      t.category,
+      categoryLabel ?? "",
+    ]
+      .join(" ")
+      .toLowerCase();
+    return q.split(/\s+/).every((word) => haystack.includes(word));
+  });
 }

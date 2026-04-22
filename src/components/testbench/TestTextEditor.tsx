@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useRef, useImperativeHandle, forwardRef } from "react";
-import { MatchResult } from "@/types";
+import type { MatchResult, FailureDiagnosis } from "@/types";
 import { MatchOverlay } from "./MatchOverlay";
+import { FailureHighlight } from "@/components/failure/FailureHighlight";
 import { cn } from "@/lib/utils";
 
 export interface TestTextEditorRef {
@@ -15,10 +16,11 @@ interface TestTextEditorProps {
   matches: MatchResult;
   pattern: string;
   flags: string;
+  failureAnalysis?: FailureDiagnosis | null;
 }
 
 export const TestTextEditor = forwardRef<TestTextEditorRef, TestTextEditorProps>(
-  function TestTextEditor({ value, onChange, matches, pattern, flags: _flags }, ref) {
+  function TestTextEditor({ value, onChange, matches, pattern, flags: _flags, failureAnalysis }, ref) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useImperativeHandle(ref, () => ({
@@ -94,8 +96,10 @@ export const TestTextEditor = forwardRef<TestTextEditorRef, TestTextEditorProps>
           "w-full h-full p-4 bg-transparent resize-none font-mono text-sm",
           "focus:outline-none focus:ring-0 border-0",
           "placeholder:text-muted-foreground",
-          // Make text transparent when we have highlights
-          matches.spans.length > 0 ? "text-transparent caret-foreground" : "text-foreground"
+          // Make text transparent when we have highlights or failure overlay
+          matches.spans.length > 0 || (matches.spans.length === 0 && failureAnalysis)
+            ? "text-transparent caret-foreground"
+            : "text-foreground"
         )}
         spellCheck={false}
       />
@@ -103,6 +107,11 @@ export const TestTextEditor = forwardRef<TestTextEditorRef, TestTextEditorProps>
       {/* Highlight overlay - positioned behind the text */}
       {matches.spans.length > 0 && (
         <MatchOverlay segments={highlightedSegments} />
+      )}
+
+      {/* Failure highlight overlay - shown when no matches and failure detected */}
+      {matches.spans.length === 0 && failureAnalysis && (
+        <FailureHighlight failure={failureAnalysis} text={value} />
       )}
 
       {/* Empty state */}

@@ -20,7 +20,7 @@ import { FixturePicker } from "@/components/fixtures/FixturePicker";
 import { ShareBar } from "@/components/share/ShareBar";
 import { UserMenu } from "./UserMenu";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { getShareUrl } from "@/hooks/useUrlState";
+import { buildShareUrl } from "@/lib/regex/serialize";
 import {
   BookText,
   Save,
@@ -79,7 +79,7 @@ export function AppHeader({
               </Link>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Back to marketing homepage</TooltipContent>
+          <TooltipContent>Back to homepage</TooltipContent>
         </Tooltip>
       </div>
 
@@ -114,7 +114,7 @@ export function AppHeader({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {state.pattern ? "Save to library" : "Enter a pattern to save"}
+              {state.pattern ? "Save to library" : "Paste a pattern to save"}
             </TooltipContent>
           </Tooltip>
 
@@ -130,7 +130,7 @@ export function AppHeader({
                 <span className="hidden lg:inline">Library</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Open saved library</TooltipContent>
+            <TooltipContent>Open saved patterns</TooltipContent>
           </Tooltip>
         </div>
 
@@ -224,13 +224,13 @@ function MobileNav({
           </DropdownMenuItem>
           <DropdownMenuItem onClick={onLibraryClick}>
             <FolderOpen className="mr-2 h-4 w-4" />
-            My Library
+            Saved Patterns
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={async () => {
               try {
-                const url = getShareUrl(state);
+                const url = buildShareUrl(state);
                 await navigator.clipboard.writeText(url);
                 toast.success("Link copied to clipboard");
               } catch (error) {
@@ -241,7 +241,7 @@ function MobileNav({
             disabled={!state.pattern && !state.text}
           >
             <Share2 className="mr-2 h-4 w-4" />
-            Copy Share Link
+            Copy Review Link
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={actions.reset}>

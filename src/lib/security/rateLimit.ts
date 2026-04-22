@@ -1,4 +1,4 @@
-import { kv } from "@vercel/kv";
+import { createClient } from "redis";
 import { NextResponse } from "next/server";
 
 /**
@@ -35,6 +35,39 @@ interface RateLimitResult {
   remaining: number;
   reset: number;
 }
+
+/**
+ * Lazily connected Redis client singleton.
+ * Reconnects automatically if the connection drops.
+ */
+let redisClient: ReturnType<typeof createClient> | null = null;
+let connectPromise: Promise<void> | null = null;
+
+async function getRedis() {
+  if (!process.env.REDIS_URL) return null;
+
+  if (!redisClient) {
+    redisClient = createClient({ url: process.env.REDIS_URL });
+    redisClient.on("error", (err) => {
+      console.error("Redis client error:", err);
+      connectPromise = null;
+    });
+  }
+
+  if (!redisClient.isOpen) {
+    if (!connectPromise) {
+      connectPromise = redisClient.connect().then(
+        () => { connectPromise = null; },
+        (err) => { connectPromise = null; throw err; },
+      );
+    }
+    await connectPromise;
+  }
+
+  return redisClient;
+}
+
+let warnedAboutMissingRedis = false;
 
 /**
  * Get client IP from request headers
@@ -86,17 +119,22 @@ export async function checkRateLimit(
   const key = getRateLimitKey(identifier, type, config.windowMs);
 
   try {
-    // Check if KV is configured with valid URLs
-    const kvUrl = process.env.KV_REST_API_URL;
-    const kvToken = process.env.KV_REST_API_TOKEN;
-    const isValidKvConfig = kvUrl && kvToken && kvUrl.startsWith("https://");
-    
-    if (!isValidKvConfig) {
-      // KV not configured - allow request but log warning in development
-      if (process.env.NODE_ENV === "development") {
-        console.warn(
-          "Rate limiting disabled: KV_REST_API_URL or KV_REST_API_TOKEN not configured or invalid"
+    const redis = await getRedis();
+
+    if (!redis) {
+      if (!warnedAboutMissingRedis) {
+        warnedAboutMissingRedis = true;
+        console.error(
+          `Rate limiting disabled: REDIS_URL not configured (type=${type}, maxRequests=${config.maxRequests}, windowMs=${config.windowMs})`,
         );
+      }
+      if (type === "auth") {
+        return {
+          success: false,
+          limit: config.maxRequests,
+          remaining: 0,
+          reset: Date.now() + config.windowMs,
+        };
       }
       return {
         success: true,
@@ -106,14 +144,13 @@ export async function checkRateLimit(
       };
     }
 
-    // Increment counter and get current value
-    const current = await kv.incr(key);
+    const results = await redis
+      .multi()
+      .incr(key)
+      .expire(key, Math.ceil(config.windowMs / 1000), "NX")
+      .exec();
 
-    // Set expiry on first request in window
-    if (current === 1) {
-      await kv.expire(key, Math.ceil(config.windowMs / 1000));
-    }
-
+    const current = (results?.[0] as unknown as number) ?? 1;
     const remaining = Math.max(0, config.maxRequests - current);
     const reset = Date.now() + config.windowMs;
 
@@ -124,7 +161,7 @@ export async function checkRateLimit(
       reset,
     };
   } catch (error) {
-    // If KV fails, allow the request but log the error
+    // If Redis fails, allow the request but log the error
     console.error("Rate limit check failed:", error);
     return {
       success: true,

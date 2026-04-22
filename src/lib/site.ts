@@ -8,9 +8,9 @@ export const SITE_URL = trimTrailingSlash(
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://regexlens.dev"
 );
 
-/** Nextra / GitHub Pages documentation (e.g. https://docs.regexlens.dev). */
+/** Nextra / GitHub Pages documentation (e.g. https://nanaagyei.github.io/regexlens/). */
 export const DOCS_URL = trimTrailingSlash(
-  process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.regexlens.dev"
+  process.env.NEXT_PUBLIC_DOCS_URL ?? "https://nanaagyei.github.io/regexlens/"
 );
 export const GITHUB_REPO_URL = trimTrailingSlash(
   process.env.NEXT_PUBLIC_GITHUB_REPO_URL ?? "https://github.com/nanaagyei/regexlens"

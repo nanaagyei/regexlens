@@ -5,6 +5,7 @@
 import {
   Diagram,
   Sequence,
+  Stack,
   Choice,
   Optional,
   OneOrMore,
@@ -27,7 +28,11 @@ function toNode(node: AstNode | AstNode[] | undefined): unknown[] {
     case "Alternative":
       if (node.expressions) {
         const items = (node.expressions as AstNode[]).flatMap((e) => toNode(e));
-        return items.length > 0 ? [new Sequence(...items)] : [];
+        if (items.length === 0) return [];
+        if (items.length <= STACK_THRESHOLD) {
+          return [new Sequence(...items)];
+        }
+        return [chunkIntoStack(items)];
       }
       return [];
 
@@ -154,6 +159,19 @@ function escapeForDisplay(s: string): string {
     .replace(/\t/g, "\\t");
 }
 
+/** Maximum items per row before stacking vertically */
+const STACK_THRESHOLD = 4;
+
+/** Chunk items into rows of STACK_THRESHOLD and wrap in a Stack */
+function chunkIntoStack(items: unknown[]): unknown {
+  const chunks: unknown[] = [];
+  for (let i = 0; i < items.length; i += STACK_THRESHOLD) {
+    const chunk = items.slice(i, i + STACK_THRESHOLD);
+    chunks.push(chunk.length === 1 ? chunk[0] : new Sequence(...chunk));
+  }
+  return new Stack(...chunks);
+}
+
 /**
  * Convert regex AST to railroad diagram SVG string
  */
@@ -162,6 +180,12 @@ export function astToRailroadSvg(ast: AstNode): string {
   if (items.length === 0) {
     return "";
   }
-  const diagram = new Diagram(...items);
+
+  const content =
+    items.length <= STACK_THRESHOLD
+      ? items
+      : [chunkIntoStack(items)];
+
+  const diagram = new Diagram(...content);
   return diagram.toString();
 }
