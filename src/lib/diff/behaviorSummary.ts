@@ -175,7 +175,7 @@ function collectStructuralSummaries(diff: RegexDiff): BehaviorSummary[] {
       change.nodeType === "literal" &&
       change.kind === "removed" &&
       allChanges.some(
-        (c) => c.nodeType === "dot" && c.kind === "added",
+        (c) => c.nodeType === "dot" && c.kind === "added" && c.path === change.path,
       )
     ) {
       add(

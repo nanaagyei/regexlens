@@ -410,14 +410,10 @@ describe("findUnescapedChar via dotAll", () => {
     expect(w!.range).toEqual({ start: 4, end: 5 });
   });
 
-  it("returns no range when all dots are escaped or in char classes", () => {
+  it("suppresses warning when all dots are escaped or in char classes", () => {
     const warnings = getWarnings("[.]\\.", "s");
     const w = findWarning(warnings, "dotall-dot");
-    // pattern.includes(".") is true (raw string has dots), but findUnescapedChar returns -1
-    // The warning is still emitted because the pattern-level check uses includes(".")
-    // but range should be undefined since findUnescapedChar returns -1
-    expect(w).toBeDefined();
-    expect(w!.range).toBeUndefined();
+    expect(w).toBeUndefined();
   });
 });
 

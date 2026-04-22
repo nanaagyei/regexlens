@@ -316,11 +316,13 @@ export function searchTemplates(query: string): RegexTemplate[] {
   if (!q) return TEMPLATES;
 
   return TEMPLATES.filter((t) => {
+    const categoryLabel = TEMPLATE_CATEGORIES.find((c) => c.id === t.category)?.label;
     const haystack = [
       t.name,
       t.description,
       ...(t.tags ?? []),
       t.category,
+      categoryLabel ?? "",
     ]
       .join(" ")
       .toLowerCase();

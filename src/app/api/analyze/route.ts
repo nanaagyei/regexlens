@@ -169,7 +169,7 @@ function analyzePattern(pattern: string, flags: string): AnalysisResult {
   }
 
   // Ambiguous .* or .+ (WARN)
-  if (/\.\*[^?]/.test(pattern) || /\.\+[^?]/.test(pattern)) {
+  if (/\.\*(?!\?)/.test(pattern) || /\.\+(?!\?)/.test(pattern)) {
     warnings.push({
       id: "greedy-dot-star",
       severity: "warn",

@@ -43,6 +43,9 @@ export function describeExpected(node: ComparableNode): string {
       return "any character (.)";
     case "charClass": {
       const { negated, members } = node.props as CharClassProps;
+      if (members.length === 0) {
+        return negated ? "any character (empty negated class)" : "nothing (empty character class)";
+      }
       const desc = members
         .map((m) => (m.type === "range" ? `${m.from}-${m.to}` : m.value))
         .join(", ");

@@ -56,9 +56,7 @@ export function StepRow({ step, index, collapsible, collapsed, onToggleCollapse 
 
   const handleMouseEnter = useCallback(() => {
     setHoveredStepId(step.id);
-    if (step.range) {
-      setHoveredRange(step.range);
-    }
+    setHoveredRange(step.range ?? null);
   }, [step.id, step.range, setHoveredStepId, setHoveredRange]);
 
   const handleMouseLeave = useCallback(() => {

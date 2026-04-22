@@ -347,11 +347,13 @@ function checkMultilineAnchors(
   flags: string,
   warnings: Warning[]
 ): void {
-  if (flags.includes("m") && (pattern.includes("^") || pattern.includes("$"))) {
+  if (flags.includes("m")) {
     const caretPos = findUnescapedChar(pattern, "^");
     const dollarPos = findUnescapedChar(pattern, "$");
     const anchorPos = caretPos >= 0 ? caretPos : dollarPos;
-    const range = anchorPos >= 0 ? { start: anchorPos, end: anchorPos + 1 } : undefined;
+    if (anchorPos < 0) return;
+
+    const range = { start: anchorPos, end: anchorPos + 1 };
 
     warnings.push({
       id: WARNING_IDS.MULTILINE_ANCHORS,
@@ -374,9 +376,11 @@ function checkDotAllDot(
   flags: string,
   warnings: Warning[]
 ): void {
-  if (flags.includes("s") && pattern.includes(".")) {
+  if (flags.includes("s")) {
     const dotPos = findUnescapedChar(pattern, ".");
-    const range = dotPos >= 0 ? { start: dotPos, end: dotPos + 1 } : undefined;
+    if (dotPos < 0) return;
+
+    const range = { start: dotPos, end: dotPos + 1 };
 
     warnings.push({
       id: WARNING_IDS.DOTALL_DOT,

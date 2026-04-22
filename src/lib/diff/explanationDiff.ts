@@ -4,10 +4,12 @@ import type { ExplanationDiff, ExplanationChange } from "@/types/diff";
 /**
  * Diff two arrays of explanation steps using LCS on composite keys.
  *
- * Each step's identity is derived from `kind:label` (not the positional `id`).
- * The LCS algorithm finds the longest common subsequence, then marks:
- * - Steps in LCS with unchanged labels/details → equal
- * - Steps in LCS with changed details → modified
+ * Each step's identity is derived from its stable structural position
+ * (`kind:depth:range`) rather than its label, so label edits on an otherwise
+ * stable step are surfaced as `modified` instead of `removed` + `added`.
+ * The LCS algorithm finds the longest common subsequence of these keys, then marks:
+ * - Matched steps with unchanged label and detail → equal
+ * - Matched steps with changed label and/or detail → modified
  * - Steps only in old → removed
  * - Steps only in new → added
  */
@@ -15,8 +17,8 @@ export function computeExplanationDiff(
   oldSteps: ExplanationStep[],
   newSteps: ExplanationStep[],
 ): ExplanationDiff {
-  const oldKeys = oldSteps.map(compositeKey);
-  const newKeys = newSteps.map(compositeKey);
+  const oldKeys = oldSteps.map((s, i) => compositeKey(s, i));
+  const newKeys = newSteps.map((s, i) => compositeKey(s, i));
 
   const lcs = computeLCS(oldKeys, newKeys);
   const changes = buildChanges(oldSteps, newSteps, oldKeys, newKeys, lcs);
@@ -26,8 +28,10 @@ export function computeExplanationDiff(
 }
 
 /** Composite key for matching: stable structural identity (kind + depth + range). */
-function compositeKey(step: ExplanationStep): string {
-  const rangeStr = step.range ? `${step.range.start}-${step.range.end}` : "norange";
+function compositeKey(step: ExplanationStep, index: number): string {
+  const rangeStr = step.range
+    ? `${step.range.start}-${step.range.end}`
+    : `noRange#${step.id ?? index}`;
   return `${step.kind}:${step.depth}:${rangeStr}`;
 }
 
