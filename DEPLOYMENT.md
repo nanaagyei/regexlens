@@ -85,7 +85,7 @@ RegexLens uses PostgreSQL via `pg` and `@auth/pg-adapter`. For Vercel deployment
 
 - **Production branch:** `main`
 - **Preview deployments:** All Git branches, or treat `**dev`** as the primary staging branch (merge previews before promoting to `main`)
-- **Environment variables:** `DATABASE_URL` (from Neon), `AUTH_*`, `KV_*`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_DOCS_URL`, observability flags (`NEXT_PUBLIC_VERCEL_ANALYTICS`, optional ad flags), etc.
+- **Environment variables:** `DATABASE_URL` (from Neon), `AUTH_*`, `AUTH_URL` / `NEXTAUTH_URL` (canonical origin for OAuth redirects), `KV_*`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_DOCS_URL`, observability flags (`NEXT_PUBLIC_VERCEL_ANALYTICS`, optional ad flags), etc.
 
 ### Vercel + GitHub checklist (manual)
 
@@ -95,6 +95,12 @@ RegexLens uses PostgreSQL via `pg` and `@auth/pg-adapter`. For Vercel deployment
 4. **Copy env vars** from `.env.example` into Vercel (Production + Preview); never commit real secrets.
 5. **Protect `main`** in GitHub as above so only green CI can merge.
 6. After connect, confirm **Preview** URL for `dev` and **Production** URL for `main` behave as expected.
+
+### GitHub repository secrets vs Vercel (runtime)
+
+- **GitHub Actions secrets and variables** (Settings → Secrets and variables → Actions) are available only to **workflow runs** in this repo. They are **not** automatically available to the **Vercel** production app.
+- The live Next.js app (OAuth, Resend, `DATABASE_URL`, `AUTH_SECRET`, etc.) reads **Vercel** → Project → **Settings → Environment Variables** (Production and Preview as needed). Copy from `.env.example` there; do not rely on GitHub repo secrets for Vercel runtime unless you add a custom deploy workflow that injects them (this repo’s `ci.yml` does not).
+- **Exception:** Workflows that need tokens (e.g. `release.yml` using `GITHUB_TOKEN`) use GitHub’s built-in token or repo secrets only inside that job.
 
 ---
 
@@ -144,14 +150,17 @@ Follow these steps in order once the codebase is committed and CI is green on `d
 
 ### 4. Authentication — OAuth Providers
 
-1. **GitHub OAuth:** Create an OAuth App at [github.com/settings/developers](https://github.com/settings/developers).
-  - Production callback: `https://regexlens.dev/api/auth/callback/github`
-  - Set `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` in Vercel (Production).
-  - For Preview, use a separate OAuth app with callback URL matching the preview domain.
-2. **Google OAuth (optional):** Create credentials at [console.cloud.google.com](https://console.cloud.google.com/apis/credentials).
-  - Callback: `https://regexlens.dev/api/auth/callback/google`
-  - Set `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` in Vercel.
-3. **AUTH_SECRET:** Generate with `openssl rand -base64 32` and set in Vercel for both scopes.
+1. **Canonical URL (avoids `redirect_uri_mismatch`):** In Vercel → **Settings → Environment Variables** (Production), set **`NEXTAUTH_URL`** and/or **`AUTH_URL`** to a single origin you want users to use, e.g. `https://regexlens.dev`. Auth.js uses this (with `trustHost`) so OAuth `redirect_uri` is stable. In Vercel → **Settings → Domains**, set one hostname as primary and redirect the other (e.g. `www` → apex) so users do not bounce between two hosts.
+2. **GitHub OAuth:** Create an OAuth App at [github.com/settings/developers](https://github.com/settings/developers).
+  - **Authorization callback URL** (production): `https://regexlens.dev/api/auth/callback/github` — if you serve traffic on `www`, also add `https://www.regexlens.dev/api/auth/callback/github`.
+  - Set `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` in **Vercel** (Production), not only in GitHub repo secrets.
+  - For Preview, use a separate OAuth app with a callback URL matching the preview domain.
+3. **Google OAuth (optional):** Create credentials at [console.cloud.google.com](https://console.cloud.google.com/apis/credentials) (type: **Web application**).
+  - **Authorized redirect URIs:** add **both** if both hostnames are attached in Vercel: `https://regexlens.dev/api/auth/callback/google` and `https://www.regexlens.dev/api/auth/callback/google` (Google requires an exact match; a common error is only listing the apex while the app sends `www`).
+  - **Authorized JavaScript origins:** `https://regexlens.dev` and `https://www.regexlens.dev` (and `http://localhost:3000` for local dev).
+  - Set `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` in **Vercel** (Production).
+4. **Resend (email magic link):** Set `AUTH_RESEND_KEY` (or `RESEND_API_KEY` — the app accepts either) and `EMAIL_FROM` to a sender on a domain you verified in Resend, e.g. `RegexLens <noreply@regexlens.dev>`. See `.env.example`.
+5. **AUTH_SECRET:** Generate with `openssl rand -base64 32` and set in Vercel for both scopes.
 
 ### 5. Redis — Rate Limiting (optional)
 
