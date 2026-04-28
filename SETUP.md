@@ -140,8 +140,8 @@ Email authentication uses [Resend](https://resend.com) for sending magic link em
 
 1. Sign up at [resend.com](https://resend.com)
 2. Create an API key in the dashboard
-3. Copy the API key to `AUTH_RESEND_KEY` in `.env.local`
-4. Set `EMAIL_FROM` to your verified sender address (or use `onboarding@resend.dev` for testing)
+3. Copy the API key to `AUTH_RESEND_KEY` in `.env.local` (or `RESEND_API_KEY` — the app accepts either)
+4. Set `EMAIL_FROM` to your verified sender address on a domain you verify in Resend, e.g. `RegexLens <noreply@regexlens.dev>` in production (or `onboarding@resend.dev` for quick testing)
 
 **Note:** For local testing, Resend provides a test mode that doesn't require domain verification.
 
@@ -191,6 +191,7 @@ AUTH_GOOGLE_SECRET=
 
 # Email via Resend (optional)
 AUTH_RESEND_KEY=
+# RESEND_API_KEY=
 EMAIL_FROM=noreply@localhost
 
 # ===========================================
@@ -209,8 +210,8 @@ REDIS_URL=
 | `AUTH_GITHUB_SECRET` | Yes* | GitHub OAuth client secret |
 | `AUTH_GOOGLE_ID` | No | Google OAuth client ID |
 | `AUTH_GOOGLE_SECRET` | No | Google OAuth client secret |
-| `AUTH_RESEND_KEY` | No | Resend API key for email auth |
-| `EMAIL_FROM` | No | Sender email address |
+| `AUTH_RESEND_KEY` | No | Resend API key for email auth (`RESEND_API_KEY` is accepted as an alias) |
+| `EMAIL_FROM` | No | Sender email address (verified domain in production) |
 | `REDIS_URL` | No | Redis connection URL for rate limiting |
 
 *At least one OAuth provider is required for authentication.

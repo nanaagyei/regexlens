@@ -30,10 +30,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
     }),
     
-    // Email magic link via Resend
+    // Email magic link via Resend (AUTH_RESEND_KEY or Resend docs' RESEND_API_KEY)
     Resend({
-      apiKey: process.env.AUTH_RESEND_KEY,
-      from: process.env.EMAIL_FROM || "RegexLens <noreply@regexlens.app>",
+      apiKey: process.env.AUTH_RESEND_KEY ?? process.env.RESEND_API_KEY,
+      from: process.env.EMAIL_FROM || "RegexLens <noreply@regexlens.dev>",
     }),
   ],
   
