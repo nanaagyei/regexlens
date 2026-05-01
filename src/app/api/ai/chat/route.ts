@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
 import { combinedRateLimit } from "@/lib/security/rateLimit";
+import { enforceCsrfProtection } from "@/lib/security/csrf";
 import {
   aiChatRequestSchema,
   validateInput,
   formatZodError,
+  getJsonBodyTooLargeError,
+  REQUEST_BODY_LIMITS,
 } from "@/lib/security/validation";
 import { buildSystemPrompt, buildUserPrompt } from "@/lib/ai/systemPrompt";
 
@@ -22,6 +25,11 @@ export async function POST(request: NextRequest) {
     const rateLimitResponse = await combinedRateLimit(request, "ai_chat");
     if (rateLimitResponse) {
       return rateLimitResponse;
+    }
+
+    const csrfError = enforceCsrfProtection(request);
+    if (csrfError) {
+      return csrfError;
     }
 
     // Require authentication
@@ -52,6 +60,14 @@ export async function POST(request: NextRequest) {
         },
         { status: 401 }
       );
+    }
+
+    const bodyTooLargeError = getJsonBodyTooLargeError(
+      request,
+      REQUEST_BODY_LIMITS.AI_CHAT_BYTES
+    );
+    if (bodyTooLargeError) {
+      return NextResponse.json(bodyTooLargeError, { status: 413 });
     }
 
     // Parse and validate request body

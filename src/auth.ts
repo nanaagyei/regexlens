@@ -74,6 +74,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user: _user, account: _account, profile: _profile }) {
       return true;
     },
+
+    async redirect({ url, baseUrl }) {
+      const isSafeRelativePath =
+        url.startsWith("/") && !url.startsWith("//") && !url.startsWith("/\\");
+      if (isSafeRelativePath) {
+        return `${baseUrl}${url}`;
+      }
+
+      try {
+        const targetUrl = new URL(url);
+        if (targetUrl.origin === baseUrl) {
+          return targetUrl.toString();
+        }
+      } catch {
+        // Ignore invalid absolute URLs and fall back to baseUrl.
+      }
+
+      return baseUrl;
+    },
   },
   
   events: {},

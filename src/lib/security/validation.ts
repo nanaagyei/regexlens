@@ -15,6 +15,18 @@ export const LIMITS = {
 } as const;
 
 /**
+ * Max accepted JSON payload sizes for state-changing routes (bytes).
+ * Keep conservative to reduce abuse potential while preserving current UX.
+ */
+export const REQUEST_BODY_LIMITS = {
+  SNIPPET_WRITE_BYTES: 64 * 1024, // 64 KB
+  VERSION_WRITE_BYTES: 32 * 1024, // 32 KB
+  EXPORT_BYTES: 256 * 1024, // 256 KB
+  ANALYZE_BYTES: 64 * 1024, // 64 KB
+  AI_CHAT_BYTES: 512 * 1024, // 512 KB
+} as const;
+
+/**
  * Valid regex flags for JavaScript
  */
 const VALID_FLAGS = ["g", "i", "m", "s", "u", "y", "d"] as const;
@@ -352,4 +364,42 @@ export function parseSearchParams(url: string): Record<string, string> {
     params[key] = value;
   });
   return params;
+}
+
+
+/**
+ * Escape user input that will be embedded in a SQL LIKE/ILIKE pattern.
+ * Escapes wildcard and escape characters so search stays literal.
+ */
+export function escapeLikePattern(input: string): string {
+  return input.replace(/[\\%_]/g, "\\$&");
+}
+
+/**
+ * Build a consistent 413 response payload when Content-Length exceeds limits.
+ * Returns null when Content-Length is absent/invalid or within limit.
+ */
+export function getJsonBodyTooLargeError(
+  request: Request,
+  maxBytes: number
+): { error: "payload_too_large"; message: string; max_bytes: number } | null {
+  const contentLengthHeader = request.headers.get("content-length");
+  if (!contentLengthHeader) {
+    return null;
+  }
+
+  const contentLength = Number.parseInt(contentLengthHeader, 10);
+  if (!Number.isFinite(contentLength) || contentLength < 0) {
+    return null;
+  }
+
+  if (contentLength <= maxBytes) {
+    return null;
+  }
+
+  return {
+    error: "payload_too_large",
+    message: "Request body is too large",
+    max_bytes: maxBytes,
+  };
 }

@@ -36,12 +36,66 @@ interface RateLimitResult {
   reset: number;
 }
 
+interface InMemoryCounter {
+  count: number;
+  resetAt: number;
+}
+
 /**
  * Lazily connected Redis client singleton.
  * Reconnects automatically if the connection drops.
  */
 let redisClient: ReturnType<typeof createClient> | null = null;
 let connectPromise: Promise<void> | null = null;
+const inMemoryCounters = new Map<string, InMemoryCounter>();
+const FAIL_CLOSED_ON_REDIS_ERROR = new Set<RateLimitType>(["auth", "export", "ai_chat"]);
+const isProduction = process.env.NODE_ENV === "production";
+
+function shouldUseInMemoryFallback(): boolean {
+  if (isProduction) return false;
+  return process.env.RATE_LIMIT_ALLOW_FALLBACK_WITHOUT_REDIS !== "0";
+}
+
+function deniedRateLimitResult(
+  maxRequests: number,
+  windowMs: number
+): RateLimitResult {
+  return {
+    success: false,
+    limit: maxRequests,
+    remaining: 0,
+    reset: Date.now() + windowMs,
+  };
+}
+
+function inMemoryRateLimit(
+  key: string,
+  maxRequests: number,
+  windowMs: number
+): RateLimitResult {
+  const now = Date.now();
+  const existing = inMemoryCounters.get(key);
+
+  if (!existing || existing.resetAt <= now) {
+    const resetAt = now + windowMs;
+    inMemoryCounters.set(key, { count: 1, resetAt });
+    return {
+      success: true,
+      limit: maxRequests,
+      remaining: Math.max(0, maxRequests - 1),
+      reset: resetAt,
+    };
+  }
+
+  existing.count += 1;
+  const remaining = Math.max(0, maxRequests - existing.count);
+  return {
+    success: existing.count <= maxRequests,
+    limit: maxRequests,
+    remaining,
+    reset: existing.resetAt,
+  };
+}
 
 async function getRedis() {
   if (!process.env.REDIS_URL) return null;
@@ -68,6 +122,7 @@ async function getRedis() {
 }
 
 let warnedAboutMissingRedis = false;
+let warnedAboutInMemoryFallback = false;
 
 /**
  * Get client IP from request headers
@@ -125,23 +180,23 @@ export async function checkRateLimit(
       if (!warnedAboutMissingRedis) {
         warnedAboutMissingRedis = true;
         console.error(
-          `Rate limiting disabled: REDIS_URL not configured (type=${type}, maxRequests=${config.maxRequests}, windowMs=${config.windowMs})`,
+          `REDIS_URL not configured for rate limiting (type=${type}, nodeEnv=${process.env.NODE_ENV ?? "unknown"})`,
         );
       }
-      if (type === "auth") {
-        return {
-          success: false,
-          limit: config.maxRequests,
-          remaining: 0,
-          reset: Date.now() + config.windowMs,
-        };
+
+      if (isProduction) {
+        return deniedRateLimitResult(config.maxRequests, config.windowMs);
       }
-      return {
-        success: true,
-        limit: config.maxRequests,
-        remaining: config.maxRequests,
-        reset: Date.now() + config.windowMs,
-      };
+
+      if (shouldUseInMemoryFallback()) {
+        if (!warnedAboutInMemoryFallback) {
+          warnedAboutInMemoryFallback = true;
+          console.warn("Using in-memory rate limit fallback (non-production only).");
+        }
+        return inMemoryRateLimit(key, config.maxRequests, config.windowMs);
+      }
+
+      return deniedRateLimitResult(config.maxRequests, config.windowMs);
     }
 
     const results = await redis
@@ -161,14 +216,17 @@ export async function checkRateLimit(
       reset,
     };
   } catch (error) {
-    // If Redis fails, allow the request but log the error
     console.error("Rate limit check failed:", error);
-    return {
-      success: true,
-      limit: config.maxRequests,
-      remaining: config.maxRequests,
-      reset: Date.now() + config.windowMs,
-    };
+
+    if (isProduction && FAIL_CLOSED_ON_REDIS_ERROR.has(type)) {
+      return deniedRateLimitResult(config.maxRequests, config.windowMs);
+    }
+
+    if (shouldUseInMemoryFallback()) {
+      return inMemoryRateLimit(key, config.maxRequests, config.windowMs);
+    }
+
+    return deniedRateLimitResult(config.maxRequests, config.windowMs);
   }
 }
 

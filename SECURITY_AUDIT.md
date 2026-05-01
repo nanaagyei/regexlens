@@ -396,3 +396,25 @@ return NextResponse.json(
 | `docker/init.sql` | Database schema |
 | `package.json` | Dependencies |
 | `.env.example` | Environment template |
+
+## Remediated (2026-05-01)
+
+- **H1**: Enabled PostgreSQL RLS for `snippets`/`snippet_versions` and aligned app request context handling for tenant-scoped access in snippet routes; primary files: `docker/init.sql`, `docker/migrations/enable_rls_snippets.sql`, `src/app/api/snippets/route.ts`, `src/app/api/snippets/[id]/route.ts`, `src/app/api/snippets/[id]/versions/route.ts`, `src/app/api/snippets/[id]/diff/route.ts`, `src/lib/db/pool.ts`.
+- **H2**: Hardened rate limiting for Redis-missing/error paths with fail-closed production behavior and explicit environment defaults; primary files: `src/lib/security/rateLimit.ts`, `.env.example`.
+- **H3**: Sanitized SVG rendered via `dangerouslySetInnerHTML` to mitigate XSS risk in railroad diagram rendering; primary files: `src/components/structure/RailroadDiagramPanel.tsx`, `package.json`, `package-lock.json`.
+- **H4**: Added CSRF verification for state-changing API routes using a shared helper and route-level enforcement; primary files: `src/lib/security/csrf.ts`, `src/app/api/snippets/route.ts`, `src/app/api/snippets/[id]/route.ts`, `src/app/api/snippets/[id]/versions/route.ts`, `src/app/api/snippets/[id]/diff/route.ts`, `src/app/api/export/route.ts`, `src/app/api/ai/chat/route.ts`, `src/app/api/analyze/route.ts`.
+- **H5**: Escaped ILIKE wildcard input in snippet search to prevent uncontrolled pattern matching; primary files: `src/lib/security/validation.ts`, `src/app/api/snippets/route.ts`.
+- **M1**: Added stale-session cleanup endpoint and cron wiring for periodic maintenance; primary files: `src/app/api/cron/cleanup-sessions/route.ts`, `vercel.json`.
+- **M2**: Hardened NextAuth redirect callback validation to prevent unsafe redirect targets; primary files: `src/auth.ts`.
+- **M5**: Applied production fail-closed handling on Redis error paths for critical rate-limit tiers; primary file: `src/lib/security/rateLimit.ts`.
+- **M6**: Enforced request body size limits before JSON parsing on mutation routes via shared validation and route updates; primary files: `src/lib/security/validation.ts`, `src/app/api/snippets/route.ts`, `src/app/api/snippets/[id]/route.ts`, `src/app/api/export/route.ts`, `src/app/api/ai/chat/route.ts`, `src/app/api/analyze/route.ts`.
+
+### Operational Notes
+
+- **RLS rollout order**: Deploy app code that sets tenant context via `set_config(...)` before enabling RLS on existing databases, or previously valid requests can be denied.
+- **Cleanup endpoint secret**: `CRON_SECRET` is required to invoke the cleanup route in non-local environments.
+- **Rate-limit fallback behavior**: In non-production, the limiter can use a safe fallback path if Redis is missing; in production, missing Redis is treated fail-closed to avoid silent protection bypass.
+
+### Verification Status
+
+- **M3/M4**: Remain verified fixed in current implementation state (no regression observed in this update).

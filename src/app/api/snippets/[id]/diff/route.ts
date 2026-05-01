@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
 import { combinedRateLimit } from "@/lib/security/rateLimit";
-import { query, queryOne } from "@/lib/db/pool";
+import { withSnippetRlsContext } from "@/lib/db/pool";
 import { diffQuerySchema, uuidSchema, validateInput, formatZodError, parseSearchParams } from "@/lib/security/validation";
 import { computeDiff } from "@/lib/snippets/diff";
 
@@ -19,11 +19,15 @@ interface VersionRow {
 }
 
 async function verifySnippetOwnership(snippetId: string, userId: string): Promise<boolean> {
-  const row = await queryOne<{ user_id: string }>(
-    `SELECT user_id::text FROM snippets WHERE id = $1::uuid`,
-    [snippetId]
-  );
-  return row?.user_id === userId;
+  const row = await withSnippetRlsContext(userId, async (client) => {
+    const result = await client.query<{ user_id: string }>(
+      `SELECT user_id::text FROM snippets WHERE id = $1::uuid`,
+      [snippetId]
+    );
+    return result.rows[0] ?? null;
+  });
+
+  return Boolean(row);
 }
 
 /**
@@ -63,12 +67,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const { from, to } = diffValidation.data;
 
-    const versions = await query<VersionRow>(
-      `SELECT id::text, snippet_id::text, pattern, flags, notes, created_at
-       FROM snippet_versions
-       WHERE snippet_id = $1::uuid AND id IN ($2::uuid, $3::uuid)`,
-      [snippetId, from, to]
-    );
+    const versions = await withSnippetRlsContext(guard.user.id, async (client) => {
+      const result = await client.query<VersionRow>(
+        `SELECT id::text, snippet_id::text, pattern, flags, notes, created_at
+         FROM snippet_versions
+         WHERE snippet_id = $1::uuid AND id IN ($2::uuid, $3::uuid)`,
+        [snippetId, from, to]
+      );
+      return result.rows;
+    });
 
     if (versions.length !== 2) {
       return NextResponse.json(

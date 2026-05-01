@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
 import { combinedRateLimit } from "@/lib/security/rateLimit";
+import { enforceCsrfProtection } from "@/lib/security/csrf";
 import {
   analyzeRequestSchema,
   validateInput,
   formatZodError,
+  getJsonBodyTooLargeError,
+  REQUEST_BODY_LIMITS,
 } from "@/lib/security/validation";
 
 interface Warning {
@@ -51,10 +54,23 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse;
     }
 
+    const csrfError = enforceCsrfProtection(request);
+    if (csrfError) {
+      return csrfError;
+    }
+
     // Require authentication
     const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
+    }
+
+    const bodyTooLargeError = getJsonBodyTooLargeError(
+      request,
+      REQUEST_BODY_LIMITS.ANALYZE_BYTES
+    );
+    if (bodyTooLargeError) {
+      return NextResponse.json(bodyTooLargeError, { status: 413 });
     }
 
     // Parse and validate request body

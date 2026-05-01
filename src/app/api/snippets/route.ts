@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
 import { combinedRateLimit } from "@/lib/security/rateLimit";
-import { query } from "@/lib/db/pool";
+import { withSnippetRlsContext } from "@/lib/db/pool";
+import { enforceCsrfProtection } from "@/lib/security/csrf";
 import {
   createSnippetSchema,
   listSnippetsQuerySchema,
   validateInput,
   formatZodError,
   parseSearchParams,
+  escapeLikePattern,
+  getJsonBodyTooLargeError,
+  REQUEST_BODY_LIMITS,
 } from "@/lib/security/validation";
 
 interface SnippetRow {
@@ -32,10 +36,23 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse;
     }
 
+    const csrfError = enforceCsrfProtection(request);
+    if (csrfError) {
+      return csrfError;
+    }
+
     // Require authentication
     const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
+    }
+
+    const bodyTooLargeError = getJsonBodyTooLargeError(
+      request,
+      REQUEST_BODY_LIMITS.SNIPPET_WRITE_BYTES
+    );
+    if (bodyTooLargeError) {
+      return NextResponse.json(bodyTooLargeError, { status: 413 });
     }
 
     // Parse and validate request body
@@ -71,16 +88,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert snippet into database
-    const rows = await query<SnippetRow>(
-      `INSERT INTO snippets (user_id, name, pattern, flags, description, tags)
-       VALUES ($1, $2, $3, $4, $5, $6::jsonb)
-       RETURNING
-         id::text, name, pattern, flags, description,
-         tags, created_at, updated_at`,
-      [guard.user.id, name, pattern, flags, description || null, JSON.stringify(tags)]
-    );
-
-    const snippet = rows[0];
+    const snippet = await withSnippetRlsContext(guard.user.id, async (client) => {
+      const rows = await client.query<SnippetRow>(
+        `INSERT INTO snippets (user_id, name, pattern, flags, description, tags)
+         VALUES ($1, $2, $3, $4, $5, $6::jsonb)
+         RETURNING
+           id::text, name, pattern, flags, description,
+           tags, created_at, updated_at`,
+        [guard.user.id, name, pattern, flags, description || null, JSON.stringify(tags)]
+      );
+      return rows.rows[0];
+    });
 
     return NextResponse.json(
       {
@@ -159,19 +177,22 @@ export async function GET(request: NextRequest) {
 
     // Add search filter
     if (searchQuery) {
-      whereClause += ` AND (name ILIKE $${paramIndex} OR pattern ILIKE $${paramIndex})`;
-      queryParams.push(`%${searchQuery}%`);
+      whereClause += ` AND (name ILIKE $${paramIndex} ESCAPE '\\' OR pattern ILIKE $${paramIndex} ESCAPE '\\')`;
+      queryParams.push(`%${escapeLikePattern(searchQuery)}%`);
       paramIndex++;
     }
 
-    const rows = await query<SnippetRow>(
-      `SELECT id::text, name, pattern, flags, description, tags, created_at, updated_at
-       FROM snippets
-       ${whereClause}
-       ORDER BY updated_at DESC, id DESC
-       LIMIT $2`,
-      queryParams
-    );
+    const rows = await withSnippetRlsContext(guard.user.id, async (client) => {
+      const result = await client.query<SnippetRow>(
+        `SELECT id::text, name, pattern, flags, description, tags, created_at, updated_at
+         FROM snippets
+         ${whereClause}
+         ORDER BY updated_at DESC, id DESC
+         LIMIT $2`,
+        queryParams
+      );
+      return result.rows;
+    });
 
     // Check if there are more results
     const hasMore = rows.length > limit;

@@ -1,5 +1,6 @@
 "use client";
 
+import DOMPurify from "dompurify";
 import { useMemo } from "react";
 import { ParseResult } from "@/types";
 import { astToRailroadSvg } from "@/lib/railroad/astToRailroad";
@@ -17,7 +18,12 @@ export function RailroadDiagramPanel({
   const svgContent = useMemo(() => {
     if (!parseResult.ok) return null;
     try {
-      return astToRailroadSvg(parseResult.ast);
+      const rawSvg = astToRailroadSvg(parseResult.ast);
+      const sanitizedSvg = DOMPurify.sanitize(rawSvg, {
+        USE_PROFILES: { svg: true, svgFilters: true, html: false },
+      });
+
+      return sanitizedSvg || null;
     } catch {
       return null;
     }
