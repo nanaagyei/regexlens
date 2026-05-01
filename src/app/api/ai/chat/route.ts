@@ -11,6 +11,10 @@ import { buildSystemPrompt, buildUserPrompt } from "@/lib/ai/systemPrompt";
 
 /**
  * POST /api/ai/chat - AI-powered regex assistant (streaming)
+ *
+ * Uses a "bring your own key" model: the client sends an Anthropic API key
+ * via the X-Anthropic-Key header. The key is used for the single request
+ * and never stored, logged, or persisted.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +28,30 @@ export async function POST(request: NextRequest) {
     const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
+    }
+
+    // Read API key from request header (BYOK)
+    const apiKey = request.headers.get("x-anthropic-key");
+    if (!apiKey) {
+      return NextResponse.json(
+        {
+          error: "api_key_required",
+          message:
+            "An Anthropic API key is required. Add your key in the Copilot settings to use AI features.",
+        },
+        { status: 401 }
+      );
+    }
+
+    if (!apiKey.startsWith("sk-ant-") || apiKey.length < 20) {
+      return NextResponse.json(
+        {
+          error: "invalid_api_key",
+          message:
+            "The API key format is invalid. Anthropic keys start with sk-ant-.",
+        },
+        { status: 401 }
+      );
     }
 
     // Parse and validate request body
@@ -45,18 +73,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { action, context, message, conversationHistory } = validation.data;
-
-    // Check for API key
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        {
-          error: "configuration_error",
-          message: "AI features are not configured. Please contact support.",
-        },
-        { status: 503 }
-      );
-    }
 
     const client = new Anthropic({ apiKey });
 
@@ -130,7 +146,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("AI chat error:", error);
+    console.error("AI chat error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "internal_error", message: "Failed to process AI request" },
       { status: 500 }

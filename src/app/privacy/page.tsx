@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPolicyPage() {
-  const effectiveDate = "March 31, 2026";
+  const effectiveDate = "April 30, 2026";
 
   return (
     <LegalPageLayout title="Privacy Policy">
@@ -72,10 +72,15 @@ export default function PrivacyPolicyPage() {
           share. Anyone with the link can view that encoded state.
         </li>
         <li>
-          <strong>Regex Copilot (AI assistant).</strong> When you use AI-powered features,
-          your prompts and relevant regex context are sent to our AI provider (Anthropic) to
-          generate responses. Please do not submit secrets, regulated personal data, or other
-          sensitive information you are not authorized to share with subprocessors.
+          <strong>Regex Copilot (AI assistant) — Bring Your Own Key.</strong> AI features
+          require you to provide your own Anthropic API key. Your key is stored only in your
+          browser&apos;s local storage (with an automatic 48-hour expiry) and is never saved,
+          logged, or retained on our servers. When you use an AI feature, your key is sent to
+          our server solely to proxy the request to Anthropic on your behalf; the key is
+          discarded immediately after the request completes. Your prompts and relevant regex
+          context are sent to Anthropic under your own API key and account. Please do not
+          submit secrets, regulated personal data, or other sensitive information you are not
+          authorized to share.
         </li>
       </ul>
 
@@ -102,13 +107,33 @@ export default function PrivacyPolicyPage() {
         <li>Hosting and infrastructure (for example Vercel);</li>
         <li>Database and authentication storage (PostgreSQL as configured for our Auth.js adapter);</li>
         <li>Transactional email (Resend, for magic links);</li>
-        <li>AI inference (Anthropic, for AI features);</li>
         <li>Analytics (Vercel Analytics).</li>
       </ul>
+      <p>
+        When you use AI features, your prompts are sent to Anthropic using <strong>your
+        own API key</strong>. RegexLens acts as a technical proxy and does not maintain a
+        separate data-processing relationship with Anthropic on your behalf.
+      </p>
       <p>
         We may also disclose information if required by law, to protect rights and safety, or
         in connection with a business transfer, subject to applicable law.
       </p>
+
+      <h2>API keys and local storage</h2>
+      <p>
+        If you choose to use AI-powered features, you provide your own third-party API key.
+        We handle your key as follows:
+      </p>
+      <ul>
+        <li>Your key is stored exclusively in your browser&apos;s local storage with a 48-hour
+        automatic expiry. We have no access to your browser&apos;s local storage.</li>
+        <li>When you make an AI request, the key is included in the request to our server
+        only so we can forward it to Anthropic. The key is never written to a database,
+        log file, or any persistent storage on our systems.</li>
+        <li>After the proxied request completes, the key is discarded from server memory.</li>
+        <li>You can remove your key at any time using the &quot;Clear key&quot; button in the
+        Copilot interface, or by clearing your browser&apos;s local storage.</li>
+      </ul>
 
       <h2>Data retention</h2>
       <p>

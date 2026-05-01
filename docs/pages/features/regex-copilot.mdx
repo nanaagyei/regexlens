@@ -3,10 +3,17 @@
 import { Callout } from 'nextra/components'
 
 <Callout type="info">
-**Signed in:** Copilot uses `POST /api/ai/chat` and requires signing in plus server configuration (`ANTHROPIC_API_KEY`). Content is processed by **Anthropic**—do not send secrets or regulated data.
+**Bring Your Own Key:** Copilot uses `POST /api/ai/chat` and requires signing in plus your own **Anthropic API key**. Your key is stored only in your browser (48-hour expiry) and never saved on our servers. Content is processed by Anthropic under your own API key — do not send secrets or regulated data.
 </Callout>
 
 **Regex Copilot** is a streaming AI assistant embedded in the **Copilot** tab. It receives **context** from your current pattern, flags, sample test text (when present), match counts, and summarized warnings/explanation steps so answers stay grounded in what you are actually editing.
+
+## Setup
+
+1. Sign in to RegexLens.
+2. Navigate to the **Copilot** tab.
+3. Enter your Anthropic API key when prompted. Get one at [console.anthropic.com](https://console.anthropic.com/settings/keys).
+4. Your key is cached in your browser for 48 hours, then automatically removed.
 
 ## Capabilities
 
@@ -18,5 +25,9 @@ import { Callout } from 'nextra/components'
 
 - **Rate limits** apply (`ai_chat` tier on the server).
 - **Sign-in gate** — unauthenticated users see a lock state with a link to sign in when this feature requires a session.
+- **API key required** — you must provide your own Anthropic API key; we do not supply one.
 - Treat Copilot output as **advisory**; always validate against real data and your engine.
 
+## Privacy
+
+Your API key never leaves your browser except to be forwarded to Anthropic via our proxy. We do not log, store, or retain it. See our [Privacy Policy](/privacy) for details.

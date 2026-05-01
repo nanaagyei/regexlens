@@ -11,53 +11,44 @@ import { pool } from "@/lib/db/pool";
  * - Google OAuth  
  * - Email magic link (via Resend)
  * 
- * Uses PostgreSQL adapter for persistent sessions and account linking
+ * Uses PostgreSQL adapter for account linking and user persistence.
+ * JWT strategy avoids a DB lookup on every request; token.sub carries
+ * the canonical user ID assigned by the adapter.
  */
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // Use PostgreSQL adapter for database-backed sessions
   adapter: PostgresAdapter(pool),
   
   providers: [
-    // GitHub OAuth
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
       clientSecret: process.env.AUTH_GITHUB_SECRET,
     }),
     
-    // Google OAuth
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
     }),
     
-    // Email magic link via Resend (AUTH_RESEND_KEY or Resend docs' RESEND_API_KEY)
     Resend({
       apiKey: process.env.AUTH_RESEND_KEY ?? process.env.RESEND_API_KEY,
       from: process.env.EMAIL_FROM || "RegexLens <noreply@regexlens.dev>",
     }),
   ],
   
-  // Use JWT strategy for better performance (no DB lookup on every request)
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   
   callbacks: {
-    /**
-     * JWT callback - runs when JWT is created or updated
-     * Add user ID and other data to the token
-     */
-    async jwt({ token, user, account, trigger: _trigger }) {
-      // Initial sign in
+    async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id;
+        token.sub = user.id;
         token.email = user.email;
         token.name = user.name;
         token.picture = user.image;
       }
       
-      // Store the provider used for sign in
       if (account) {
         token.provider = account.provider;
       }
@@ -66,12 +57,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     
     /**
-     * Session callback - runs when session is checked
-     * Add user data from token to session
+     * Map token claims onto the session object exposed to the client.
+     * token.sub is the standard JWT subject — set from user.id on sign-in
+     * and persisted automatically across subsequent requests.
      */
     async session({ session, token }) {
       if (session.user && token) {
-        session.user.id = token.id as string;
+        session.user.id = token.sub as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
         session.user.image = token.picture as string;
@@ -79,13 +71,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     
-    /**
-     * Sign in callback - runs on every sign in attempt
-     * Can be used to block certain users or log sign ins
-     */
     async signIn({ user: _user, account: _account, profile: _profile }) {
-      // Allow all sign ins for now
-      // Could add email domain restrictions here
       return true;
     },
   },
@@ -95,10 +81,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/",
     error: "/",
-    verifyRequest: "/", // Email verification page
+    verifyRequest: "/",
   },
   
-  // Security settings
   cookies: {
     sessionToken: {
       name: process.env.NODE_ENV === "production" 
@@ -113,9 +98,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   
-  // Trust the host header in production (for Vercel)
   trustHost: true,
   
-  // Debug mode disabled - set AUTH_DEBUG=true in .env to re-enable for troubleshooting
   debug: process.env.AUTH_DEBUG === "true",
 });

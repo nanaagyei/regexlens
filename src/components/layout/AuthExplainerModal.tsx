@@ -124,7 +124,7 @@ export function AuthExplainerModal({
         }
         const result = await signIn("resend", {
           email,
-          callbackUrl: "/?auth=success",
+          callbackUrl: "/app",
           redirect: false,
         });
         if (result?.ok) {
@@ -135,7 +135,7 @@ export function AuthExplainerModal({
         setIsLoading(false);
       } else {
         // For OAuth providers, redirect immediately
-        await signIn(provider, { callbackUrl: "/?auth=success" });
+        await signIn(provider, { callbackUrl: "/app" });
       }
     } catch (error) {
       console.error("Sign in error:", error);
@@ -241,7 +241,7 @@ export function AuthExplainerModal({
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Signing in unlocks saving patterns, exports, deeper analysis, and Copilot when your environment provides the required API keys. RegexLens remains free and open source — no tiers or paywalls.
+                Signing in unlocks saving patterns, exports, and deeper analysis. AI features (Copilot) use a bring-your-own-key model — add your own Anthropic API key in-app to enable them. We never store your key on our servers. RegexLens remains free and open source — no tiers or paywalls.
               </p>
             </div>
           )}

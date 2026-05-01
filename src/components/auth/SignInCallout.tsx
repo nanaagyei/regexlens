@@ -26,7 +26,7 @@ export function SignInCallout({
         {description}
       </p>
       <Button variant="outline" asChild>
-        <Link href="/api/auth/signin">Sign in</Link>
+        <Link href="/">Sign in</Link>
       </Button>
     </div>
   );
