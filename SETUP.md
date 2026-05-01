@@ -70,6 +70,12 @@ docker compose up -d
 | Password | `regexlens_dev` |
 | Connection String | `postgresql://regexlens:regexlens_dev@localhost:5433/regexlens` |
 
+> **Security note:** the credentials above are committed for local development
+> only. Production deployments MUST use unique, strong credentials. The
+> instrumentation hook (`src/instrumentation.ts`) logs a startup warning when
+> the default credentials are detected with `NODE_ENV=production`, and also
+> warns when `AUTH_SECRET` or `REDIS_URL` are missing.
+
 ### Database Commands
 
 ```bash

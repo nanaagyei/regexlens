@@ -1,5 +1,6 @@
-import { createClient } from "redis";
 import { NextResponse } from "next/server";
+import { getRedisClient } from "@/lib/security/redisClient";
+import { logAuditEvent } from "@/lib/security/auditLog";
 
 /**
  * Rate limit configuration by endpoint type
@@ -41,12 +42,6 @@ interface InMemoryCounter {
   resetAt: number;
 }
 
-/**
- * Lazily connected Redis client singleton.
- * Reconnects automatically if the connection drops.
- */
-let redisClient: ReturnType<typeof createClient> | null = null;
-let connectPromise: Promise<void> | null = null;
 const inMemoryCounters = new Map<string, InMemoryCounter>();
 const FAIL_CLOSED_ON_REDIS_ERROR = new Set<RateLimitType>(["auth", "export", "ai_chat"]);
 const isProduction = process.env.NODE_ENV === "production";
@@ -95,30 +90,6 @@ function inMemoryRateLimit(
     remaining,
     reset: existing.resetAt,
   };
-}
-
-async function getRedis() {
-  if (!process.env.REDIS_URL) return null;
-
-  if (!redisClient) {
-    redisClient = createClient({ url: process.env.REDIS_URL });
-    redisClient.on("error", (err) => {
-      console.error("Redis client error:", err);
-      connectPromise = null;
-    });
-  }
-
-  if (!redisClient.isOpen) {
-    if (!connectPromise) {
-      connectPromise = redisClient.connect().then(
-        () => { connectPromise = null; },
-        (err) => { connectPromise = null; throw err; },
-      );
-    }
-    await connectPromise;
-  }
-
-  return redisClient;
 }
 
 let warnedAboutMissingRedis = false;
@@ -174,7 +145,7 @@ export async function checkRateLimit(
   const key = getRateLimitKey(identifier, type, config.windowMs);
 
   try {
-    const redis = await getRedis();
+    const redis = await getRedisClient();
 
     if (!redis) {
       if (!warnedAboutMissingRedis) {
@@ -182,6 +153,14 @@ export async function checkRateLimit(
         console.error(
           `REDIS_URL not configured for rate limiting (type=${type}, nodeEnv=${process.env.NODE_ENV ?? "unknown"})`,
         );
+        logAuditEvent({
+          event: "ratelimit.redis_unavailable",
+          metadata: {
+            cause: "redis_url_missing",
+            production: isProduction,
+            type,
+          },
+        });
       }
 
       if (isProduction) {
@@ -217,6 +196,15 @@ export async function checkRateLimit(
     };
   } catch (error) {
     console.error("Rate limit check failed:", error);
+    logAuditEvent({
+      event: "ratelimit.redis_unavailable",
+      metadata: {
+        cause: "redis_error",
+        production: isProduction,
+        type,
+        error: error instanceof Error ? error.message : "unknown_error",
+      },
+    });
 
     if (isProduction && FAIL_CLOSED_ON_REDIS_ERROR.has(type)) {
       return deniedRateLimitResult(config.maxRequests, config.windowMs);
@@ -231,6 +219,50 @@ export async function checkRateLimit(
 }
 
 /**
+ * Build a 429 NextResponse and emit a rate-limit audit event in one place.
+ */
+function rateLimitedResponse(
+  request: Request,
+  type: RateLimitType,
+  scope: "ip" | "user",
+  identifier: string,
+  result: RateLimitResult,
+  message: string
+): NextResponse {
+  const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
+
+  logAuditEvent({
+    event: "ratelimit.exceeded",
+    ip: scope === "ip" ? identifier : getClientIP(request),
+    userId: scope === "user" ? identifier : undefined,
+    path: new URL(request.url).pathname,
+    metadata: {
+      type,
+      scope,
+      limit: result.limit,
+      retry_after_seconds: retryAfter,
+    },
+  });
+
+  return NextResponse.json(
+    {
+      error: "rate_limited",
+      message,
+      retry_after: retryAfter,
+    },
+    {
+      status: 429,
+      headers: {
+        "Retry-After": String(retryAfter),
+        "X-RateLimit-Limit": String(result.limit),
+        "X-RateLimit-Remaining": String(result.remaining),
+        "X-RateLimit-Reset": String(result.reset),
+      },
+    }
+  );
+}
+
+/**
  * Rate limit middleware for API routes
  * Returns a NextResponse if rate limited, null otherwise
  */
@@ -239,28 +271,18 @@ export async function rateLimit(
   type: RateLimitType,
   userId?: string
 ): Promise<NextResponse | null> {
-  // Use user ID if available, otherwise fall back to IP
   const identifier = userId || getClientIP(request);
+  const scope: "ip" | "user" = userId ? "user" : "ip";
   const result = await checkRateLimit(identifier, type);
 
   if (!result.success) {
-    const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
-
-    return NextResponse.json(
-      {
-        error: "rate_limited",
-        message: "Too many requests. Please try again later.",
-        retry_after: retryAfter,
-      },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": String(retryAfter),
-          "X-RateLimit-Limit": String(result.limit),
-          "X-RateLimit-Remaining": String(result.remaining),
-          "X-RateLimit-Reset": String(result.reset),
-        },
-      }
+    return rateLimitedResponse(
+      request,
+      type,
+      scope,
+      identifier,
+      result,
+      "Too many requests. Please try again later."
     );
   }
 
@@ -294,22 +316,13 @@ export async function combinedRateLimit(
   // Always check IP-based limit
   const ipResult = await checkRateLimit(`ip:${ip}`, type);
   if (!ipResult.success) {
-    const retryAfter = Math.ceil((ipResult.reset - Date.now()) / 1000);
-    return NextResponse.json(
-      {
-        error: "rate_limited",
-        message: "Too many requests from this IP. Please try again later.",
-        retry_after: retryAfter,
-      },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": String(retryAfter),
-          "X-RateLimit-Limit": String(ipResult.limit),
-          "X-RateLimit-Remaining": String(ipResult.remaining),
-          "X-RateLimit-Reset": String(ipResult.reset),
-        },
-      }
+    return rateLimitedResponse(
+      request,
+      type,
+      "ip",
+      ip,
+      ipResult,
+      "Too many requests from this IP. Please try again later."
     );
   }
 
@@ -317,22 +330,13 @@ export async function combinedRateLimit(
   if (userId) {
     const userResult = await checkRateLimit(`user:${userId}`, type);
     if (!userResult.success) {
-      const retryAfter = Math.ceil((userResult.reset - Date.now()) / 1000);
-      return NextResponse.json(
-        {
-          error: "rate_limited",
-          message: "Too many requests. Please try again later.",
-          retry_after: retryAfter,
-        },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": String(retryAfter),
-            "X-RateLimit-Limit": String(userResult.limit),
-            "X-RateLimit-Remaining": String(userResult.remaining),
-            "X-RateLimit-Reset": String(userResult.reset),
-          },
-        }
+      return rateLimitedResponse(
+        request,
+        type,
+        "user",
+        userId,
+        userResult,
+        "Too many requests. Please try again later."
       );
     }
   }

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
-import { combinedRateLimit } from "@/lib/security/rateLimit";
+import { combinedRateLimit, getClientIP } from "@/lib/security/rateLimit";
 import { withSnippetRlsContext } from "@/lib/db/pool";
 import { enforceCsrfProtection } from "@/lib/security/csrf";
+import { logAuditEvent } from "@/lib/security/auditLog";
 import {
   createVersionSchema,
   diffQuerySchema,
@@ -121,11 +122,20 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
       new RegExp(pattern, flags);
     } catch (regexError) {
+      logAuditEvent({
+        event: "validation.invalid_regex",
+        userId: guard.user.id,
+        ip: getClientIP(request),
+        path: `/api/snippets/${snippetId}/versions`,
+        metadata: {
+          reason:
+            regexError instanceof Error ? regexError.message : "unknown_error",
+        },
+      });
       return NextResponse.json(
         {
           error: "invalid_regex",
           message: "The provided pattern is not a valid regular expression",
-          details: regexError instanceof Error ? regexError.message : "Unknown error",
         },
         { status: 400 }
       );

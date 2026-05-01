@@ -4,6 +4,82 @@ import Google from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
 import PostgresAdapter from "@auth/pg-adapter";
 import { pool } from "@/lib/db/pool";
+import { hashEmail, logAuditEvent } from "@/lib/security/auditLog";
+import { recordMagicLinkAttempt } from "@/lib/security/accountLockout";
+
+/**
+ * Custom magic-link sender that replaces Auth.js's default
+ * `sendVerificationRequest`. Adds a per-email lockout check (L7) before
+ * issuing the email, then sends via Resend's HTTP API. On lockout we drop
+ * silently — never reveal to the requester that a throttle is in effect,
+ * to avoid account enumeration. The user-facing UX is identical to a
+ * successful send.
+ */
+async function sendMagicLinkEmail(params: {
+  identifier: string;
+  url: string;
+  provider: { apiKey?: string; from?: string };
+}): Promise<void> {
+  const { identifier: to, url, provider } = params;
+  const apiKey = provider.apiKey;
+  if (!apiKey) {
+    throw new Error("Resend API key is not configured");
+  }
+
+  const lockout = await recordMagicLinkAttempt(to);
+  if (!lockout.allowed) {
+    return;
+  }
+
+  const { host } = new URL(url);
+  const escapedHost = host.replace(/\./g, "&#8203;.");
+  const htmlBody = `
+<body style="background:#f9f9f9;">
+  <table width="100%" border="0" cellspacing="20" cellpadding="0"
+    style="background:#fff;max-width:600px;margin:auto;border-radius:10px;">
+    <tr><td align="center" style="padding:10px 0px;font-size:22px;font-family:Helvetica,Arial,sans-serif;color:#444;">
+      Sign in to <strong>${escapedHost}</strong>
+    </td></tr>
+    <tr><td align="center" style="padding:20px 0;">
+      <a href="${url}" target="_blank"
+        style="font-size:18px;font-family:Helvetica,Arial,sans-serif;color:#fff;text-decoration:none;border-radius:5px;padding:10px 20px;background:#346df1;display:inline-block;font-weight:bold;">
+        Sign in
+      </a>
+    </td></tr>
+    <tr><td align="center"
+      style="padding:0px 0px 10px 0px;font-size:16px;line-height:22px;font-family:Helvetica,Arial,sans-serif;color:#444;">
+      If you did not request this email you can safely ignore it.
+    </td></tr>
+  </table>
+</body>`.trim();
+  const textBody = `Sign in to ${host}\n${url}\n\n`;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: provider.from ?? "RegexLens <noreply@regexlens.dev>",
+      to,
+      subject: `Sign in to ${host}`,
+      html: htmlBody,
+      text: textBody,
+    }),
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text().catch(() => "");
+    console.error("Resend send failed:", res.status, errorBody);
+    throw new Error(`resend_error_${res.status}`);
+  }
+
+  logAuditEvent({
+    event: "auth.magic_link_sent",
+    emailHash: hashEmail(to),
+  });
+}
 
 /**
  * Auth.js configuration with multiple providers:
@@ -32,6 +108,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Resend({
       apiKey: process.env.AUTH_RESEND_KEY ?? process.env.RESEND_API_KEY,
       from: process.env.EMAIL_FROM || "RegexLens <noreply@regexlens.dev>",
+      sendVerificationRequest: sendMagicLinkEmail,
     }),
   ],
   
@@ -84,30 +161,71 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       try {
         const targetUrl = new URL(url);
-        if (targetUrl.origin === baseUrl) {
+        const baseUrlNormalized = baseUrl.replace(/\/$/, "");
+        if (targetUrl.origin === baseUrlNormalized) {
           return targetUrl.toString();
         }
+        logAuditEvent({
+          event: "auth.redirect_blocked",
+          metadata: {
+            reason: "cross_origin",
+            target_origin: targetUrl.origin,
+            base_origin: baseUrlNormalized,
+          },
+        });
       } catch {
-        // Ignore invalid absolute URLs and fall back to baseUrl.
+        logAuditEvent({
+          event: "auth.redirect_blocked",
+          metadata: { reason: "invalid_url" },
+        });
       }
 
       return baseUrl;
     },
   },
-  
-  events: {},
-  
+
+  events: {
+    async signIn({ user, account, isNewUser }) {
+      logAuditEvent({
+        event: "auth.signin_success",
+        userId: user?.id ?? null,
+        emailHash: user?.email ? hashEmail(user.email) : null,
+        metadata: {
+          provider: account?.provider ?? "unknown",
+          new_user: Boolean(isNewUser),
+        },
+      });
+    },
+    async signOut(message) {
+      const userId =
+        "token" in message && message.token?.sub
+          ? message.token.sub
+          : "session" in message && message.session?.userId
+            ? message.session.userId
+            : null;
+      logAuditEvent({
+        event: "auth.signout",
+        userId,
+      });
+    },
+  },
+
   pages: {
     signIn: "/",
     error: "/",
     verifyRequest: "/",
   },
-  
+
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === "production" 
-        ? "__Secure-authjs.session-token" 
-        : "authjs.session-token",
+      // Renamed from `__Secure-authjs.session-token` to a generic, library-agnostic
+      // name. `__Host-` prefix is stricter than `__Secure-`: it requires Path=/,
+      // forbids Domain attribute, and requires Secure — protecting against
+      // subdomain cookie injection.
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Host-rl-session"
+          : "rl-session",
       options: {
         httpOnly: true,
         sameSite: "lax",
@@ -119,5 +237,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   
   trustHost: true,
   
-  debug: process.env.AUTH_DEBUG === "true",
+  debug:
+    process.env.NODE_ENV === "development" &&
+    process.env.AUTH_DEBUG === "true",
 });

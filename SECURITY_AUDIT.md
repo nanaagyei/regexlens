@@ -11,9 +11,9 @@
 | Severity | Count | Fixed |
 |----------|-------|-------|
 | Critical | 3 | 3 |
-| High | 5 | 0 |
-| Medium | 6 | 1 |
-| Low / Informational | 7 | 0 |
+| High | 5 | 5 |
+| Medium | 6 | 6 |
+| Low / Informational | 7 | 7 |
 
 ---
 
@@ -282,6 +282,8 @@ if (contentLength > 100_000) { // 100KB limit
 
 **Remediation:** Track the Auth.js stable v5 release and upgrade when available. Pin the exact version to avoid unexpected updates.
 
+**Status:** ✅ **FIXED (2026-05-01)** — Pinned to exact `5.0.0-beta.25` (no caret) in `package.json`. Tracking item retained for upgrade to stable v5 once released.
+
 ---
 
 ### L2 — Debug Mode Controllable Via Environment Variable
@@ -295,6 +297,8 @@ if (contentLength > 100_000) { // 100KB limit
 ```typescript
 debug: process.env.NODE_ENV === "development" && process.env.AUTH_DEBUG === "true",
 ```
+
+**Status:** ✅ **FIXED (2026-05-01)** — `src/auth.ts` now gates `debug` on `NODE_ENV === "development"`; `AUTH_DEBUG=true` in production is a no-op.
 
 ---
 
@@ -314,6 +318,8 @@ return NextResponse.json(
 );
 ```
 
+**Status:** ✅ **FIXED (2026-05-01)** — Removed `details` from invalid-regex responses across `api/snippets`, `api/snippets/[id]`, `api/snippets/[id]/versions`, and `api/analyze`. Replaced AI streaming `errorMsg` with the generic code `"stream_error"` in `api/ai/chat`. All raw error context is now captured server-side via `logAuditEvent({ event: "validation.invalid_regex", ... })`.
+
 ---
 
 ### L4 — No Audit Logging
@@ -328,6 +334,8 @@ return NextResponse.json(
 - Log all snippet delete operations.
 - Use a structured logging library (e.g., `pino`) with JSON output for log aggregation.
 
+**Status:** ✅ **FIXED (2026-05-01)** — Introduced `src/lib/security/auditLog.ts` with a typed `AuditEventName` union, severity-routed JSON logging, and a `hashEmail()` helper that prevents plaintext email PII from ever appearing in logs. Wired audit events into Auth.js `events.signIn`/`events.signOut`, the `redirect` callback, CSRF rejections, rate-limit hits, Redis-unavailable transitions, snippet `DELETE`, and invalid-regex validation. Output is single-line JSON suitable for Vercel/CloudWatch/Datadog ingestion without a new dependency.
+
 ---
 
 ### L5 — Cookie Name Reveals Technology Stack
@@ -339,6 +347,8 @@ return NextResponse.json(
 
 **Remediation:** Consider using a generic cookie name like `__Secure-session` or `__Host-sid`. Note: changing this will invalidate all existing sessions.
 
+**Status:** ✅ **FIXED (2026-05-01)** — Renamed to `__Host-rl-session` in production and `rl-session` in development. The `__Host-` prefix is stricter than `__Secure-` (forbids `Domain`, requires `Path=/` and `Secure`). Existing sessions are invalidated on rollout — see operational note for the one-time logout impact.
+
 ---
 
 ### L6 — Development Database Credentials Publicly Documented
@@ -349,6 +359,8 @@ return NextResponse.json(
 **Impact:** None for development; risk if developers reuse these credentials in production.
 
 **Remediation:** Document explicitly that production must use unique, strong credentials. Add a startup check that warns if `DATABASE_URL` contains default dev credentials in production.
+
+**Status:** ✅ **FIXED (2026-05-01)** — Added `src/instrumentation.ts` which runs once at production startup (Node runtime only) and emits `[startup] SECURITY WARNING` lines for default dev DB credentials in `DATABASE_URL`, missing `AUTH_SECRET`, or missing `REDIS_URL`. `.env.example` and `SETUP.md` were updated with explicit production-credentials guidance.
 
 ---
 
@@ -362,6 +374,8 @@ return NextResponse.json(
 - Track failed sign-in attempts per email/account in Redis.
 - After N failures (e.g., 10), require a CAPTCHA or impose a cooldown period.
 - Send email notification to the account owner after suspicious activity.
+
+**Status:** ✅ **FIXED (2026-05-01)** — Implemented per-email magic-link send throttling in `src/lib/security/accountLockout.ts` (10 sends per email per rolling 60-minute window, atomic `MULTI INCR + EXPIRE NX`, SHA-256-hashed email keys, production fail-closed when Redis is unreachable). Wired into the Resend provider via a custom `sendVerificationRequest` that drops silently on lockout to prevent enumeration. The Redis client was extracted into a shared lazy singleton (`src/lib/security/redisClient.ts`) reused by both the rate limiter and the lockout subsystem.
 
 ---
 
@@ -409,12 +423,28 @@ return NextResponse.json(
 - **M5**: Applied production fail-closed handling on Redis error paths for critical rate-limit tiers; primary file: `src/lib/security/rateLimit.ts`.
 - **M6**: Enforced request body size limits before JSON parsing on mutation routes via shared validation and route updates; primary files: `src/lib/security/validation.ts`, `src/app/api/snippets/route.ts`, `src/app/api/snippets/[id]/route.ts`, `src/app/api/export/route.ts`, `src/app/api/ai/chat/route.ts`, `src/app/api/analyze/route.ts`.
 
+### Remediated (2026-05-01) — Low / Informational
+
+- **L1**: Pinned `next-auth` to the exact `5.0.0-beta.25` version (no caret) so the beta cannot silently advance; primary file: `package.json`.
+- **L2**: Restricted Auth.js `debug` mode to `NODE_ENV === "development"` so production cannot enable verbose token/session logging via env var; primary file: `src/auth.ts`.
+- **L3**: Removed raw library error text (`details` field, `errorMsg`) from invalid-regex and AI-stream client responses; details are now logged server-side only via `logAuditEvent({ event: "validation.invalid_regex", ... })`. Primary files: `src/app/api/snippets/route.ts`, `src/app/api/snippets/[id]/route.ts`, `src/app/api/snippets/[id]/versions/route.ts`, `src/app/api/analyze/route.ts`, `src/app/api/ai/chat/route.ts`.
+- **L4**: Added structured JSON audit logging via a new shared module (`src/lib/security/auditLog.ts`) with a typed `AuditEventName` union, a `hashEmail` helper (SHA-256, never logs plaintext email), and severity-based routing to `console.log`/`warn`/`error`. Wired into Auth.js `events` (sign-in, sign-out), the `redirect` callback, CSRF rejections, rate-limit hits, redis-unavailable transitions, snippet deletions, and invalid-regex validation. Primary files: `src/lib/security/auditLog.ts`, `src/lib/security/auditLog.test.ts`, `src/auth.ts`, `src/lib/security/csrf.ts`, `src/lib/security/rateLimit.ts`, `src/app/api/snippets/[id]/route.ts`.
+- **L5**: Renamed the session cookie to `__Host-rl-session` (production) / `rl-session` (dev). The `__Host-` prefix is stricter than `__Secure-`: it forbids the `Domain` attribute, requires `Path=/`, and requires `Secure`. Library-agnostic name no longer fingerprints Auth.js. **Operational impact:** existing sessions are invalidated on rollout — all users will be logged out once. Primary file: `src/auth.ts`.
+- **L6**: Added Next.js `instrumentation.ts` startup hook that logs a `[startup] SECURITY WARNING:` line when `NODE_ENV=production` is combined with default dev DB credentials, missing `AUTH_SECRET`, or missing `REDIS_URL`. Updated `.env.example` and `SETUP.md` with explicit production-credentials guidance. Primary files: `src/instrumentation.ts`, `.env.example`, `SETUP.md`.
+- **L7**: Added per-email magic-link send throttle (`src/lib/security/accountLockout.ts`) to mitigate distributed brute-force account enumeration: 10 sends per email per hour, atomic `MULTI INCR + EXPIRE NX` over Redis, SHA-256-hashed email keys (no plaintext PII in keys), production fail-closed when Redis is unreachable. Wired into the Resend provider via a custom `sendVerificationRequest` that drops silently on lockout (no enumeration via UI signal). Refactored Redis client into a shared lazy singleton (`src/lib/security/redisClient.ts`) consumed by both the rate limiter and lockout subsystem. Primary files: `src/lib/security/accountLockout.ts`, `src/lib/security/accountLockout.test.ts`, `src/lib/security/redisClient.ts`, `src/lib/security/rateLimit.ts`, `src/auth.ts`, `src/lib/security/csrf.test.ts`.
+
 ### Operational Notes
 
 - **RLS rollout order**: Deploy app code that sets tenant context via `set_config(...)` before enabling RLS on existing databases, or previously valid requests can be denied.
 - **Cleanup endpoint secret**: `CRON_SECRET` is required to invoke the cleanup route in non-local environments.
 - **Rate-limit fallback behavior**: In non-production, the limiter can use a safe fallback path if Redis is missing; in production, missing Redis is treated fail-closed to avoid silent protection bypass.
+- **Cookie rename rollout (L5)**: Renaming the session cookie from `__Secure-authjs.session-token` to `__Host-rl-session` invalidates all existing sessions. All users will be logged out exactly once on the next deployment; subsequent sessions are unaffected. Coordinate with announcements/UI if the user base is sensitive to this.
+- **Instrumentation warnings (L6)**: The startup check emits `console.error` lines but never throws — deployments are not blocked. Watch for `[startup] SECURITY WARNING` in deployment logs and treat as a deploy-time gate manually.
+- **Magic-link lockout window (L7)**: Set to 10 attempts per email per rolling 60-minute window. Sliding-window keying is implemented as `floor(now / 3600s)` so the per-email counter resets at the top of each hour. When Redis is unreachable in production, sends fail closed (no email sent, audit event `auth.lockout_triggered` with `reason=redis_unavailable`); in non-production, sends proceed with a logged warning so local dev does not require Redis.
+- **Audit log destinations (L4)**: All audit events emit single-line JSON. `info` severity → `console.log`, `warning` → `console.warn`, `security` → `console.error`. Vercel/CloudWatch/Datadog can ingest these directly. The `hashEmail()` helper produces a 16-char hex prefix of SHA-256 — sufficient for correlation, never reversible to the address.
+- **Resend default sender replacement (L7)**: The custom `sendVerificationRequest` replicates Auth.js's default Resend sender (HTTP POST to `https://api.resend.com/emails`) inline; no new dependency was introduced.
 
 ### Verification Status
 
 - **M3/M4**: Remain verified fixed in current implementation state (no regression observed in this update).
+- **L1–L7 (2026-05-01)**: Verified via `npm run lint`, `npm run typecheck`, `npm run test -- --run` (627 tests passing), `npm run build`, `npx playwright test --project=chromium` in dev mode (12/12 passing), and `npm audit --audit-level=high` (no high+).

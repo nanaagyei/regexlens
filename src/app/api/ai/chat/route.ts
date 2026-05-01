@@ -142,11 +142,13 @@ export async function POST(request: NextRequest) {
           );
           controller.close();
         } catch (err) {
-          const errorMsg =
-            err instanceof Error ? err.message : "Stream error";
+          console.error(
+            "AI chat stream error:",
+            err instanceof Error ? err.message : "Unknown error"
+          );
           controller.enqueue(
             encoder.encode(
-              JSON.stringify({ error: errorMsg }) + "\n"
+              JSON.stringify({ error: "stream_error" }) + "\n"
             )
           );
           controller.close();

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logAuditEvent } from "@/lib/security/auditLog";
+import { getClientIP } from "@/lib/security/rateLimit";
 
 const STATE_CHANGING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
@@ -14,6 +16,23 @@ function getExpectedOrigin(request: NextRequest): string | null {
   return `${protocol}://${host}`;
 }
 
+function rejectCsrf(
+  request: NextRequest,
+  reason: "missing_host" | "missing_origin" | "origin_mismatch",
+  message: string
+): NextResponse {
+  logAuditEvent({
+    event: "csrf.rejected",
+    ip: getClientIP(request),
+    path: request.nextUrl.pathname,
+    metadata: { reason, method: request.method.toUpperCase() },
+  });
+  return NextResponse.json(
+    { error: "csrf_validation_failed", message },
+    { status: 403 }
+  );
+}
+
 /**
  * Enforces same-origin requests for cookie-authenticated, state-changing APIs.
  */
@@ -24,25 +43,16 @@ export function enforceCsrfProtection(request: NextRequest): NextResponse | null
 
   const expectedOrigin = getExpectedOrigin(request);
   if (!expectedOrigin) {
-    return NextResponse.json(
-      { error: "csrf_validation_failed", message: "Unable to validate request origin" },
-      { status: 403 }
-    );
+    return rejectCsrf(request, "missing_host", "Unable to validate request origin");
   }
 
   const origin = request.headers.get("origin");
   if (!origin) {
-    return NextResponse.json(
-      { error: "csrf_validation_failed", message: "Missing Origin header" },
-      { status: 403 }
-    );
+    return rejectCsrf(request, "missing_origin", "Missing Origin header");
   }
 
   if (origin !== expectedOrigin) {
-    return NextResponse.json(
-      { error: "csrf_validation_failed", message: "Cross-site request blocked" },
-      { status: 403 }
-    );
+    return rejectCsrf(request, "origin_mismatch", "Cross-site request blocked");
   }
 
   return null;
