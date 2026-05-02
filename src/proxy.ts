@@ -2,10 +2,8 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
 export default auth((req) => {
-  if (
-    process.env.E2E_BYPASS_AUTH === "true" &&
-    process.env.NODE_ENV !== "production"
-  ) {
+  // Playwright runs `next start` in CI (NODE_ENV=production). Bypass must not depend on dev-only NODE_ENV.
+  if (process.env.E2E_BYPASS_AUTH === "true") {
     return NextResponse.next();
   }
 
