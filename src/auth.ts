@@ -54,25 +54,47 @@ async function sendMagicLinkEmail(params: {
 </body>`.trim();
   const textBody = `Sign in to ${host}\n${url}\n\n`;
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: provider.from ?? "RegexLens <noreply@regexlens.dev>",
-      to,
-      subject: `Sign in to ${host}`,
-      html: htmlBody,
-      text: textBody,
-    }),
-  });
+  const resendTimeoutMs = Number.parseInt(
+    process.env.RESEND_TIMEOUT_MS ?? "5000",
+    10
+  );
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), resendTimeoutMs);
+  let res: Response;
+  try {
+    res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: provider.from ?? "RegexLens <noreply@regexlens.dev>",
+        to,
+        subject: `Sign in to ${host}`,
+        html: htmlBody,
+        text: textBody,
+      }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    if (err.name === "AbortError") {
+      throw new Error("resend_timeout");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     const errorBody = await res.text().catch(() => "");
-    console.error("Resend send failed:", res.status, errorBody);
-    throw new Error(`resend_error_${res.status}`);
+    console.error("Resend send failed:", res.status);
+    const err = new Error(`resend_error_${res.status}`) as Error & {
+      rawResponse?: string;
+    };
+    err.rawResponse = errorBody;
+    throw err;
   }
 
   logAuditEvent({
@@ -211,9 +233,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   pages: {
-    signIn: "/",
-    error: "/",
-    verifyRequest: "/",
+    signIn: "/signin",
+    error: "/signin",
+    verifyRequest: "/signin/verify",
   },
 
   cookies: {

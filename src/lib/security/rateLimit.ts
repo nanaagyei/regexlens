@@ -196,14 +196,20 @@ export async function checkRateLimit(
       reset,
     };
   } catch (error) {
-    console.error("Rate limit check failed:", error);
+    const errorCode =
+      error instanceof Error ? error.name.replace(/\s+/g, "_").toLowerCase() : "unknown_error";
+    console.error("Rate limit check failed", {
+      code: "RATE_LIMIT_REDIS_ERROR",
+      error_code: errorCode,
+    });
     logAuditEvent({
       event: "ratelimit.redis_unavailable",
       metadata: {
         cause: "redis_error",
         production: isProduction,
         type,
-        error: error instanceof Error ? error.message : "unknown_error",
+        redis_unavailable: true,
+        error_code: errorCode,
       },
     });
 

@@ -220,8 +220,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Check for diff query parameters
     const queryParams = parseSearchParams(request.url);
     
-    if (queryParams.from && queryParams.to) {
-      // Handle diff request
+    if (queryParams.from || queryParams.to) {
       const diffValidation = validateInput(diffQuerySchema, queryParams);
       if (!diffValidation.success) {
         return NextResponse.json(formatZodError(diffValidation.error), { status: 400 });

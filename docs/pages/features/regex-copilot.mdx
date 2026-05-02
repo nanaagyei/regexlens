@@ -3,7 +3,7 @@
 import { Callout } from 'nextra/components'
 
 <Callout type="info">
-**Bring Your Own Key:** Copilot uses `POST /api/ai/chat` and requires signing in plus your own **Anthropic API key**. Your key is stored only in your browser (24-hour expiry) and never saved on our servers. Content is processed by Anthropic under your own API key — do not send secrets or regulated data.
+**Bring Your Own Key:** Copilot uses `POST /api/ai/chat` and requires signing in plus your own **Anthropic API key**. Your key is intended to be stored only in your browser (24-hour expiry) and is not persisted by our application servers. Content is processed by Anthropic under your own API key — do not send secrets or regulated data.
 </Callout>
 
 **Regex Copilot** is a streaming AI assistant embedded in the **Copilot** tab. It receives **context** from your current pattern, flags, sample test text (when present), match counts, and summarized warnings/explanation steps so answers stay grounded in what you are actually editing.
@@ -30,4 +30,4 @@ import { Callout } from 'nextra/components'
 
 ## Privacy
 
-Your API key never leaves your browser except to be forwarded to Anthropic via our proxy. We do not log, store, or retain it. See our [Privacy Policy](/privacy) for details.
+Your API key is sent to our proxy only to forward the request to Anthropic. Our application does not persist it. Depending on hosting/infrastructure settings, network-level request logs may still record headers. Avoid sending secrets or regulated data. See our [Privacy Policy](/privacy) for details.

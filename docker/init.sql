@@ -175,6 +175,8 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 ALTER TABLE snippets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE snippet_versions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE snippets FORCE ROW LEVEL SECURITY;
+ALTER TABLE snippet_versions FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS snippets_select_policy ON snippets;
 CREATE POLICY snippets_select_policy ON snippets

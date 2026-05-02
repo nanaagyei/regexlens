@@ -71,8 +71,10 @@ export async function recordMagicLinkAttempt(
   let redis: Awaited<ReturnType<typeof getRedisClient>> = null;
   try {
     redis = await getRedisClient();
-  } catch (error) {
-    console.error("Account lockout: redis connect failed", error);
+  } catch {
+    console.error("Account lockout: redis connect failed", {
+      code: "ACCOUNT_LOCKOUT_REDIS_CONN_ERROR",
+    });
   }
 
   if (!redis) {
@@ -109,8 +111,10 @@ export async function recordMagicLinkAttempt(
       .expire(key, MAGIC_LINK_WINDOW_SECONDS, "NX")
       .exec();
     current = parseMultiExecIncrCount(results as unknown);
-  } catch (error) {
-    console.error("Account lockout: redis op failed", error);
+  } catch {
+    console.error("Account lockout: redis op failed", {
+      code: "ACCOUNT_LOCKOUT_REDIS_OP_ERROR",
+    });
     if (isProductionEnv()) {
       logAuditEvent({
         event: "auth.lockout_triggered",

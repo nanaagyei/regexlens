@@ -431,6 +431,7 @@ async function readRequestBodyBytesWithLimit(
 
       const nextTotal = total + value.byteLength;
       if (nextTotal > maxBytes) {
+        await reader.cancel("payload_too_large");
         return "too_large";
       }
 

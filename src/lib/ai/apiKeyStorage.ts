@@ -7,7 +7,8 @@ interface StoredKey {
 }
 
 export function isValidKeyFormat(key: string): boolean {
-  return key.startsWith("sk-ant-") && key.length > 20;
+  const normalized = key.trim();
+  return normalized.startsWith("sk-ant-") && normalized.length > 20;
 }
 
 export function getStoredApiKey(): string | null {
@@ -29,8 +30,10 @@ export function getStoredApiKey(): string | null {
 
 export function storeApiKey(key: string): void {
   if (typeof window === "undefined") return;
+  const normalized = key.trim();
+  if (!isValidKeyFormat(normalized)) return;
   const entry: StoredKey = {
-    key,
+    key: normalized,
     expiresAt: Date.now() + TTL_MS,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entry));

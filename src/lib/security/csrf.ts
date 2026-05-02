@@ -1,19 +1,16 @@
+import { SITE_URL } from "@/lib/site";
 import { NextRequest, NextResponse } from "next/server";
 import { logAuditEvent } from "@/lib/security/auditLog";
 import { getClientIP } from "@/lib/security/rateLimit";
 
 const STATE_CHANGING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
-function getExpectedOrigin(request: NextRequest): string | null {
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  if (!host) {
+function getExpectedOrigin(): string | null {
+  try {
+    return new URL(SITE_URL).origin;
+  } catch {
     return null;
   }
-
-  const protocol =
-    request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "");
-
-  return `${protocol}://${host}`;
 }
 
 function rejectCsrf(
@@ -37,7 +34,7 @@ function rejectCsrf(
  * Enforces same-origin requests for cookie-authenticated, state-changing APIs.
  *
  * **Browser-first contract:** `fetch` from the RegexLens web app sends `Origin`,
- * which this check compares to the forwarded Host-derived site origin. Non-browser
+ * which this check compares to `NEXT_PUBLIC_SITE_URL` (see `SITE_URL` in `src/lib/site.ts`). Non-browser
  * HTTP clients, curl scripts, or integrations that omit `Origin` will receive 403.
  * For machine-to-machine access, use a dedicated token-based API design — these
  * routes are intended for interactive browser sessions with session cookies.
@@ -47,7 +44,7 @@ export function enforceCsrfProtection(request: NextRequest): NextResponse | null
     return null;
   }
 
-  const expectedOrigin = getExpectedOrigin(request);
+  const expectedOrigin = getExpectedOrigin();
   if (!expectedOrigin) {
     return rejectCsrf(request, "missing_host", "Unable to validate request origin");
   }

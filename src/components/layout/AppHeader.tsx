@@ -64,10 +64,12 @@ export function AppHeader({
           <Image
             src="/regexlens-logo.png"
             alt="RegexLens"
-            width={100}
-            height={100}
-            className="rounded-lg w-[80px] sm:w-[100px]"
+            width={160}
+            height={40}
             priority
+            sizes="(max-width: 640px) 80px 100px"
+            className="h-auto w-[80px] sm:w-[100px] rounded-lg"
+            style={{ height: "auto" }}
           />
         </Link>
         <Tooltip>

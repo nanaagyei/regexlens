@@ -169,7 +169,11 @@ export function RegexCopilot({
           </p>
 
           <div className="w-full space-y-3">
+            <label htmlFor="anthropic-api-key" className="sr-only">
+              Anthropic API key
+            </label>
             <input
+              id="anthropic-api-key"
               type="password"
               value={keyInput}
               onChange={(e) => {
@@ -202,9 +206,10 @@ export function RegexCopilot({
           <div className="flex items-start gap-2 mt-4 p-3 rounded-lg bg-muted/50 text-left">
             <ShieldCheck className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
             <p className="text-[11px] text-muted-foreground">
-              Your key stays in your browser. We never store, log, or retain
-              it on our servers. It is sent only to proxy your request to
-              Anthropic, then immediately discarded.
+              Your key stays in your browser; our application does not persist
+              it in storage. It is sent only to proxy your request to Anthropic.
+              Depending on hosting setup, infrastructure logs may still record
+              request headers.
             </p>
           </div>
 

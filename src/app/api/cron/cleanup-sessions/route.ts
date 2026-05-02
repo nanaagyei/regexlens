@@ -4,11 +4,11 @@ import { queryOne } from "@/lib/db/pool";
 export const runtime = "nodejs";
 
 /**
- * POST /api/cron/cleanup-sessions
+ * GET /api/cron/cleanup-sessions
  *
- * Secured cron endpoint. Requires Authorization: Bearer <CRON_SECRET>.
+ * Secured cron endpoint (Vercel Cron uses GET). Requires Authorization: Bearer <CRON_SECRET>.
  */
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
     return NextResponse.json(

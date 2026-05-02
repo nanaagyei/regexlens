@@ -12,7 +12,7 @@ const webServerEnv = {
     process.env.AUTH_SECRET ||
     "playwright-e2e-auth-secret-placeholder-min-32-chars",
   // Bypass middleware auth gate for e2e workspace tests (never set in production)
-  E2E_BYPASS_AUTH: "true",
+  E2E_BYPASS_AUTH: process.env.E2E_BYPASS_AUTH ?? "true",
 };
 
 export default defineConfig({

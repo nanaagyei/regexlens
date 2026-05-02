@@ -83,8 +83,8 @@ export async function POST(request: NextRequest) {
         ip: getClientIP(request),
         path: "/api/snippets",
         metadata: {
-          reason:
-            regexError instanceof Error ? regexError.message : "unknown_error",
+          reason: "invalid_regex_syntax",
+          error_type: regexError instanceof Error ? regexError.name : "unknown_error",
         },
       });
       return NextResponse.json(

@@ -210,6 +210,11 @@ function generatePlainText(data: Omit<ExportRequestInput, "format">): string {
   return lines.join("\n");
 }
 
+
+function escapeMarkdownTableCell(value: string): string {
+  return value.replace(/\|/g, "\\|").replace(/\r?\n/g, "<br/>");
+}
+
 /**
  * Generate PR comment format (GitHub-friendly)
  */
@@ -235,10 +240,13 @@ function generatePRComment(data: Omit<ExportRequestInput, "format">): string {
   lines.push("| Step | Description |");
   lines.push("|------|-------------|");
 
-  for (const step of steps) {
+  for (const [index, step] of steps.entries()) {
     const indent = "&nbsp;".repeat(step.depth * 4);
-    const detail = step.detail ? ` *(${step.detail})*` : "";
-    lines.push(`| ${steps.indexOf(step) + 1} | ${indent}${step.label}${detail} |`);
+    const safeLabel = escapeMarkdownTableCell(step.label);
+    const detail = step.detail
+      ? ` *(${escapeMarkdownTableCell(step.detail)})*`
+      : "";
+    lines.push(`| ${index + 1} | ${indent}${safeLabel}${detail} |`);
   }
   lines.push("");
 

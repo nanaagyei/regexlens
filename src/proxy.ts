@@ -1,20 +1,12 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
-export default auth((req) => {
-  if (
-    process.env.E2E_BYPASS_AUTH === "true" &&
-    process.env.NODE_ENV !== "production"
-  ) {
-    return NextResponse.next();
-  }
-
-  const isProtected = req.nextUrl.pathname.startsWith("/app");
-  if (isProtected && !req.auth) {
-    return NextResponse.redirect(new URL("/", req.url));
-  }
-  return NextResponse.next();
-});
+/**
+ * Runs Auth.js on `/app` routes so session state stays coherent with the workbench.
+ * Anonymous users are allowed: the regex workspace runs client-side; Sign In lives in
+ * the header and gated APIs use `requireAuth` server-side.
+ */
+export default auth(() => NextResponse.next());
 
 export const config = {
   matcher: ["/app/:path*"],

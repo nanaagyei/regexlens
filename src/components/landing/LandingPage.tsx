@@ -363,7 +363,11 @@ export function LandingPage() {
               width={160}
               height={40}
               priority
+              loading="eager"
+              fetchPriority="high"
+              sizes="160px"
               className="h-9 w-auto rounded"
+              style={{ width: "auto" }}
             />
           </Link>
 
@@ -398,6 +402,9 @@ export function LandingPage() {
                 Star
               </a>
             </Button>
+            <Button size="sm" variant="outline" asChild>
+              <Link href="/signin?callbackUrl=%2Fapp">Sign in</Link>
+            </Button>
             <Button size="sm" asChild>
               <Link href="/app" className="gap-1.5">
                 Open RegexLens
@@ -431,6 +438,9 @@ export function LandingPage() {
                     </DropdownMenuItem>
                   )
                 )}
+                <DropdownMenuItem asChild>
+                  <Link href="/signin?callbackUrl=%2Fapp">Sign in</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/app">Open RegexLens</Link>
                 </DropdownMenuItem>
@@ -799,14 +809,16 @@ export function LandingPage() {
                     &ldquo;{t.quote}&rdquo;
                   </p>
                   <div className="flex items-center gap-3">
-                    <Image
-                      src={t.avatar}
-                      alt={t.name}
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                      unoptimized
-                    />
+                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                      <Image
+                        src={t.avatar}
+                        alt={t.name}
+                        fill
+                        className="object-cover"
+                        sizes="40px"
+                        unoptimized
+                      />
+                    </div>
                     <div>
                       <p className="text-sm font-semibold">{t.name}</p>
                       <p className="text-xs text-muted-foreground">{t.role}</p>
@@ -1036,7 +1048,9 @@ export function LandingPage() {
                   alt="RegexLens"
                   width={160}
                   height={40}
+                  sizes="160px"
                   className="h-9 w-auto rounded"
+                  style={{ width: "auto" }}
                 />
               </Link>
               <p className="text-sm text-muted-foreground leading-relaxed">

@@ -98,12 +98,14 @@ interface AuthExplainerModalProps {
   provider: AuthProvider | null;
   isOpen: boolean;
   onClose: () => void;
+  callbackUrl?: string;
 }
 
 export function AuthExplainerModal({
   provider,
   isOpen,
   onClose,
+  callbackUrl = "/app",
 }: AuthExplainerModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -124,7 +126,7 @@ export function AuthExplainerModal({
         }
         const result = await signIn("resend", {
           email,
-          callbackUrl: "/app",
+          callbackUrl,
           redirect: false,
         });
         if (result?.ok) {
@@ -135,7 +137,7 @@ export function AuthExplainerModal({
         setIsLoading(false);
       } else {
         // For OAuth providers, redirect immediately
-        await signIn(provider, { callbackUrl: "/app" });
+        await signIn(provider, { callbackUrl });
       }
     } catch (error) {
       console.error("Sign in error:", error);
@@ -241,7 +243,7 @@ export function AuthExplainerModal({
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Signing in unlocks saving patterns, exports, and deeper analysis. AI features (Copilot) use a bring-your-own-key model — add your own Anthropic API key in-app to enable them. We never store your key on our servers. RegexLens remains free and open source — no tiers or paywalls.
+                Signing in unlocks saving patterns, exports, and deeper analysis. AI features (Copilot) use a bring-your-own-key model — add your own Anthropic API key in-app to enable them. We do not persist your key in application storage; depending on your hosting setup, infrastructure logs may still record request headers. RegexLens remains free and open source — no tiers or paywalls.
               </p>
             </div>
           )}

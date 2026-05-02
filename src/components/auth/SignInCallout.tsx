@@ -26,7 +26,7 @@ export function SignInCallout({
         {description}
       </p>
       <Button variant="outline" asChild>
-        <Link href="/">Sign in</Link>
+        <Link href="/signin?callbackUrl=%2Fapp">Sign in</Link>
       </Button>
     </div>
   );

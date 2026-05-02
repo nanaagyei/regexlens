@@ -9,7 +9,14 @@
  * The check is deliberately non-fatal: we log loudly but do not throw, to
  * avoid taking down a deployment over a misconfiguration that is otherwise
  * recoverable.
+ *
+ * Sentry: dynamic imports match @sentry/nextjs manual setup — server vs edge
+ * init runs only in the matching runtime. Startup warnings are also reported
+ * to Sentry in production so deploy-time misconfiguration shows up in issues.
  */
+
+import * as Sentry from "@sentry/nextjs";
+
 function isDocumentedLocalDevDatabaseUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
@@ -27,8 +34,18 @@ function isDocumentedLocalDevDatabaseUrl(url: string): boolean {
 }
 
 export async function register() {
-  if (process.env.NEXT_RUNTIME !== "nodejs") return;
-  if (process.env.NODE_ENV !== "production") return;
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    await import("../sentry.server.config");
+  }
+
+  if (process.env.NEXT_RUNTIME === "edge") {
+    await import("../sentry.edge.config");
+  }
+
+  // Env-backed checks apply to the Node server only (full process env).
+  if (process.env.NEXT_RUNTIME !== "nodejs") {
+    return;
+  }
 
   const issues: string[] = [];
 
@@ -53,4 +70,14 @@ export async function register() {
   for (const issue of issues) {
     console.error(`[startup] SECURITY WARNING: ${issue}`);
   }
+
+  if (issues.length > 0 && process.env.NODE_ENV === "production") {
+    Sentry.captureMessage(`Startup security warnings (${issues.length})`, {
+      level: "warning",
+      tags: { source: "instrumentation", category: "startup_security" },
+      extra: { issues },
+    });
+  }
 }
+
+export const onRequestError = Sentry.captureRequestError;

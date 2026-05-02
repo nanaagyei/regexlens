@@ -64,7 +64,11 @@ export async function withSnippetRlsContext<T>(
     await client.query("COMMIT");
     return result;
   } catch (error) {
-    await client.query("ROLLBACK");
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // Ignore rollback failure; preserve original error.
+    }
     throw error;
   } finally {
     client.release();
