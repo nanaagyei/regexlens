@@ -35,6 +35,15 @@ test.describe("smoke", () => {
   });
 });
 
+test.describe("app access", () => {
+  test("guests can open /app workbench", async ({ page }) => {
+    await page.goto("/app");
+    await expect(
+      page.getByRole("heading", { name: "Pattern", exact: true })
+    ).toBeVisible({ timeout: 20_000 });
+  });
+});
+
 test.describe("workspace integration", () => {
   test("typing regex updates explanation panel", async ({ page }) => {
     await page.goto("/app");

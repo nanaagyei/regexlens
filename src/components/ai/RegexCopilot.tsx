@@ -15,9 +15,18 @@ import {
   Trash2,
   StopCircle,
   AlertCircle,
+  Key,
+  ShieldCheck,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SignInCallout } from "@/components/auth/SignInCallout";
+import {
+  getStoredApiKey,
+  storeApiKey,
+  clearApiKey,
+  isValidKeyFormat,
+} from "@/lib/ai/apiKeyStorage";
 
 interface RegexCopilotProps {
   pattern: string;
@@ -57,6 +66,13 @@ export function RegexCopilot({
   } = useAIChat();
   const [freeformInput, setFreeformInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const [keyInput, setKeyInput] = useState("");
+  const [keyError, setKeyError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setHasApiKey(getStoredApiKey() !== null);
+  }, []);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -107,6 +123,25 @@ export function RegexCopilot({
     [sendMessage, buildContext]
   );
 
+  const handleSaveKey = useCallback(() => {
+    const trimmed = keyInput.trim();
+    if (!isValidKeyFormat(trimmed)) {
+      setKeyError("Invalid key format. Anthropic keys start with sk-ant-.");
+      return;
+    }
+    storeApiKey(trimmed);
+    setHasApiKey(true);
+    setKeyInput("");
+    setKeyError(null);
+  }, [keyInput]);
+
+  const handleClearKey = useCallback(() => {
+    clearApiKey();
+    setHasApiKey(false);
+    setKeyInput("");
+    setKeyError(null);
+  }, []);
+
   // Auth gate
   if (!isUserLoading && !user) {
     return (
@@ -115,6 +150,78 @@ export function RegexCopilot({
           title="Review Assistant"
           description="Sign in for AI-powered review assistance — edge case detection, safety checks, optimization suggestions, and plain-English summaries."
         />
+      </div>
+    );
+  }
+
+  // API key gate
+  if (!isUserLoading && user && !hasApiKey) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8">
+        <div className="flex flex-col items-center text-center max-w-[320px]">
+          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <Key className="h-6 w-6 text-primary" />
+          </div>
+          <h3 className="font-semibold mb-2">Add your API key</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Enter your Anthropic API key to enable AI features. Your key is
+            stored only in your browser and auto-expires after 24 hours.
+          </p>
+
+          <div className="w-full space-y-3">
+            <label htmlFor="anthropic-api-key" className="sr-only">
+              Anthropic API key
+            </label>
+            <input
+              id="anthropic-api-key"
+              type="password"
+              value={keyInput}
+              onChange={(e) => {
+                setKeyInput(e.target.value);
+                setKeyError(null);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && handleSaveKey()}
+              placeholder="sk-ant-..."
+              className={cn(
+                "w-full px-3 py-2 text-sm rounded-lg",
+                "border border-input bg-background",
+                "focus:outline-none focus:ring-1 focus:ring-ring",
+                "placeholder:text-muted-foreground/50"
+              )}
+            />
+            {keyError && (
+              <p className="text-xs text-red-400">{keyError}</p>
+            )}
+            <Button
+              onClick={handleSaveKey}
+              disabled={!keyInput.trim()}
+              className="w-full gap-2"
+              size="sm"
+            >
+              <Key className="h-3.5 w-3.5" />
+              Save key
+            </Button>
+          </div>
+
+          <div className="flex items-start gap-2 mt-4 p-3 rounded-lg bg-muted/50 text-left">
+            <ShieldCheck className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+            <p className="text-[11px] text-muted-foreground">
+              Your key stays in your browser; our application does not persist
+              it in storage. It is sent only to proxy your request to Anthropic.
+              Depending on hosting setup, infrastructure logs may still record
+              request headers.
+            </p>
+          </div>
+
+          <a
+            href="https://console.anthropic.com/settings/keys"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 text-xs text-primary hover:underline"
+          >
+            Get an API key from Anthropic &rarr;
+          </a>
+        </div>
       </div>
     );
   }
@@ -129,17 +236,31 @@ export function RegexCopilot({
           <Sparkles className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-medium">Review Assistant</h3>
         </div>
-        {messages.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearHistory}
-            className="h-7 text-xs gap-1 text-muted-foreground"
-          >
-            <Trash2 className="h-3 w-3" />
-            Clear
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {hasApiKey && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearKey}
+              className="h-7 text-xs gap-1 text-muted-foreground"
+              title="Remove stored API key"
+            >
+              <X className="h-3 w-3" />
+              Key
+            </Button>
+          )}
+          {messages.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearHistory}
+              className="h-7 text-xs gap-1 text-muted-foreground"
+            >
+              <Trash2 className="h-3 w-3" />
+              Clear
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Messages area */}

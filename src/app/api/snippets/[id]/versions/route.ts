@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
-import { combinedRateLimit } from "@/lib/security/rateLimit";
-import { query, queryOne } from "@/lib/db/pool";
+import { combinedRateLimit, getClientIP } from "@/lib/security/rateLimit";
+import { withSnippetRlsContext } from "@/lib/db/pool";
+import { enforceCsrfProtection } from "@/lib/security/csrf";
+import { logAuditEvent } from "@/lib/security/auditLog";
 import {
   createVersionSchema,
   diffQuerySchema,
@@ -9,6 +11,8 @@ import {
   validateInput,
   formatZodError,
   parseSearchParams,
+  parseJsonBodyWithinLimit,
+  REQUEST_BODY_LIMITS,
 } from "@/lib/security/validation";
 import { computeDiff } from "@/lib/snippets/diff";
 
@@ -36,11 +40,14 @@ async function verifySnippetOwnership(
   snippetId: string,
   userId: string
 ): Promise<boolean> {
-  const row = await queryOne<SnippetOwnerRow>(
-    `SELECT user_id::text FROM snippets WHERE id = $1::uuid`,
-    [snippetId]
-  );
-  return row?.user_id === userId;
+  const row = await withSnippetRlsContext(userId, async (client) => {
+    const result = await client.query<SnippetOwnerRow>(
+      `SELECT user_id::text FROM snippets WHERE id = $1::uuid`,
+      [snippetId]
+    );
+    return result.rows[0] ?? null;
+  });
+  return Boolean(row);
 }
 
 /**
@@ -54,10 +61,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return rateLimitResponse;
     }
 
+    const csrfError = enforceCsrfProtection(request);
+    if (csrfError) {
+      return csrfError;
+    }
+
     // Require authentication
     const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
+    }
+
+    const userRateLimitResponse = await combinedRateLimit(request, "api_free", {
+      userId: guard.user.id,
+      skipIpCheck: true,
+    });
+    if (userRateLimitResponse) {
+      return userRateLimitResponse;
     }
 
     const { id: snippetId } = await params;
@@ -80,16 +100,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Parse and validate request body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { error: "invalid_json", message: "Invalid JSON in request body" },
-        { status: 400 }
-      );
+    const parsedBody = await parseJsonBodyWithinLimit(
+      request,
+      REQUEST_BODY_LIMITS.VERSION_WRITE_BYTES
+    );
+    if (!parsedBody.ok) {
+      return NextResponse.json(parsedBody.body, { status: parsedBody.status });
     }
+
+    const body = parsedBody.data;
 
     const validation = validateInput(createVersionSchema, body);
     if (!validation.success) {
@@ -102,25 +121,36 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
       new RegExp(pattern, flags);
     } catch (regexError) {
+      logAuditEvent({
+        event: "validation.invalid_regex",
+        userId: guard.user.id,
+        ip: getClientIP(request),
+        path: `/api/snippets/${snippetId}/versions`,
+        metadata: {
+          reason:
+            regexError instanceof Error ? regexError.message : "unknown_error",
+        },
+      });
       return NextResponse.json(
         {
           error: "invalid_regex",
           message: "The provided pattern is not a valid regular expression",
-          details: regexError instanceof Error ? regexError.message : "Unknown error",
         },
         { status: 400 }
       );
     }
 
     // Insert version
-    const rows = await query<VersionRow>(
-      `INSERT INTO snippet_versions (snippet_id, pattern, flags, notes)
-       VALUES ($1::uuid, $2, $3, $4)
-       RETURNING id::text, snippet_id::text, pattern, flags, notes, created_at`,
-      [snippetId, pattern, flags, notes || null]
-    );
+    const version = await withSnippetRlsContext(guard.user.id, async (client) => {
+      const rows = await client.query<VersionRow>(
+        `INSERT INTO snippet_versions (snippet_id, pattern, flags, notes)
+         VALUES ($1::uuid, $2, $3, $4)
+         RETURNING id::text, snippet_id::text, pattern, flags, notes, created_at`,
+        [snippetId, pattern, flags, notes || null]
+      );
 
-    const version = rows[0];
+      return rows.rows[0];
+    });
 
     return NextResponse.json(
       {
@@ -159,6 +189,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return guard;
     }
 
+    const userRateLimitResponse = await combinedRateLimit(request, "api_free", {
+      userId: guard.user.id,
+      skipIpCheck: true,
+    });
+    if (userRateLimitResponse) {
+      return userRateLimitResponse;
+    }
+
     const { id: snippetId } = await params;
 
     // Validate snippet ID format
@@ -182,8 +220,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Check for diff query parameters
     const queryParams = parseSearchParams(request.url);
     
-    if (queryParams.from && queryParams.to) {
-      // Handle diff request
+    if (queryParams.from || queryParams.to) {
       const diffValidation = validateInput(diffQuerySchema, queryParams);
       if (!diffValidation.success) {
         return NextResponse.json(formatZodError(diffValidation.error), { status: 400 });
@@ -192,12 +229,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       const { from, to } = diffValidation.data;
 
       // Fetch both versions
-      const versions = await query<VersionRow>(
-        `SELECT id::text, snippet_id::text, pattern, flags, notes, created_at
-         FROM snippet_versions
-         WHERE snippet_id = $1::uuid AND id IN ($2::uuid, $3::uuid)`,
-        [snippetId, from, to]
-      );
+      const versions = await withSnippetRlsContext(guard.user.id, async (client) => {
+        const result = await client.query<VersionRow>(
+          `SELECT id::text, snippet_id::text, pattern, flags, notes, created_at
+           FROM snippet_versions
+           WHERE snippet_id = $1::uuid AND id IN ($2::uuid, $3::uuid)`,
+          [snippetId, from, to]
+        );
+        return result.rows;
+      });
 
       if (versions.length !== 2) {
         return NextResponse.json(
@@ -237,14 +277,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // List all versions
-    const rows = await query<VersionRow>(
-      `SELECT id::text, snippet_id::text, pattern, flags, notes, created_at
-       FROM snippet_versions
-       WHERE snippet_id = $1::uuid
-       ORDER BY created_at DESC
-       LIMIT 100`,
-      [snippetId]
-    );
+    const rows = await withSnippetRlsContext(guard.user.id, async (client) => {
+      const result = await client.query<VersionRow>(
+        `SELECT id::text, snippet_id::text, pattern, flags, notes, created_at
+         FROM snippet_versions
+         WHERE snippet_id = $1::uuid
+         ORDER BY created_at DESC
+         LIMIT 100`,
+        [snippetId]
+      );
+      return result.rows;
+    });
 
     return NextResponse.json({
       items: rows.map((row) => ({

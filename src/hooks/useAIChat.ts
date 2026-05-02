@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { AIAction, AIContext, AIChatMessage } from "@/types";
+import { getStoredApiKey } from "@/lib/ai/apiKeyStorage";
 
 interface UseAIChatReturn {
   messages: AIChatMessage[];
@@ -41,6 +42,13 @@ export function useAIChat(): UseAIChatReturn {
       setError(null);
       setIsStreaming(true);
 
+      const apiKey = getStoredApiKey();
+      if (!apiKey) {
+        setError("No API key found. Add your Anthropic API key in the Copilot settings.");
+        setIsStreaming(false);
+        return;
+      }
+
       // Build user-facing label for the message
       const userLabel = message || ACTION_LABELS[action];
 
@@ -79,7 +87,10 @@ export function useAIChat(): UseAIChatReturn {
 
         const res = await fetch("/api/ai/chat", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Anthropic-Key": apiKey,
+          },
           body: JSON.stringify({
             action,
             context,

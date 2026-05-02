@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
-import { combinedRateLimit } from "@/lib/security/rateLimit";
+import { combinedRateLimit, getClientIP } from "@/lib/security/rateLimit";
+import { enforceCsrfProtection } from "@/lib/security/csrf";
+import { logAuditEvent } from "@/lib/security/auditLog";
 import {
   analyzeRequestSchema,
   validateInput,
   formatZodError,
+  parseJsonBodyWithinLimit,
+  REQUEST_BODY_LIMITS,
 } from "@/lib/security/validation";
 
 interface Warning {
@@ -51,22 +55,34 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse;
     }
 
+    const csrfError = enforceCsrfProtection(request);
+    if (csrfError) {
+      return csrfError;
+    }
+
     // Require authentication
     const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
     }
 
-    // Parse and validate request body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { error: "invalid_json", message: "Invalid JSON in request body" },
-        { status: 400 }
-      );
+    const userRateLimitResponse = await combinedRateLimit(request, "api_free", {
+      userId: guard.user.id,
+      skipIpCheck: true,
+    });
+    if (userRateLimitResponse) {
+      return userRateLimitResponse;
     }
+
+    const parsedBody = await parseJsonBodyWithinLimit(
+      request,
+      REQUEST_BODY_LIMITS.ANALYZE_BYTES
+    );
+    if (!parsedBody.ok) {
+      return NextResponse.json(parsedBody.body, { status: parsedBody.status });
+    }
+
+    const body = parsedBody.data;
 
     const validation = validateInput(analyzeRequestSchema, body);
     if (!validation.success) {
@@ -79,11 +95,20 @@ export async function POST(request: NextRequest) {
     try {
       new RegExp(pattern, flags);
     } catch (regexError) {
+      logAuditEvent({
+        event: "validation.invalid_regex",
+        userId: guard.user.id,
+        ip: getClientIP(request),
+        path: "/api/analyze",
+        metadata: {
+          reason:
+            regexError instanceof Error ? regexError.message : "unknown_error",
+        },
+      });
       return NextResponse.json(
         {
           error: "invalid_regex",
           message: "The provided pattern is not a valid regular expression",
-          details: regexError instanceof Error ? regexError.message : "Unknown error",
         },
         { status: 400 }
       );

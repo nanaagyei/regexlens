@@ -56,3 +56,5 @@ initial_prds/
 IMPLEMENTATION_STATUS.md
 
 regexlens_repo_ready/
+# Sentry Config File
+.env.sentry-build-plugin

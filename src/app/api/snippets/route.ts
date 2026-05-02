@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
-import { combinedRateLimit } from "@/lib/security/rateLimit";
-import { query } from "@/lib/db/pool";
+import { combinedRateLimit, getClientIP } from "@/lib/security/rateLimit";
+import { withSnippetRlsContext } from "@/lib/db/pool";
+import { enforceCsrfProtection } from "@/lib/security/csrf";
+import { logAuditEvent } from "@/lib/security/auditLog";
 import {
   createSnippetSchema,
   listSnippetsQuerySchema,
   validateInput,
   formatZodError,
   parseSearchParams,
+  escapeLikePattern,
+  parseJsonBodyWithinLimit,
+  REQUEST_BODY_LIMITS,
 } from "@/lib/security/validation";
 
 interface SnippetRow {
@@ -32,22 +37,34 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse;
     }
 
+    const csrfError = enforceCsrfProtection(request);
+    if (csrfError) {
+      return csrfError;
+    }
+
     // Require authentication
     const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
     }
 
-    // Parse and validate request body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { error: "invalid_json", message: "Invalid JSON in request body" },
-        { status: 400 }
-      );
+    const userRateLimitResponse = await combinedRateLimit(request, "api_free", {
+      userId: guard.user.id,
+      skipIpCheck: true,
+    });
+    if (userRateLimitResponse) {
+      return userRateLimitResponse;
     }
+
+    const parsedBody = await parseJsonBodyWithinLimit(
+      request,
+      REQUEST_BODY_LIMITS.SNIPPET_WRITE_BYTES
+    );
+    if (!parsedBody.ok) {
+      return NextResponse.json(parsedBody.body, { status: parsedBody.status });
+    }
+
+    const body = parsedBody.data;
 
     const validation = validateInput(createSnippetSchema, body);
     if (!validation.success) {
@@ -60,27 +77,37 @@ export async function POST(request: NextRequest) {
     try {
       new RegExp(pattern, flags);
     } catch (regexError) {
+      logAuditEvent({
+        event: "validation.invalid_regex",
+        userId: guard.user.id,
+        ip: getClientIP(request),
+        path: "/api/snippets",
+        metadata: {
+          reason: "invalid_regex_syntax",
+          error_type: regexError instanceof Error ? regexError.name : "unknown_error",
+        },
+      });
       return NextResponse.json(
         {
           error: "invalid_regex",
           message: "The provided pattern is not a valid regular expression",
-          details: regexError instanceof Error ? regexError.message : "Unknown error",
         },
         { status: 400 }
       );
     }
 
     // Insert snippet into database
-    const rows = await query<SnippetRow>(
-      `INSERT INTO snippets (user_id, name, pattern, flags, description, tags)
-       VALUES ($1, $2, $3, $4, $5, $6::jsonb)
-       RETURNING
-         id::text, name, pattern, flags, description,
-         tags, created_at, updated_at`,
-      [guard.user.id, name, pattern, flags, description || null, JSON.stringify(tags)]
-    );
-
-    const snippet = rows[0];
+    const snippet = await withSnippetRlsContext(guard.user.id, async (client) => {
+      const rows = await client.query<SnippetRow>(
+        `INSERT INTO snippets (user_id, name, pattern, flags, description, tags)
+         VALUES ($1, $2, $3, $4, $5, $6::jsonb)
+         RETURNING
+           id::text, name, pattern, flags, description,
+           tags, created_at, updated_at`,
+        [guard.user.id, name, pattern, flags, description || null, JSON.stringify(tags)]
+      );
+      return rows.rows[0];
+    });
 
     return NextResponse.json(
       {
@@ -127,6 +154,14 @@ export async function GET(request: NextRequest) {
       return guard;
     }
 
+    const userRateLimitResponse = await combinedRateLimit(request, "api_free", {
+      userId: guard.user.id,
+      skipIpCheck: true,
+    });
+    if (userRateLimitResponse) {
+      return userRateLimitResponse;
+    }
+
     // Parse and validate query parameters
     const params = parseSearchParams(request.url);
     const validation = validateInput(listSnippetsQuerySchema, params);
@@ -159,19 +194,22 @@ export async function GET(request: NextRequest) {
 
     // Add search filter
     if (searchQuery) {
-      whereClause += ` AND (name ILIKE $${paramIndex} OR pattern ILIKE $${paramIndex})`;
-      queryParams.push(`%${searchQuery}%`);
+      whereClause += ` AND (name ILIKE $${paramIndex} ESCAPE '\\' OR pattern ILIKE $${paramIndex} ESCAPE '\\')`;
+      queryParams.push(`%${escapeLikePattern(searchQuery)}%`);
       paramIndex++;
     }
 
-    const rows = await query<SnippetRow>(
-      `SELECT id::text, name, pattern, flags, description, tags, created_at, updated_at
-       FROM snippets
-       ${whereClause}
-       ORDER BY updated_at DESC, id DESC
-       LIMIT $2`,
-      queryParams
-    );
+    const rows = await withSnippetRlsContext(guard.user.id, async (client) => {
+      const result = await client.query<SnippetRow>(
+        `SELECT id::text, name, pattern, flags, description, tags, created_at, updated_at
+         FROM snippets
+         ${whereClause}
+         ORDER BY updated_at DESC, id DESC
+         LIMIT $2`,
+        queryParams
+      );
+      return result.rows;
+    });
 
     // Check if there are more results
     const hasMore = rows.length > limit;

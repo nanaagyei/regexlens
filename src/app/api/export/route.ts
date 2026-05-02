@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
 import { combinedRateLimit } from "@/lib/security/rateLimit";
+import { enforceCsrfProtection } from "@/lib/security/csrf";
 import {
   exportRequestSchema,
   validateInput,
   formatZodError,
   ExportFormat,
   ExportRequestInput,
+  parseJsonBodyWithinLimit,
+  REQUEST_BODY_LIMITS,
 } from "@/lib/security/validation";
 
 /**
@@ -26,22 +29,34 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse;
     }
 
+    const csrfError = enforceCsrfProtection(request);
+    if (csrfError) {
+      return csrfError;
+    }
+
     // Require authentication
     const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
     }
 
-    // Parse and validate request body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { error: "invalid_json", message: "Invalid JSON in request body" },
-        { status: 400 }
-      );
+    const userRateLimitResponse = await combinedRateLimit(request, "export", {
+      userId: guard.user.id,
+      skipIpCheck: true,
+    });
+    if (userRateLimitResponse) {
+      return userRateLimitResponse;
     }
+
+    const parsedBody = await parseJsonBodyWithinLimit(
+      request,
+      REQUEST_BODY_LIMITS.EXPORT_BYTES
+    );
+    if (!parsedBody.ok) {
+      return NextResponse.json(parsedBody.body, { status: parsedBody.status });
+    }
+
+    const body = parsedBody.data;
 
     const validation = validateInput(exportRequestSchema, body);
     if (!validation.success) {
@@ -195,6 +210,15 @@ function generatePlainText(data: Omit<ExportRequestInput, "format">): string {
   return lines.join("\n");
 }
 
+
+function escapeMarkdownTableCell(value: string): string {
+  // Order matters: escape `\` first, then `|`, so backslashes cannot undo pipe escapes (CodeQL js/incomplete-sanitization).
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\|/g, "\\|")
+    .replace(/\r?\n/g, "<br/>");
+}
+
 /**
  * Generate PR comment format (GitHub-friendly)
  */
@@ -220,10 +244,13 @@ function generatePRComment(data: Omit<ExportRequestInput, "format">): string {
   lines.push("| Step | Description |");
   lines.push("|------|-------------|");
 
-  for (const step of steps) {
+  for (const [index, step] of steps.entries()) {
     const indent = "&nbsp;".repeat(step.depth * 4);
-    const detail = step.detail ? ` *(${step.detail})*` : "";
-    lines.push(`| ${steps.indexOf(step) + 1} | ${indent}${step.label}${detail} |`);
+    const safeLabel = escapeMarkdownTableCell(step.label);
+    const detail = step.detail
+      ? ` *(${escapeMarkdownTableCell(step.detail)})*`
+      : "";
+    lines.push(`| ${index + 1} | ${indent}${safeLabel}${detail} |`);
   }
   lines.push("");
 

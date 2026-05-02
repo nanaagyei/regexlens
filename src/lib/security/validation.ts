@@ -15,6 +15,18 @@ export const LIMITS = {
 } as const;
 
 /**
+ * Max accepted JSON payload sizes for state-changing routes (bytes).
+ * Keep conservative to reduce abuse potential while preserving current UX.
+ */
+export const REQUEST_BODY_LIMITS = {
+  SNIPPET_WRITE_BYTES: 64 * 1024, // 64 KB
+  VERSION_WRITE_BYTES: 32 * 1024, // 32 KB
+  EXPORT_BYTES: 256 * 1024, // 256 KB
+  ANALYZE_BYTES: 64 * 1024, // 64 KB
+  AI_CHAT_BYTES: 512 * 1024, // 512 KB
+} as const;
+
+/**
  * Valid regex flags for JavaScript
  */
 const VALID_FLAGS = ["g", "i", "m", "s", "u", "y", "d"] as const;
@@ -353,3 +365,147 @@ export function parseSearchParams(url: string): Record<string, string> {
   });
   return params;
 }
+
+
+/**
+ * Escape user input that will be embedded in a SQL LIKE/ILIKE pattern.
+ * Escapes wildcard and escape characters so search stays literal.
+ */
+export function escapeLikePattern(input: string): string {
+  return input.replace(/[\\%_]/g, "\\$&");
+}
+
+/**
+ * Build a consistent 413 response payload when `Content-Length` exceeds limits.
+ * Returns null when `Content-Length` is absent/invalid or within limit.
+ *
+ * For JSON routes, also use `parseJsonBodyWithinLimit`, which streams the body
+ * and enforces the same cap even when `Content-Length` is missing or untrusted.
+ */
+export function getJsonBodyTooLargeError(
+  request: Request,
+  maxBytes: number
+): { error: "payload_too_large"; message: string; max_bytes: number } | null {
+  const contentLengthHeader = request.headers.get("content-length");
+  if (!contentLengthHeader) {
+    return null;
+  }
+
+  const contentLength = Number.parseInt(contentLengthHeader, 10);
+  if (!Number.isFinite(contentLength) || contentLength < 0) {
+    return null;
+  }
+
+  if (contentLength <= maxBytes) {
+    return null;
+  }
+
+  return {
+    error: "payload_too_large",
+    message: "Request body is too large",
+    max_bytes: maxBytes,
+  };
+}
+
+async function readRequestBodyBytesWithLimit(
+  body: ReadableStream<Uint8Array> | null,
+  maxBytes: number
+): Promise<{ bytes: Uint8Array } | "too_large"> {
+  if (!body) {
+    return { bytes: new Uint8Array() };
+  }
+
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+      if (!value || value.byteLength === 0) {
+        continue;
+      }
+
+      const nextTotal = total + value.byteLength;
+      if (nextTotal > maxBytes) {
+        await reader.cancel("payload_too_large");
+        return "too_large";
+      }
+
+      total = nextTotal;
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return { bytes: out };
+}
+
+export type BoundedJsonParseResult =
+  | { ok: true; data: unknown }
+  | {
+      ok: false;
+      status: 413 | 400;
+      body: Record<string, unknown>;
+    };
+
+/**
+ * Parse JSON from a request body while enforcing a hard byte ceiling on the wire.
+ *
+ * - Uses `Content-Length` as a cheap early reject when present.
+ * - Streams the body so requests cannot bypass limits by omitting `Content-Length`.
+ */
+export async function parseJsonBodyWithinLimit(
+  request: Request,
+  maxBytes: number
+): Promise<BoundedJsonParseResult> {
+  const fastReject = getJsonBodyTooLargeError(request, maxBytes);
+  if (fastReject) {
+    return { ok: false, status: 413, body: fastReject };
+  }
+
+  const raw = await readRequestBodyBytesWithLimit(request.body, maxBytes);
+  if (raw === "too_large") {
+    return {
+      ok: false,
+      status: 413,
+      body: {
+        error: "payload_too_large",
+        message: "Request body is too large",
+        max_bytes: maxBytes,
+      },
+    };
+  }
+
+  const text = new TextDecoder("utf-8", { fatal: false }).decode(raw.bytes);
+  if (text.length === 0) {
+    return {
+      ok: false,
+      status: 400,
+      body: { error: "invalid_json", message: "Invalid JSON in request body" },
+    };
+  }
+
+  try {
+    const data: unknown = JSON.parse(text) as unknown;
+    return { ok: true, data };
+  } catch {
+    return {
+      ok: false,
+      status: 400,
+      body: { error: "invalid_json", message: "Invalid JSON in request body" },
+    };
+  }
+}
+

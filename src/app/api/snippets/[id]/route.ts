@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, isGuardOk } from "@/lib/auth/requireAuth";
-import { combinedRateLimit } from "@/lib/security/rateLimit";
-import { query, queryOne } from "@/lib/db/pool";
+import { combinedRateLimit, getClientIP } from "@/lib/security/rateLimit";
+import { withSnippetRlsContext } from "@/lib/db/pool";
+import { enforceCsrfProtection } from "@/lib/security/csrf";
+import { logAuditEvent } from "@/lib/security/auditLog";
 import {
   updateSnippetSchema,
   uuidSchema,
   validateInput,
   formatZodError,
+  parseJsonBodyWithinLimit,
+  REQUEST_BODY_LIMITS,
 } from "@/lib/security/validation";
 
 interface RouteParams {
@@ -42,6 +46,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return guard;
     }
 
+    const userRateLimitResponse = await combinedRateLimit(request, "api_free", {
+      userId: guard.user.id,
+      skipIpCheck: true,
+    });
+    if (userRateLimitResponse) {
+      return userRateLimitResponse;
+    }
+
     const { id } = await params;
 
     // Validate ID format
@@ -54,25 +66,20 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Fetch snippet
-    const snippet = await queryOne<SnippetRow>(
-      `SELECT id::text, user_id::text, name, pattern, flags, description, tags, created_at, updated_at
-       FROM snippets
-       WHERE id = $1`,
-      [id]
-    );
+    const snippet = await withSnippetRlsContext(guard.user.id, async (client) => {
+      const result = await client.query<SnippetRow>(
+        `SELECT id::text, user_id::text, name, pattern, flags, description, tags, created_at, updated_at
+         FROM snippets
+         WHERE id = $1`,
+        [id]
+      );
+      return result.rows[0] ?? null;
+    });
 
     if (!snippet) {
       return NextResponse.json(
         { error: "not_found", message: "Snippet not found" },
         { status: 404 }
-      );
-    }
-
-    // Check ownership
-    if (snippet.user_id !== guard.user.id) {
-      return NextResponse.json(
-        { error: "forbidden", message: "You do not have access to this snippet" },
-        { status: 403 }
       );
     }
 
@@ -106,10 +113,23 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return rateLimitResponse;
     }
 
+    const csrfError = enforceCsrfProtection(request);
+    if (csrfError) {
+      return csrfError;
+    }
+
     // Require authentication
     const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
+    }
+
+    const userRateLimitResponse = await combinedRateLimit(request, "api_free", {
+      userId: guard.user.id,
+      skipIpCheck: true,
+    });
+    if (userRateLimitResponse) {
+      return userRateLimitResponse;
     }
 
     const { id } = await params;
@@ -123,16 +143,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Parse and validate request body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { error: "invalid_json", message: "Invalid JSON in request body" },
-        { status: 400 }
-      );
+    const parsedBody = await parseJsonBodyWithinLimit(
+      request,
+      REQUEST_BODY_LIMITS.SNIPPET_WRITE_BYTES
+    );
+    if (!parsedBody.ok) {
+      return NextResponse.json(parsedBody.body, { status: parsedBody.status });
     }
+
+    const body = parsedBody.data;
 
     const validation = validateInput(updateSnippetSchema, body);
     if (!validation.success) {
@@ -152,10 +171,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     // Validate regex if pattern or flags are being updated
     if (updates.pattern !== undefined || updates.flags !== undefined) {
       // Fetch current values if needed
-      const current = await queryOne<{ pattern: string; flags: string }>(
-        `SELECT pattern, flags FROM snippets WHERE id = $1 AND user_id = $2`,
-        [id, guard.user.id]
-      );
+      const current = await withSnippetRlsContext(guard.user.id, async (client) => {
+        const result = await client.query<{ pattern: string; flags: string }>(
+          `SELECT pattern, flags FROM snippets WHERE id = $1`,
+          [id]
+        );
+        return result.rows[0] ?? null;
+      });
 
       if (!current) {
         return NextResponse.json(
@@ -170,11 +192,22 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       try {
         new RegExp(newPattern, newFlags);
       } catch (regexError) {
+        logAuditEvent({
+          event: "validation.invalid_regex",
+          userId: guard.user.id,
+          ip: getClientIP(request),
+          path: `/api/snippets/${id}`,
+          metadata: {
+            reason:
+              regexError instanceof Error
+                ? regexError.message
+                : "unknown_error",
+          },
+        });
         return NextResponse.json(
           {
             error: "invalid_regex",
             message: "The provided pattern is not a valid regular expression",
-            details: regexError instanceof Error ? regexError.message : "Unknown error",
           },
           { status: 400 }
         );
@@ -216,22 +249,21 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       paramIndex++;
     }
 
-    // Add ID and user_id for WHERE clause
+    // Add ID for WHERE clause
     queryParams.push(id);
     const idParamIndex = paramIndex;
-    paramIndex++;
-
-    queryParams.push(guard.user.id);
-    const userIdParamIndex = paramIndex;
 
     // Execute update
-    const rows = await query<SnippetRow>(
-      `UPDATE snippets
-       SET ${setClauses.join(", ")}, updated_at = now()
-       WHERE id = $${idParamIndex}::uuid AND user_id = $${userIdParamIndex}::uuid
-       RETURNING id::text, name, pattern, flags, description, tags, created_at, updated_at`,
-      queryParams
-    );
+    const rows = await withSnippetRlsContext(guard.user.id, async (client) => {
+      const result = await client.query<SnippetRow>(
+        `UPDATE snippets
+         SET ${setClauses.join(", ")}, updated_at = now()
+         WHERE id = $${idParamIndex}::uuid
+         RETURNING id::text, name, pattern, flags, description, tags, created_at, updated_at`,
+        queryParams
+      );
+      return result.rows;
+    });
 
     if (rows.length === 0) {
       return NextResponse.json(
@@ -272,10 +304,23 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return rateLimitResponse;
     }
 
+    const csrfError = enforceCsrfProtection(request);
+    if (csrfError) {
+      return csrfError;
+    }
+
     // Require authentication
     const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
+    }
+
+    const userRateLimitResponse = await combinedRateLimit(request, "api_free", {
+      userId: guard.user.id,
+      skipIpCheck: true,
+    });
+    if (userRateLimitResponse) {
+      return userRateLimitResponse;
     }
 
     const { id } = await params;
@@ -290,12 +335,15 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     // Delete snippet (only if owned by user)
-    const rows = await query<{ id: string }>(
-      `DELETE FROM snippets
-       WHERE id = $1::uuid AND user_id = $2::uuid
-       RETURNING id::text`,
-      [id, guard.user.id]
-    );
+    const rows = await withSnippetRlsContext(guard.user.id, async (client) => {
+      const result = await client.query<{ id: string }>(
+        `DELETE FROM snippets
+         WHERE id = $1::uuid
+         RETURNING id::text`,
+        [id]
+      );
+      return result.rows;
+    });
 
     if (rows.length === 0) {
       return NextResponse.json(
@@ -303,6 +351,14 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         { status: 404 }
       );
     }
+
+    logAuditEvent({
+      event: "snippet.deleted",
+      userId: guard.user.id,
+      ip: getClientIP(request),
+      path: `/api/snippets/${id}`,
+      metadata: { snippet_id: id },
+    });
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

@@ -6,6 +6,7 @@ import { ExplanationSteps } from "./ExplanationSteps";
 import { useAIChat } from "@/hooks/useAIChat";
 import { useUser } from "@/hooks/useUser";
 import { useHoverSync } from "@/hooks/useHoverSync";
+import { isApiKeyStored } from "@/lib/ai/apiKeyStorage";
 import {
   Tooltip,
   TooltipContent,
@@ -38,6 +39,8 @@ export function ExplanationPanel({
   const prevPatternRef = useRef<string>("");
   const prevModeRef = useRef<ExplanationMode>(explanationMode);
 
+  const hasKey = isAuthenticated && isApiKeyStored();
+
   // Reset AI polish when pattern changes
   useEffect(() => {
     if (pattern !== prevPatternRef.current) {
@@ -63,7 +66,7 @@ export function ExplanationPanel({
   useEffect(() => {
     if (
       useAIPolish &&
-      isAuthenticated &&
+      hasKey &&
       pattern &&
       explanation.steps.length > 0 &&
       messages.length === 0
@@ -79,7 +82,7 @@ export function ExplanationPanel({
       };
       sendMessage("polish", context);
     }
-  }, [useAIPolish, isAuthenticated, pattern, flags, explanation.steps, messages.length, sendMessage]);
+  }, [useAIPolish, hasKey, pattern, flags, explanation.steps, messages.length, sendMessage]);
 
   const handleModeChange = useCallback(
     (mode: ExplanationMode) => {
@@ -122,6 +125,12 @@ export function ExplanationPanel({
         ? messages[messages.length - 1].content
         : null
       : null;
+
+  const polishTooltip = !isAuthenticated
+    ? "Sign in to unlock AI-polished explanations."
+    : !isApiKeyStored()
+      ? "Add your Anthropic API key in the Copilot tab to enable AI polish."
+      : "Rewrites the explanation into smooth, natural prose using AI.";
 
   return (
     <div className="p-4">
@@ -173,13 +182,15 @@ export function ExplanationPanel({
                   setUseAIPolish(checked);
                   if (!checked) clearHistory();
                 }}
+                disabled={!hasKey}
                 className="sr-only peer"
               />
               <span
                 className={cn(
                   "relative h-5 w-9 rounded-full bg-muted transition-colors",
                   "peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
-                  useAIPolish && "bg-primary/30"
+                  useAIPolish && "bg-primary/30",
+                  !hasKey && "opacity-50"
                 )}
               >
                 <span
@@ -194,27 +205,27 @@ export function ExplanationPanel({
             </label>
           </TooltipTrigger>
           <TooltipContent side="left" className="max-w-[200px]">
-            {isAuthenticated
-              ? "Rewrites the explanation into smooth, natural prose using AI."
-              : "Sign in to unlock AI-polished explanations."}
+            {polishTooltip}
           </TooltipContent>
         </Tooltip>
       </div>
 
-      {useAIPolish && !isAuthenticated && (
+      {useAIPolish && !hasKey && (
         <div className="mb-3 text-xs text-muted-foreground">
-          Sign in to use AI polish.
+          {!isAuthenticated
+            ? "Sign in to use AI polish."
+            : "Add your API key in the Copilot tab to enable AI polish."}
         </div>
       )}
 
-      {useAIPolish && isAuthenticated && isStreaming && !polishedContent && (
+      {useAIPolish && hasKey && isStreaming && !polishedContent && (
         <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           <span>Polishing explanation...</span>
         </div>
       )}
 
-      {useAIPolish && isAuthenticated && polishedContent ? (
+      {useAIPolish && hasKey && polishedContent ? (
         <div className="text-sm leading-relaxed text-foreground/90 space-y-2">
           {polishedContent.split("\n").map((line, i) =>
             line.trim() ? (

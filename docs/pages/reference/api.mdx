@@ -29,6 +29,14 @@ When signed in via the web interface, your session cookie is automatically inclu
 
 Signed-in users will be able to generate API tokens for programmatic access.
 
+## Browser integration constraints
+
+These routes are designed for the RegexLens web UI running on the same site origin:
+
+- **CSRF / `Origin`:** `POST`, `PUT`, `PATCH`, and `DELETE` handlers require an `Origin` header that matches the site (`enforceCsrfProtection`). Pure server scripts or `curl` without `Origin` will receive HTTP 403 until dedicated token-based APIs ship.
+- **Rate limits:** Authenticated routes enforce Redis-backed limits per client IP **and** per signed-in user ID (layered checks).
+- **JSON bodies:** Mutation routes parse JSON with hard byte ceilings enforced while streaming the body (not only via `Content-Length`).
+
 ## Endpoints
 
 ### User profile
@@ -313,11 +321,17 @@ Fields may vary run-to-run; `warnings` / `suggestions` can be empty arrays. Seve
 
 #### POST /api/ai/chat
 
-Streaming AI assistant used by **Regex Copilot**. **Signed-in only**; requires server-side `ANTHROPIC_API_KEY`. Request and response bodies are versioned with the main app—use browser devtools or server logs while integrating. Typical body includes an `action`, user `message`, structured `context` (pattern, flags, warnings, explanation steps), and optional `conversationHistory`.
+Streaming AI assistant used by **Regex Copilot**. **Signed-in only**; uses a **bring-your-own-key** model where you supply your Anthropic API key via the `X-Anthropic-Key` request header. Your key is used for the single request and never stored or logged.
 
-**Authentication:** Required (session cookie)
+**Authentication:** Required (session cookie + `X-Anthropic-Key` header)
 
-**Errors:** `401` when unauthenticated, `429` when rate-limited, `503` if the provider is not configured.
+**Headers:**
+
+| Header | Required | Description |
+|--------|----------|-------------|
+| `X-Anthropic-Key` | Yes | Your Anthropic API key (`sk-ant-...`) |
+
+**Errors:** `401` when unauthenticated or missing/invalid API key, `429` when rate-limited.
 
 ---
 
