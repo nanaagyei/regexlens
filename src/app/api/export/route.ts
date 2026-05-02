@@ -212,7 +212,11 @@ function generatePlainText(data: Omit<ExportRequestInput, "format">): string {
 
 
 function escapeMarkdownTableCell(value: string): string {
-  return value.replace(/\|/g, "\\|").replace(/\r?\n/g, "<br/>");
+  // Order matters: escape `\` first, then `|`, so backslashes cannot undo pipe escapes (CodeQL js/incomplete-sanitization).
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\|/g, "\\|")
+    .replace(/\r?\n/g, "<br/>");
 }
 
 /**
