@@ -29,6 +29,14 @@ When signed in via the web interface, your session cookie is automatically inclu
 
 Signed-in users will be able to generate API tokens for programmatic access.
 
+## Browser integration constraints
+
+These routes are designed for the RegexLens web UI running on the same site origin:
+
+- **CSRF / `Origin`:** `POST`, `PUT`, `PATCH`, and `DELETE` handlers require an `Origin` header that matches the site (`enforceCsrfProtection`). Pure server scripts or `curl` without `Origin` will receive HTTP 403 until dedicated token-based APIs ship.
+- **Rate limits:** Authenticated routes enforce Redis-backed limits per client IP **and** per signed-in user ID (layered checks).
+- **JSON bodies:** Mutation routes parse JSON with hard byte ceilings enforced while streaming the body (not only via `Content-Length`).
+
 ## Endpoints
 
 ### User profile

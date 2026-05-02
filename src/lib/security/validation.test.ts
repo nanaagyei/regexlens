@@ -5,6 +5,8 @@ import {
   validateInput,
   formatZodError,
   uuidSchema,
+  parseJsonBodyWithinLimit,
+  REQUEST_BODY_LIMITS,
 } from "./validation";
 
 describe("createSnippetSchema", () => {
@@ -57,5 +59,60 @@ describe("formatZodError", () => {
     const out = formatZodError(err);
     expect(out.error).toBe("validation_error");
     expect(out.details.length).toBeGreaterThan(0);
+  });
+});
+
+function requestWithJsonBody(
+  body: string,
+  init?: { contentLength?: string }
+): Request {
+  const enc = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(enc.encode(body));
+      controller.close();
+    },
+  });
+
+  const headers = new Headers({ "content-type": "application/json" });
+  if (init?.contentLength !== undefined) {
+    headers.set("content-length", init.contentLength);
+  }
+
+  return new Request("https://example.test/api", {
+    method: "POST",
+    headers,
+    body: stream,
+    duplex: "half",
+  } as RequestInit);
+}
+
+describe("parseJsonBodyWithinLimit", () => {
+  it("parses small JSON bodies", async () => {
+    const req = requestWithJsonBody('{"a":1}');
+    const out = await parseJsonBodyWithinLimit(req, 1024);
+    expect(out.ok).toBe(true);
+    if (out.ok) {
+      expect(out.data).toEqual({ a: 1 });
+    }
+  });
+
+  it("rejects when streamed body exceeds the cap without Content-Length", async () => {
+    const big = `{"x":"${"a".repeat(REQUEST_BODY_LIMITS.ANALYZE_BYTES)}"}`;
+    const req = requestWithJsonBody(big);
+    const out = await parseJsonBodyWithinLimit(req, REQUEST_BODY_LIMITS.ANALYZE_BYTES);
+    expect(out.ok).toBe(false);
+    if (!out.ok) {
+      expect(out.status).toBe(413);
+    }
+  });
+
+  it("fast-rejects using Content-Length when present", async () => {
+    const req = requestWithJsonBody("{}", { contentLength: "999999" });
+    const out = await parseJsonBodyWithinLimit(req, 64);
+    expect(out.ok).toBe(false);
+    if (!out.ok) {
+      expect(out.status).toBe(413);
+    }
   });
 });

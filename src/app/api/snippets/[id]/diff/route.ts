@@ -41,6 +41,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const guard = await requireAuth();
     if (!isGuardOk(guard)) return guard;
 
+    const userRateLimitResponse = await combinedRateLimit(request, "api_free", {
+      userId: guard.user.id,
+      skipIpCheck: true,
+    });
+    if (userRateLimitResponse) return userRateLimitResponse;
+
     const { id: snippetId } = await params;
 
     const idValidation = validateInput(uuidSchema, snippetId);

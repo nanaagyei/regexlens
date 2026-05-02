@@ -1,4 +1,5 @@
 import { getRedisClient } from "@/lib/security/redisClient";
+import { parseMultiExecIncrCount } from "@/lib/security/redisMultiExec";
 import { hashEmail, logAuditEvent } from "@/lib/security/auditLog";
 
 /**
@@ -107,7 +108,7 @@ export async function recordMagicLinkAttempt(
       .incr(key)
       .expire(key, MAGIC_LINK_WINDOW_SECONDS, "NX")
       .exec();
-    current = (results?.[0] as unknown as number) ?? 1;
+    current = parseMultiExecIncrCount(results as unknown);
   } catch (error) {
     console.error("Account lockout: redis op failed", error);
     if (isProductionEnv()) {

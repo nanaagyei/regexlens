@@ -7,7 +7,7 @@ import {
   analyzeRequestSchema,
   validateInput,
   formatZodError,
-  getJsonBodyTooLargeError,
+  parseJsonBodyWithinLimit,
   REQUEST_BODY_LIMITS,
 } from "@/lib/security/validation";
 
@@ -66,24 +66,23 @@ export async function POST(request: NextRequest) {
       return guard;
     }
 
-    const bodyTooLargeError = getJsonBodyTooLargeError(
+    const userRateLimitResponse = await combinedRateLimit(request, "api_free", {
+      userId: guard.user.id,
+      skipIpCheck: true,
+    });
+    if (userRateLimitResponse) {
+      return userRateLimitResponse;
+    }
+
+    const parsedBody = await parseJsonBodyWithinLimit(
       request,
       REQUEST_BODY_LIMITS.ANALYZE_BYTES
     );
-    if (bodyTooLargeError) {
-      return NextResponse.json(bodyTooLargeError, { status: 413 });
+    if (!parsedBody.ok) {
+      return NextResponse.json(parsedBody.body, { status: parsedBody.status });
     }
 
-    // Parse and validate request body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { error: "invalid_json", message: "Invalid JSON in request body" },
-        { status: 400 }
-      );
-    }
+    const body = parsedBody.data;
 
     const validation = validateInput(analyzeRequestSchema, body);
     if (!validation.success) {

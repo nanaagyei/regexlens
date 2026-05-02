@@ -58,8 +58,8 @@
 **Impact:** If the key leaked, an attacker could run up unlimited API costs. A compromised key could not be rotated without redeployment.
 
 **Status:** ✅ **FIXED — Bring Your Own Key (BYOK)** — The server-side `ANTHROPIC_API_KEY` has been completely removed. Users now provide their own Anthropic API key:
-- Keys are entered in the Copilot UI and cached in browser `localStorage` with a 48-hour auto-expiry
-- Keys are sent to the server via `X-Anthropic-Key` header per request
+- Keys are entered in the Copilot UI and cached in browser `localStorage` with a 24-hour auto-expiry
+- Keys are sent to the server via `X-Anthropic-Key` header per request (never logged by the app; may still appear in upstream HTTP access logs depending on hosting/CDN configuration)
 - The server validates key format, proxies the request to Anthropic, and discards the key immediately
 - Keys are never stored, logged, or persisted on the server
 - Error logging sanitized to exclude API key values
@@ -421,7 +421,7 @@ return NextResponse.json(
 - **M1**: Added stale-session cleanup endpoint and cron wiring for periodic maintenance; primary files: `src/app/api/cron/cleanup-sessions/route.ts`, `vercel.json`.
 - **M2**: Hardened NextAuth redirect callback validation to prevent unsafe redirect targets; primary files: `src/auth.ts`.
 - **M5**: Applied production fail-closed handling on Redis error paths for critical rate-limit tiers; primary file: `src/lib/security/rateLimit.ts`.
-- **M6**: Enforced request body size limits before JSON parsing on mutation routes via shared validation and route updates; primary files: `src/lib/security/validation.ts`, `src/app/api/snippets/route.ts`, `src/app/api/snippets/[id]/route.ts`, `src/app/api/export/route.ts`, `src/app/api/ai/chat/route.ts`, `src/app/api/analyze/route.ts`.
+- **M6**: Enforced request body size limits via `Content-Length` fast rejects **and** streamed parsing (`parseJsonBodyWithinLimit`) so mutation routes cannot bypass limits; primary files: `src/lib/security/validation.ts`, `src/app/api/snippets/route.ts`, `src/app/api/snippets/[id]/route.ts`, `src/app/api/snippets/[id]/versions/route.ts`, `src/app/api/export/route.ts`, `src/app/api/ai/chat/route.ts`, `src/app/api/analyze/route.ts`.
 
 ### Remediated (2026-05-01) — Low / Informational
 
@@ -443,6 +443,14 @@ return NextResponse.json(
 - **Magic-link lockout window (L7)**: Set to 10 attempts per email per rolling 60-minute window. Sliding-window keying is implemented as `floor(now / 3600s)` so the per-email counter resets at the top of each hour. When Redis is unreachable in production, sends fail closed (no email sent, audit event `auth.lockout_triggered` with `reason=redis_unavailable`); in non-production, sends proceed with a logged warning so local dev does not require Redis.
 - **Audit log destinations (L4)**: All audit events emit single-line JSON. `info` severity → `console.log`, `warning` → `console.warn`, `security` → `console.error`. Vercel/CloudWatch/Datadog can ingest these directly. The `hashEmail()` helper produces a 16-char hex prefix of SHA-256 — sufficient for correlation, never reversible to the address.
 - **Resend default sender replacement (L7)**: The custom `sendVerificationRequest` replicates Auth.js's default Resend sender (HTTP POST to `https://api.resend.com/emails`) inline; no new dependency was introduced.
+
+### Follow-up hardening (2026-05-02)
+
+- **Per-user rate limiting:** Authenticated API routes now run a second Redis-backed tier keyed by `user:{userId}` after JWT validation, without double-counting IP buckets (`combinedRateLimit(..., { userId, skipIpCheck: true })`).
+- **Streaming JSON body caps:** `parseJsonBodyWithinLimit` enforces byte ceilings while reading the request stream so oversized payloads cannot bypass missing/incorrect `Content-Length`.
+- **Redis `MULTI` reply parsing:** Shared `parseMultiExecIncrCount` normalizes `incr` results across lockout + rate limit paths with regression tests (`redisMultiExec.test.ts`).
+- **Production DATABASE_URL heuristic:** Startup instrumentation now flags only URLs that parse as `postgres://` / `postgresql://` **and** use the documented local credential pair on `localhost` / `127.0.0.1`.
+- **CSRF documentation:** `enforceCsrfProtection` explicitly documents the browser `Origin` requirement for cookie-backed POST/PATCH/DELETE requests.
 
 ### Verification Status
 

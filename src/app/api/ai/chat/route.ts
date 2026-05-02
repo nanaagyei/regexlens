@@ -7,7 +7,7 @@ import {
   aiChatRequestSchema,
   validateInput,
   formatZodError,
-  getJsonBodyTooLargeError,
+  parseJsonBodyWithinLimit,
   REQUEST_BODY_LIMITS,
 } from "@/lib/security/validation";
 import { buildSystemPrompt, buildUserPrompt } from "@/lib/ai/systemPrompt";
@@ -16,12 +16,13 @@ import { buildSystemPrompt, buildUserPrompt } from "@/lib/ai/systemPrompt";
  * POST /api/ai/chat - AI-powered regex assistant (streaming)
  *
  * Uses a "bring your own key" model: the client sends an Anthropic API key
- * via the X-Anthropic-Key header. The key is used for the single request
- * and never stored, logged, or persisted.
+ * via the `X-Anthropic-Key` header. The key is used for the single request and
+ * is not persisted server-side. Application code does not log the header value, but
+ * infrastructure or CDN access logs may still record HTTP headers depending on your host.
  */
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit (AI-specific tier)
+    // Rate limit (AI-specific tier) — IP first
     const rateLimitResponse = await combinedRateLimit(request, "ai_chat");
     if (rateLimitResponse) {
       return rateLimitResponse;
@@ -36,6 +37,14 @@ export async function POST(request: NextRequest) {
     const guard = await requireAuth();
     if (!isGuardOk(guard)) {
       return guard;
+    }
+
+    const userRateLimitResponse = await combinedRateLimit(request, "ai_chat", {
+      userId: guard.user.id,
+      skipIpCheck: true,
+    });
+    if (userRateLimitResponse) {
+      return userRateLimitResponse;
     }
 
     // Read API key from request header (BYOK)
@@ -62,24 +71,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const bodyTooLargeError = getJsonBodyTooLargeError(
+    const parsedBody = await parseJsonBodyWithinLimit(
       request,
       REQUEST_BODY_LIMITS.AI_CHAT_BYTES
     );
-    if (bodyTooLargeError) {
-      return NextResponse.json(bodyTooLargeError, { status: 413 });
+    if (!parsedBody.ok) {
+      return NextResponse.json(parsedBody.body, { status: parsedBody.status });
     }
 
-    // Parse and validate request body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { error: "invalid_json", message: "Invalid JSON in request body" },
-        { status: 400 }
-      );
-    }
+    const body = parsedBody.data;
 
     const validation = validateInput(aiChatRequestSchema, body);
     if (!validation.success) {

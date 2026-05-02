@@ -10,6 +10,22 @@
  * avoid taking down a deployment over a misconfiguration that is otherwise
  * recoverable.
  */
+function isDocumentedLocalDevDatabaseUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "postgresql:" && parsed.protocol !== "postgres:") {
+      return false;
+    }
+    if (parsed.username !== "regexlens" || parsed.password !== "regexlens_dev") {
+      return false;
+    }
+    const host = parsed.hostname;
+    return host === "localhost" || host === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
   if (process.env.NODE_ENV !== "production") return;
@@ -17,10 +33,10 @@ export async function register() {
   const issues: string[] = [];
 
   const dbUrl = process.env.DATABASE_URL ?? "";
-  if (/regexlens(?:_dev)?:regexlens_dev@/.test(dbUrl)) {
+  if (isDocumentedLocalDevDatabaseUrl(dbUrl)) {
     issues.push(
-      "DATABASE_URL appears to use default development credentials. " +
-        "Production must use unique, strong credentials."
+      "DATABASE_URL matches the documented local Docker credential pair " +
+        "(regexlens / regexlens_dev on localhost). Production must use unique, strong credentials."
     );
   }
 

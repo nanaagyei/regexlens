@@ -35,6 +35,12 @@ function rejectCsrf(
 
 /**
  * Enforces same-origin requests for cookie-authenticated, state-changing APIs.
+ *
+ * **Browser-first contract:** `fetch` from the RegexLens web app sends `Origin`,
+ * which this check compares to the forwarded Host-derived site origin. Non-browser
+ * HTTP clients, curl scripts, or integrations that omit `Origin` will receive 403.
+ * For machine-to-machine access, use a dedicated token-based API design — these
+ * routes are intended for interactive browser sessions with session cookies.
  */
 export function enforceCsrfProtection(request: NextRequest): NextResponse | null {
   if (!STATE_CHANGING_METHODS.has(request.method.toUpperCase())) {

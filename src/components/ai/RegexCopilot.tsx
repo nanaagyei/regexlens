@@ -165,7 +165,7 @@ export function RegexCopilot({
           <h3 className="font-semibold mb-2">Add your API key</h3>
           <p className="text-sm text-muted-foreground mb-4">
             Enter your Anthropic API key to enable AI features. Your key is
-            stored only in your browser and auto-expires after 48 hours.
+            stored only in your browser and auto-expires after 24 hours.
           </p>
 
           <div className="w-full space-y-3">

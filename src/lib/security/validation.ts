@@ -376,8 +376,11 @@ export function escapeLikePattern(input: string): string {
 }
 
 /**
- * Build a consistent 413 response payload when Content-Length exceeds limits.
- * Returns null when Content-Length is absent/invalid or within limit.
+ * Build a consistent 413 response payload when `Content-Length` exceeds limits.
+ * Returns null when `Content-Length` is absent/invalid or within limit.
+ *
+ * For JSON routes, also use `parseJsonBodyWithinLimit`, which streams the body
+ * and enforces the same cap even when `Content-Length` is missing or untrusted.
  */
 export function getJsonBodyTooLargeError(
   request: Request,
@@ -403,3 +406,105 @@ export function getJsonBodyTooLargeError(
     max_bytes: maxBytes,
   };
 }
+
+async function readRequestBodyBytesWithLimit(
+  body: ReadableStream<Uint8Array> | null,
+  maxBytes: number
+): Promise<{ bytes: Uint8Array } | "too_large"> {
+  if (!body) {
+    return { bytes: new Uint8Array() };
+  }
+
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+      if (!value || value.byteLength === 0) {
+        continue;
+      }
+
+      const nextTotal = total + value.byteLength;
+      if (nextTotal > maxBytes) {
+        return "too_large";
+      }
+
+      total = nextTotal;
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return { bytes: out };
+}
+
+export type BoundedJsonParseResult =
+  | { ok: true; data: unknown }
+  | {
+      ok: false;
+      status: 413 | 400;
+      body: Record<string, unknown>;
+    };
+
+/**
+ * Parse JSON from a request body while enforcing a hard byte ceiling on the wire.
+ *
+ * - Uses `Content-Length` as a cheap early reject when present.
+ * - Streams the body so requests cannot bypass limits by omitting `Content-Length`.
+ */
+export async function parseJsonBodyWithinLimit(
+  request: Request,
+  maxBytes: number
+): Promise<BoundedJsonParseResult> {
+  const fastReject = getJsonBodyTooLargeError(request, maxBytes);
+  if (fastReject) {
+    return { ok: false, status: 413, body: fastReject };
+  }
+
+  const raw = await readRequestBodyBytesWithLimit(request.body, maxBytes);
+  if (raw === "too_large") {
+    return {
+      ok: false,
+      status: 413,
+      body: {
+        error: "payload_too_large",
+        message: "Request body is too large",
+        max_bytes: maxBytes,
+      },
+    };
+  }
+
+  const text = new TextDecoder("utf-8", { fatal: false }).decode(raw.bytes);
+  if (text.length === 0) {
+    return {
+      ok: false,
+      status: 400,
+      body: { error: "invalid_json", message: "Invalid JSON in request body" },
+    };
+  }
+
+  try {
+    const data: unknown = JSON.parse(text) as unknown;
+    return { ok: true, data };
+  } catch {
+    return {
+      ok: false,
+      status: 400,
+      body: { error: "invalid_json", message: "Invalid JSON in request body" },
+    };
+  }
+}
+

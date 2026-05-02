@@ -1,5 +1,5 @@
 const STORAGE_KEY = "regexlens_anthropic_key";
-const TTL_MS = 48 * 60 * 60 * 1000; // 48 hours
+const TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 interface StoredKey {
   key: string;

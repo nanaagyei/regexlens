@@ -19,6 +19,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ user: null }, { status: 200 });
   }
 
+  const userRateLimitResponse = await combinedRateLimit(request, "api_free", {
+    userId: user.id,
+    skipIpCheck: true,
+  });
+  if (userRateLimitResponse) {
+    return userRateLimitResponse;
+  }
+
   return NextResponse.json({
     user: {
       id: user.id,

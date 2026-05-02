@@ -74,13 +74,17 @@ export default function PrivacyPolicyPage() {
         <li>
           <strong>Regex Copilot (AI assistant) — Bring Your Own Key.</strong> AI features
           require you to provide your own Anthropic API key. Your key is stored only in your
-          browser&apos;s local storage (with an automatic 48-hour expiry) and is never saved,
+          browser&apos;s local storage (with an automatic 24-hour expiry) and is never saved,
           logged, or retained on our servers. When you use an AI feature, your key is sent to
-          our server solely to proxy the request to Anthropic on your behalf; the key is
-          discarded immediately after the request completes. Your prompts and relevant regex
-          context are sent to Anthropic under your own API key and account. Please do not
-          submit secrets, regulated personal data, or other sensitive information you are not
-          authorized to share.
+          our server in the <code>X-Anthropic-Key</code> header to authenticate the proxied
+          request to Anthropic; it is not written to application logs, but like any HTTP
+          header it could appear in infrastructure or CDN access logs depending on how your
+          hosting provider collects telemetry. The key is discarded after the request
+          completes. Because keys live in <code>localStorage</code>, any XSS vulnerability in
+          the browser could expose them — keep your browser updated and avoid untrusted
+          browser extensions. Your prompts and relevant regex context are sent to Anthropic
+          under your own API key and account. Please do not submit secrets, regulated personal
+          data, or other sensitive information you are not authorized to share.
         </li>
       </ul>
 
@@ -125,7 +129,7 @@ export default function PrivacyPolicyPage() {
         We handle your key as follows:
       </p>
       <ul>
-        <li>Your key is stored exclusively in your browser&apos;s local storage with a 48-hour
+        <li>Your key is stored exclusively in your browser&apos;s local storage with a 24-hour
         automatic expiry. We have no access to your browser&apos;s local storage.</li>
         <li>When you make an AI request, the key is included in the request to our server
         only so we can forward it to Anthropic. The key is never written to a database,

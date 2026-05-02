@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getRedisClient } from "@/lib/security/redisClient";
+import { parseMultiExecIncrCount } from "@/lib/security/redisMultiExec";
 import { logAuditEvent } from "@/lib/security/auditLog";
 
 /**
@@ -184,7 +185,7 @@ export async function checkRateLimit(
       .expire(key, Math.ceil(config.windowMs / 1000), "NX")
       .exec();
 
-    const current = (results?.[0] as unknown as number) ?? 1;
+    const current = parseMultiExecIncrCount(results as unknown);
     const remaining = Math.max(0, config.maxRequests - current);
     const reset = Date.now() + config.windowMs;
 
@@ -302,31 +303,44 @@ export function addRateLimitHeaders(
   return response;
 }
 
+export type CombinedRateLimitOptions = {
+  userId?: string;
+  skipIpCheck?: boolean;
+};
+
 /**
- * Combined rate limit check for IP + User
- * More restrictive - both must pass
+ * Combined rate limit: IP tier by default, optional user tier.
+ *
+ * Authenticated routes should run the IP tier first, authenticate, then pass
+ * `{ userId, skipIpCheck: true }` so IP buckets are not double-counted.
  */
 export async function combinedRateLimit(
   request: Request,
   type: RateLimitType,
-  userId?: string
+  options?: CombinedRateLimitOptions
 ): Promise<NextResponse | null> {
-  const ip = getClientIP(request);
+  const userId = options?.userId;
+  const skipIpCheck = options?.skipIpCheck ?? false;
 
-  // Always check IP-based limit
-  const ipResult = await checkRateLimit(`ip:${ip}`, type);
-  if (!ipResult.success) {
-    return rateLimitedResponse(
-      request,
-      type,
-      "ip",
-      ip,
-      ipResult,
-      "Too many requests from this IP. Please try again later."
-    );
+  if (skipIpCheck && !userId) {
+    throw new Error("combinedRateLimit: skipIpCheck requires userId");
   }
 
-  // If user is authenticated, also check user-based limit
+  if (!skipIpCheck) {
+    const ip = getClientIP(request);
+    const ipResult = await checkRateLimit(`ip:${ip}`, type);
+    if (!ipResult.success) {
+      return rateLimitedResponse(
+        request,
+        type,
+        "ip",
+        ip,
+        ipResult,
+        "Too many requests from this IP. Please try again later."
+      );
+    }
+  }
+
   if (userId) {
     const userResult = await checkRateLimit(`user:${userId}`, type);
     if (!userResult.success) {
