@@ -212,7 +212,10 @@ function generatePlainText(data: Omit<ExportRequestInput, "format">): string {
 
 
 function escapeMarkdownTableCell(value: string): string {
-  return value.replace(/\|/g, "\\|").replace(/\r?\n/g, "<br/>");
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\|/g, "\\|")
+    .replace(/\r?\n/g, "<br/>");
 }
 
 /**
