@@ -1,7 +1,7 @@
 "use client";
 
 import DOMPurify from "dompurify";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ParseResult } from "@/types";
 import { astToRailroadSvg } from "@/lib/railroad/astToRailroad";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,8 @@ export function RailroadDiagramPanel({
   parseResult,
   className,
 }: RailroadDiagramPanelProps) {
+  const svgHostRef = useRef<HTMLDivElement>(null);
+
   const svgContent = useMemo(() => {
     if (!parseResult.ok) return null;
     try {
@@ -28,6 +30,34 @@ export function RailroadDiagramPanel({
       return null;
     }
   }, [parseResult]);
+
+  useEffect(() => {
+    const host = svgHostRef.current;
+    if (!host) {
+      return;
+    }
+    host.replaceChildren();
+
+    if (!svgContent) {
+      return;
+    }
+
+    const doc = new DOMParser().parseFromString(svgContent, "image/svg+xml");
+    if (doc.querySelector("parsererror")) {
+      return;
+    }
+
+    const root = doc.documentElement;
+    if (!root || root.nodeName.toLowerCase() !== "svg") {
+      return;
+    }
+
+    host.appendChild(document.importNode(root, true));
+
+    return () => {
+      host.replaceChildren();
+    };
+  }, [svgContent]);
 
   if (!parseResult.ok) {
     return (
@@ -67,8 +97,8 @@ export function RailroadDiagramPanel({
       )}
     >
       <div
+        ref={svgHostRef}
         className="railroad-diagram-wrapper inline-block max-w-full"
-        dangerouslySetInnerHTML={{ __html: svgContent }}
       />
     </div>
   );
