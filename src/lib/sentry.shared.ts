@@ -15,6 +15,21 @@ export function getSentryDsn(): string | undefined {
   return dsn || undefined;
 }
 
+/** Origin of the configured Sentry ingest host (for CSP `connect-src`). */
+export function getSentryIngestOriginForCsp(): string | null {
+  const dsn = getSentryDsn();
+  if (!dsn) return null;
+  try {
+    const { origin } = new URL(dsn);
+    if (origin.startsWith("http://") || origin.startsWith("https://")) {
+      return origin;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function getSentryEnvironment(): string {
   return process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development";
 }
