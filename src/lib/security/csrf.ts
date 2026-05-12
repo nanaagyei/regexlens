@@ -42,7 +42,13 @@ function collectAllowedOrigins(request: NextRequest): Set<string> {
     allowed.add(canonical);
   }
   try {
-    allowed.add(request.nextUrl.origin);
+    const requestOrigin = request.nextUrl.origin;
+    if (
+      requestOrigin.startsWith("http://") ||
+      requestOrigin.startsWith("https://")
+    ) {
+      allowed.add(requestOrigin);
+    }
   } catch {
     // ignore malformed request URL
   }

@@ -103,4 +103,29 @@ describe("enforceCsrfProtection", () => {
     const payload = JSON.parse(errorSpy.mock.calls[0][0] as string);
     expect(payload.metadata.method).toBe("DELETE");
   });
+
+  it("rejects POST with missing_host when no trusted origins can be derived", async () => {
+    vi.resetModules();
+    vi.doMock("@/lib/site", () => ({ SITE_URL: ":::not-a-url" }));
+    try {
+      const { NextRequest } = await import("next/server");
+      const { enforceCsrfProtection: enforceWithBrokenSite } = await import(
+        "./csrf"
+      );
+      const req = new NextRequest("file:///tmp/csrf", {
+        method: "POST",
+        headers: { origin: "https://evil.example" },
+      });
+      const result = enforceWithBrokenSite(req);
+      expect(result).not.toBeNull();
+      expect(result!.status).toBe(403);
+      expect(errorSpy).toHaveBeenCalled();
+      const payload = JSON.parse(errorSpy.mock.calls.at(-1)![0] as string);
+      expect(payload.audit_event).toBe("csrf.rejected");
+      expect(payload.metadata.reason).toBe("missing_host");
+    } finally {
+      vi.doUnmock("@/lib/site");
+      vi.resetModules();
+    }
+  });
 });

@@ -1,5 +1,6 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
+import { getSentryIngestOriginForCsp } from "./src/lib/sentry.shared";
 
 const docsBase = (
   process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.regexlens.dev"
@@ -13,13 +14,26 @@ const isProd = process.env.NODE_ENV === "production";
  * Same for HSTS on localhost (avoid pinning http→https expectations in dev).
  */
 function buildContentSecurityPolicy(): string {
+  const sentryConnect = getSentryIngestOriginForCsp();
+  const connectSrcParts = [
+    "'self'",
+    "https://vitals.vercel-insights.com",
+    "https://va.vercel-scripts.com",
+    "https://cdn.jsdelivr.net",
+    "https://www.google-analytics.com",
+    "https://analytics.google.com",
+  ];
+  if (sentryConnect) {
+    connectSrcParts.push(sentryConnect);
+  }
   const parts = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://va.vercel-scripts.com https://cdn.jsdelivr.net",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
     "img-src 'self' data: blob: https://images.unsplash.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com",
+    // Monaco loads embedded icon/glyph fonts as data: URLs; omitting `data:` breaks the editor under CSP.
     "font-src 'self' https://fonts.gstatic.com data:",
-    "connect-src 'self' https://vitals.vercel-insights.com https://va.vercel-scripts.com https://cdn.jsdelivr.net https://*.google-analytics.com https://*.ingest.us.sentry.io https://*.ingest.sentry.io https://*.ingest.de.sentry.io",
+    `connect-src ${connectSrcParts.join(" ")}`,
     "worker-src 'self' blob:",
     "child-src 'self' blob:",
     "frame-ancestors 'none'",
