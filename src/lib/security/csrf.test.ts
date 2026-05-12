@@ -77,13 +77,14 @@ describe("enforceCsrfProtection", () => {
     expect(payload.metadata.reason).toBe("origin_mismatch");
   });
 
-  it("allows POST when origin matches expected host", () => {
+  it("allows POST when origin matches request URL even if SITE_URL canonical differs", () => {
     const result = enforceCsrfProtection(
       makeRequest({
         method: "POST",
-        origin: "https://regexlens.dev",
-        host: "regexlens.dev",
+        origin: "https://abc123.vercel.app",
+        host: "abc123.vercel.app",
         proto: "https",
+        pathname: "/api/snippets",
       })
     );
     expect(result).toBeNull();

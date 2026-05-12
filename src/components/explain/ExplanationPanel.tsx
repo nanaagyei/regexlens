@@ -169,12 +169,15 @@ export function ExplanationPanel({
         <Tooltip>
           <TooltipTrigger asChild>
             <label
+              htmlFor="explanation-ai-polish"
               className={cn(
                 "inline-flex items-center gap-1.5 cursor-pointer",
                 "text-xs text-muted-foreground hover:text-foreground transition-colors"
               )}
             >
               <input
+                id="explanation-ai-polish"
+                name="explanation_ai_polish"
                 type="checkbox"
                 checked={useAIPolish}
                 onChange={(e) => {
