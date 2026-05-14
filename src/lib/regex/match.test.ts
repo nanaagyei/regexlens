@@ -140,6 +140,8 @@ describe("computeMatches", () => {
       // Should only match up to MAX_TEXT_LENGTH
       expect(r.totalCount).toBe(REGEX_CONFIG.MAX_TEXT_LENGTH);
       expect(r.truncated).toBe(true);
+      expect(r.sampleTruncated).toBe(true);
+      expect(r.matchLimitReached).toBe(true);
     });
 
     it("does not truncate text within limit", () => {
@@ -158,11 +160,15 @@ describe("computeMatches", () => {
       expect(r.spans).toHaveLength(REGEX_CONFIG.MAX_MATCHES);
       expect(r.totalCount).toBe(REGEX_CONFIG.MAX_MATCHES + 500);
       expect(r.truncated).toBe(true);
+      expect(r.matchLimitReached).toBe(true);
+      expect(r.sampleTruncated).toBe(false);
     });
 
     it("does not set truncated when under limit", () => {
       const r = computeMatches("\\d", "g", "123");
       expect(r.truncated).toBe(false);
+      expect(r.sampleTruncated).toBe(false);
+      expect(r.matchLimitReached).toBe(false);
       expect(r.totalCount).toBe(3);
     });
   });

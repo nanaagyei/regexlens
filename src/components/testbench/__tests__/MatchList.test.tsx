@@ -22,16 +22,22 @@ const mockSetSelectedMatchIndex = vi.fn();
 let currentHoverState = { ...defaultHoverState };
 
 vi.mock("@/hooks/useHoverSync", () => ({
-  useHoverSync: () => ({
-    hoverState: currentHoverState,
-    setHoveredRange: vi.fn(),
-    setHoveredStepId: vi.fn(),
-    setHoveredMatchIndex: mockSetHoveredMatchIndex,
-    setSelectedMatchIndex: mockSetSelectedMatchIndex,
-    toggleLockedStep: vi.fn(),
-    clearAll: vi.fn(),
-  }),
+  useHoverSelector: <T,>(selector: (s: HoverState) => T) => selector(currentHoverState),
 }));
+
+vi.mock("@/lib/stores/hoverStore", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/stores/hoverStore")>();
+  return {
+    ...actual,
+    setHoveredMatchIndex: (i: number | null) => {
+      mockSetHoveredMatchIndex(i);
+    },
+    setSelectedMatchIndex: (i: number | null) => {
+      mockSetSelectedMatchIndex(i);
+    },
+    getSnapshot: () => currentHoverState,
+  };
+});
 
 beforeEach(() => {
   cleanup();
@@ -44,6 +50,8 @@ const emptyResult: MatchResult = {
   matches: [],
   spans: [],
   truncated: false,
+  sampleTruncated: false,
+  matchLimitReached: false,
   totalCount: 0,
 };
 
@@ -150,7 +158,7 @@ describe("MatchList", () => {
     it("shows truncation notice", () => {
       render(<MatchList matches={truncatedResult} />);
       expect(
-        screen.getByText(/Showing first 1 of 1500 matches/)
+        screen.getByText(/Showing first 1 of 1,?500 matches/)
       ).toBeInTheDocument();
     });
   });

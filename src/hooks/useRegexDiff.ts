@@ -7,7 +7,7 @@ import {
   computeWarningDiff,
   synthesizeBehaviorSummary,
 } from "@/lib/diff";
-import { parseRegex } from "@/lib/regex/parse";
+import { parseRegexCached } from "@/lib/regex/parseCache";
 import { generateExplanation } from "@/lib/explain/explain";
 import { analyzeWarnings } from "@/lib/warnings/heuristics";
 import type {
@@ -22,6 +22,8 @@ const EMPTY_MATCH_RESULT: MatchResult = {
   matches: [],
   spans: [],
   truncated: false,
+  sampleTruncated: false,
+  matchLimitReached: false,
   totalCount: 0,
 };
 
@@ -51,7 +53,7 @@ export function useRegexDiff(
     const flags = computeFlagDiff(oldFlags, newFlags);
 
     // Parse comparison pattern for structural + explanation diffs
-    const oldParseResult = parseRegex(oldPattern, oldFlags);
+    const oldParseResult = parseRegexCached(oldPattern, oldFlags);
 
     let structural: RegexDiff["structural"] = null;
     let explanation: RegexDiff["explanation"] = null;
