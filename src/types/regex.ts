@@ -52,7 +52,12 @@ export interface Match {
 export interface MatchResult {
   matches: Match[];
   spans: MatchSpan[];
+  /** True when sample text was sliced or match count exceeded storage cap */
   truncated: boolean;
+  /** Sample text was sliced to MAX_TEXT_LENGTH before matching */
+  sampleTruncated?: boolean;
+  /** Stored matches/spans capped at MAX_MATCHES while counting continued */
+  matchLimitReached?: boolean;
   totalCount: number;
   error?: string;
 }
@@ -118,5 +123,11 @@ export const REGEX_CONFIG = {
   MAX_TEXT_LENGTH: 50000,
   MAX_MATCHES: 1000,
   DEBOUNCE_MS: 150,
+  /** Debounce for failure analysis and other heavy derived work (ms) */
+  HEAVY_ANALYSIS_DEBOUNCE_MS: 350,
+  /** Max characters of sample text used for failure simulation */
+  MAX_FAILURE_ANALYSIS_TEXT: 8000,
+  /** Max start positions when pattern is not ^-anchored (avoids O(n) scans) */
+  MAX_UNANCHORED_FAILURE_STARTS: 2000,
   MATCH_TIMEOUT_MS: 3000,
 } as const;
