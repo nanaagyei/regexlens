@@ -1,22 +1,22 @@
-# Analysis
+# Safety (advanced analysis)
 
 import { Callout } from 'nextra/components'
 
 <Callout type="info">
-**Signed in:** The Analysis tab and `POST /api/analyze` require authentication on deployments that enable this route.
+**Signed in:** In the workbench, this capability is the **Safety** tab. The tab and `POST /api/analyze` require an authenticated session when your deployment enables auth.
 </Callout>
 
-The **Analysis** tab runs **server-side advanced analysis** on your pattern and flags. It complements the **Warnings** tab:
+The **Safety** tab runs **server-side advanced analysis** on your pattern and flags. It complements the **Warnings** tab:
 
 - **Warnings** (anonymous or signed in) — Fast, client-side heuristics you see while typing.
-- **Analysis** — Aggregated **risk score** (0–100), **complexity** level (`low` → `extreme`), extra structured warnings, short **notes**, and **safe rewrite suggestions** where applicable.
+- **Safety** — Aggregated **risk score** (0–100), **complexity** level (`low` → `extreme`), extra structured warnings, short **notes**, and **safe rewrite suggestions** where applicable.
 
 ## What you see in the UI
 
 - Risk score gauge / summary
 - Complexity factors (e.g. nested quantifiers, alternation depth, lookarounds)
 - List of issues with severity, hints, and optional code-oriented suggestions
-- Sign-in prompt when the Analysis tab needs an authenticated session
+- Sign-in prompt when the Safety tab needs an authenticated session
 
 ## API
 
@@ -28,5 +28,5 @@ The same logic is exposed as `POST /api/analyze` with JSON body `{ "pattern": ".
 - `suggestions` — optional `{ id, title, description, caveat? }` entries 
 - `complexity` — `{ level, factors[] }` 
 
-See [API Reference](/reference/api#post-apianalyze) for status codes and auth.
+See [API Reference](/reference/api#post-api-analyze) for status codes and auth. The **Run Safety Analysis** action in the UI calls this endpoint after you sign in.
 

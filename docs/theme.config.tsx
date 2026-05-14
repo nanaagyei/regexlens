@@ -1,31 +1,58 @@
-import React from 'react'
-import { DocsThemeConfig } from 'nextra-theme-docs'
+import React from "react";
+import type { DocsThemeConfig } from "nextra-theme-docs";
 
-function faviconHref(): string {
-  const base = (process.env.GH_PAGES_BASEPATH || '').replace(/\/$/, '')
-  return base ? `${base}/favicon.ico` : '/favicon.ico'
+function withBasePath(path: string): string {
+  const base = (process.env.GH_PAGES_BASEPATH || "").replace(/\/$/, "");
+  return base ? `${base}${path}` : path;
 }
 
-const site = 'https://regexlens.dev'
+function faviconHref(): string {
+  return withBasePath("/favicon.ico");
+}
+
+function logoSrc(): string {
+  return withBasePath("/regexlens-logo.png");
+}
+
+const site = "https://regexlens.dev";
 
 const config: DocsThemeConfig = {
   logo: (
-    <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-        <path d="m15 5 4 4" />
-      </svg>
-      RegexLens Docs
+    <span style={{ display: "flex", alignItems: "center" }}>
+      <img
+        src={logoSrc()}
+        width={100}
+        height={100}
+        alt="RegexLens"
+        decoding="async"
+        style={{ display: "block", borderRadius: 8 }}
+      />
     </span>
   ),
   project: {
-    link: 'https://github.com/nanaagyei',
+    link: "https://github.com/nanaagyei/regexlens",
   },
-  docsRepositoryBase: 'https://github.com/nanaagyei/regexlens/tree/main/docs',
+  docsRepositoryBase: "https://github.com/nanaagyei/regexlens/tree/main/docs",
   footer: {
     text: (
-      <span>
-        {new Date().getFullYear()} © RegexLens. Built for developers who want to understand, not guess.
+      <span
+        style={{
+          display: "inline-flex",
+          flexWrap: "wrap",
+          gap: "0.75rem",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <span>{new Date().getFullYear()} © RegexLens</span>
+        <span aria-hidden="true">·</span>
+        <a href="https://regexlens.dev" target="_blank" rel="noreferrer">
+          App
+        </a>
+        <span aria-hidden="true">·</span>
+        <a href="https://www.buymeacoffee.com/nanaagyei" target="_blank" rel="noreferrer">
+          Support
+        </a>
       </span>
     ),
   },
@@ -33,14 +60,17 @@ const config: DocsThemeConfig = {
     <>
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta property="og:title" content="RegexLens Documentation" />
-      <meta property="og:description" content="Documentation for RegexLens — test, explain, and visualize JavaScript regular expressions." />
+      <meta
+        property="og:description"
+        content="Documentation for RegexLens — test, explain, and visualize JavaScript regular expressions."
+      />
       <link rel="icon" href={faviconHref()} />
     </>
   ),
   useNextSeoProps() {
     return {
-      titleTemplate: '%s – RegexLens Docs'
-    }
+      titleTemplate: "%s – RegexLens Docs",
+    };
   },
   primaryHue: 38,
   sidebar: {
@@ -51,24 +81,24 @@ const config: DocsThemeConfig = {
     backToTop: true,
   },
   editLink: {
-    text: 'Edit this page on GitHub',
+    text: "Edit this page on GitHub",
   },
   feedback: {
-    content: 'Question? Open an issue on GitHub →',
-    labels: 'feedback',
+    content: "Question? Open an issue on GitHub →",
+    labels: "feedback",
   },
   navigation: {
     prev: true,
     next: true,
   },
   banner: {
-    key: 'regexlens-docs-2026',
+    key: "regexlens-docs-2026",
     text: (
       <a href={site} target="_blank" rel="noreferrer">
         Open the RegexLens app →
       </a>
     ),
   },
-}
+};
 
-export default config
+export default config;
