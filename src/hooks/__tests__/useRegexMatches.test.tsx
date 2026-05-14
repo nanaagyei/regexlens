@@ -14,6 +14,8 @@ const mockMatchResult: MatchResult = {
   ],
   spans: [{ start: 0, end: 3, matchIndex: 0 }],
   truncated: false,
+  sampleTruncated: false,
+  matchLimitReached: false,
   totalCount: 1,
 };
 
@@ -21,6 +23,8 @@ const emptyResult: MatchResult = {
   matches: [],
   spans: [],
   truncated: false,
+  sampleTruncated: false,
+  matchLimitReached: false,
   totalCount: 0,
 };
 
