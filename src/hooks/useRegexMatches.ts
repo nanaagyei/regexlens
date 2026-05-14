@@ -9,6 +9,8 @@ const EMPTY_RESULT: MatchResult = {
   matches: [],
   spans: [],
   truncated: false,
+  sampleTruncated: false,
+  matchLimitReached: false,
   totalCount: 0,
 };
 

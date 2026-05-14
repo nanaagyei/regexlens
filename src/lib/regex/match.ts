@@ -12,6 +12,8 @@ export function computeMatches(
     matches: [],
     spans: [],
     truncated: false,
+    sampleTruncated: false,
+    matchLimitReached: false,
     totalCount: 0,
   };
 
@@ -115,10 +117,14 @@ export function computeMatches(
       });
     }
 
+    const matchLimitReached = matchCount > REGEX_CONFIG.MAX_MATCHES;
+    const sampleTruncated = textTruncated;
     return {
       matches,
       spans,
-      truncated: matchCount > REGEX_CONFIG.MAX_MATCHES || textTruncated,
+      truncated: matchLimitReached || sampleTruncated,
+      sampleTruncated,
+      matchLimitReached,
       totalCount: matchCount,
     };
   } catch (error) {
@@ -175,6 +181,8 @@ export function computeSingleExecWithLastIndex(
     matches: [],
     spans: [],
     truncated: false,
+    sampleTruncated: false,
+    matchLimitReached: false,
     totalCount: 0,
   };
   try {
@@ -194,6 +202,8 @@ export function computeSingleExecWithLastIndex(
       ],
       spans: [{ start, end, matchIndex: 0 }],
       truncated: false,
+      sampleTruncated: false,
+      matchLimitReached: false,
       totalCount: 1,
     };
   } catch {

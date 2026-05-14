@@ -52,6 +52,8 @@ export async function matchWithTimeout(
         matches: [],
         spans: [],
         truncated: false,
+        sampleTruncated: false,
+        matchLimitReached: false,
         totalCount: 0,
         error: TIMEOUT_ERROR_MESSAGE,
       });
@@ -69,6 +71,8 @@ export async function matchWithTimeout(
           matches: [],
           spans: [],
           truncated: false,
+          sampleTruncated: false,
+          matchLimitReached: false,
           totalCount: 0,
           error: msg.error,
         });
@@ -81,6 +85,8 @@ export async function matchWithTimeout(
         matches: [],
         spans: [],
         truncated: false,
+        sampleTruncated: false,
+        matchLimitReached: false,
         totalCount: 0,
         error: err.message || "Worker error",
       });
