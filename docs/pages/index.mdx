@@ -1,13 +1,13 @@
 # Getting Started
 
-**RegexLens** is an open-source, UI-first developer tool for **JavaScript regular expressions** (`RegExp`). It helps you see **what** matches, **why** it matches (plain-English steps), **how** the pattern is structured (AST + railroad diagram), and **where** it may be risky (smart warnings). Optional sign-in adds cloud-backed features like a saved library, exports, deeper **Analysis**, and **Regex Copilot** (streaming AI), depending on how you deploy and configure the app.
+**RegexLens** is an open-source, UI-first developer tool for **JavaScript regular expressions** (`RegExp`). It helps you see **what** matches, **why** it matches (plain-English steps), **how** the pattern is structured (AST + railroad diagram), and **where** it may be risky (smart warnings). Optional sign-in adds cloud-backed features like a saved pattern library, exports, deeper **Safety** analysis (`POST /api/analyze`), and **Regex Copilot** in the **Review** tab (`POST /api/ai/chat`), when your deployment enables authentication and the relevant routes.
 
 ## Where things live
 
 | Surface | URL / path | Purpose |
 |--------|------------|---------|
-| Marketing site | `/` | Landing and sign-in entry |
-| Workbench | `/app` | Full editor: pattern, test text, matches, tabs |
+| Marketing site | [regexlens.dev](https://regexlens.dev) (`/`) | Landing and sign-in entry |
+| Workbench | [regexlens.dev/app](https://regexlens.dev/app) (`/app`) | Full editor: pattern, test text, matches, tabs |
 | Docs (this site) | [docs.regexlens.dev](https://docs.regexlens.dev) — Nextra in `docs/`; local dev port `3002` | Long-form help |
 | Changelog (web) | [regexlens.dev/changelog](https://regexlens.dev/changelog) | High-level release notes |
 
@@ -22,10 +22,10 @@ Set `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_DOCS_URL` in production so share lin
 | Shareable URLs | Yes | Yes |
 | Saved library, versions, diff | — | Yes |
 | Export (Markdown, PR comment, Notion, plain) | — | Yes |
-| **Analysis** tab + `POST /api/analyze` | — | Yes * |
-| **Regex Copilot** (`/api/ai/chat`) | — | Yes * |
+| **Safety** tab + `POST /api/analyze` | — | Yes * |
+| **Regex Copilot** (Review tab) + `POST /api/ai/chat` | — | Yes * |
 
-\* Requires your deployment to configure the relevant server credentials (for example `ANTHROPIC_API_KEY`).
+\* **Safety** requires a signed-in session. **Regex Copilot** requires sign-in **and** your own [Anthropic API key](https://console.anthropic.com/settings/keys) (bring-your-own-key via the Review tab; see [Regex Copilot](/features/regex-copilot)).
 
 Signing in is optional for core editing. OAuth (GitHub, Google) and magic links (Resend) are available via Auth.js on the main app when enabled.
 
@@ -35,11 +35,11 @@ Signing in is optional for core editing. OAuth (GitHub, Google) and magic links 
 2. **Test text** + **Matches** (center) — Sample input, highlighted matches, capture groups; fixture suite panel when you load a suite.
 3. **Tabs** (right) on desktop; **segmented control** on small screens:
    - **Explain** — Deterministic step-by-step explanation from the AST (not LLM output).
-   - **Structure** — Collapsible AST tree synced with hover elsewhere when applicable.
-   - **Railroad** — Syntax railroad diagram for the pattern.
-   - **Analysis** — Risk score, complexity, extra warnings/suggestions via server analysis (signed in).
-   - **Warnings** — In-app static warnings (severity info / warn / danger).
-   - **Copilot** — Streaming assistant with actions like apply pattern (signed in; provider dependent).
+   - **Safety** — Server-side risk score, complexity, extra warnings, and suggestions (`POST /api/analyze`; signed in).
+   - **Warnings** — Fast, client-side heuristics (info / warn / danger).
+   - **Failure** — Guidance when the pattern does not match the sample text (when applicable).
+   - **Review** — **Regex Copilot** streaming assistant (signed in; Anthropic key from the tab settings).
+   - **More** (overflow) — **Structure** (AST), **Railroad**, and **Diff** (compare against a second pattern).
 
 Header: **Docs** (opens documentation), **Templates**, **Fixtures**, **Save** / **Library**, **Share**, **Reset**, account menu, and **Homepage** returns to marketing `/`.
 
@@ -48,6 +48,10 @@ Header: **Docs** (opens documentation), **Templates**, **Fixtures**, **Save** / 
 The editor syncs pattern, flags, and test text into query parameters (`p`, `f`, `t`). Values are typically **base64**-encoded (with URI-safe handling) so links stay portable. Anyone with the link can load the same state—**do not put secrets** in pattern or test text if you share URLs.
 
 See [Sharing & URLs](/features/sharing).
+
+## Support the project
+
+If RegexLens saves you time, you can support ongoing work on **[Buy Me a Coffee](https://www.buymeacoffee.com/nanaagyei)**.
 
 ## Next steps
 
@@ -61,10 +65,13 @@ import { Cards, Card } from 'nextra/components'
     How deterministic explanations work
   </Card>
   <Card title="AST & Railroad" href="/features/ast-viewer">
-    Structure tab + diagram tab
+    Structure + diagram (under More)
+  </Card>
+  <Card title="Safety (advanced analysis)" href="/features/analysis">
+    Risk score, complexity, server warnings
   </Card>
   <Card title="Regex Copilot" href="/features/regex-copilot">
-    AI-assisted regex help
+    AI-assisted regex help (Review tab)
   </Card>
   <Card title="Account features" href="/account/saved-library">
     Library, export, and deeper workflows

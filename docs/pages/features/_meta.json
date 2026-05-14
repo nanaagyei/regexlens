@@ -4,7 +4,7 @@
   "ast-viewer": "AST Viewer",
   "railroad-diagram": "Railroad Diagram",
   "warnings": "Smart Warnings",
-  "analysis": "Analysis",
+  "analysis": "Safety (Analysis)",
   "regex-copilot": "Regex Copilot",
   "fixtures-and-templates": "Fixtures & Templates",
   "sharing": "Sharing & URLs"
