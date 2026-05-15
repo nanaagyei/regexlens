@@ -18,6 +18,7 @@ import type {
   CharClassProps,
   QuantifierProps,
 } from "@/types";
+import { REGEX_CONFIG } from "@/types";
 import { describeExpected, describeActual } from "./describeNode";
 
 interface SimSuccess {
@@ -66,9 +67,25 @@ export function analyzeFailure(
   const multiline = flags.includes("m");
   const dotAll = flags.includes("s");
 
-  const ctx: SimContext = { text, caseInsensitive, multiline, dotAll };
+  const fullTextLen = text.length;
+  const analysisText = text.slice(0, REGEX_CONFIG.MAX_FAILURE_ANALYSIS_TEXT);
+  const windowTruncated = fullTextLen > analysisText.length;
 
-  const candidatePositions = getCandidateStartPositions(normalized, text, multiline);
+  const ctx: SimContext = { text: analysisText, caseInsensitive, multiline, dotAll };
+
+  const { positions: candidatePositions, startsLimited } = getCandidateStartPositions(
+    normalized,
+    analysisText,
+    multiline,
+  );
+  const analysisLimited = windowTruncated || startsLimited;
+  const limitSuffix = analysisLimited
+    ? ` Analysis used the first ${analysisText.length.toLocaleString()} character${
+        analysisText.length === 1 ? "" : "s"
+      } of input${
+        startsLimited ? " with a bounded set of start positions" : ""
+      } for responsiveness.`
+    : "";
 
   let bestFailure: SimFailure | null = null;
   let bestProgress = -1;
@@ -94,8 +111,11 @@ export function analyzeFailure(
       expected: describeExpected(normalized),
       actual: describeActual(text, 0),
       reason: "Pattern could not match",
-      detail: "The pattern did not match any position in the input text.",
+      detail: `The pattern did not match any position in the input text.${limitSuffix}`,
       confidence: "low",
+      analysisLimited,
+      analysisTextLength: fullTextLen,
+      analysisWindowLength: analysisText.length,
     };
   }
 
@@ -105,9 +125,12 @@ export function analyzeFailure(
     expected: bestFailure.expected,
     actual: bestFailure.actual,
     reason: bestFailure.reason,
-    detail: bestFailure.detail,
+    detail: `${bestFailure.detail}${limitSuffix}`,
     relatedRange: bestFailure.relatedRange,
     confidence: bestFailure.confidence,
+    analysisLimited,
+    analysisTextLength: fullTextLen,
+    analysisWindowLength: analysisText.length,
   };
 }
 
@@ -571,24 +594,68 @@ function isWordChar(ch: string): boolean {
   return /\w/.test(ch);
 }
 
+function subsampleSortedUnique(positions: number[], max: number): {
+  positions: number[];
+  limited: boolean;
+} {
+  if (positions.length <= max) {
+    return { positions, limited: false };
+  }
+  const out: number[] = [];
+  const lastIdx = positions.length - 1;
+  for (let j = 0; j < max; j++) {
+    const idx = Math.round((j * lastIdx) / Math.max(1, max - 1));
+    out.push(positions[idx]);
+  }
+  const deduped = [...new Set(out)].sort((a, b) => a - b);
+  return { positions: deduped, limited: true };
+}
+
+function linearStartPositions(textLength: number): {
+  positions: number[];
+  limited: boolean;
+} {
+  const max = REGEX_CONFIG.MAX_UNANCHORED_FAILURE_STARTS;
+  if (textLength === 0) {
+    return { positions: [], limited: false };
+  }
+  if (textLength <= max) {
+    return {
+      positions: Array.from({ length: textLength }, (_, i) => i),
+      limited: false,
+    };
+  }
+  const positions: number[] = [];
+  const last = textLength - 1;
+  for (let j = 0; j < max; j++) {
+    positions.push(Math.round((j * last) / Math.max(1, max - 1)));
+  }
+  const deduped = [...new Set(positions)].sort((a, b) => a - b);
+  return { positions: deduped, limited: true };
+}
+
 function getCandidateStartPositions(
   node: ComparableNode,
   text: string,
   multiline: boolean,
-): number[] {
+): { positions: number[]; startsLimited: boolean } {
+  const max = REGEX_CONFIG.MAX_UNANCHORED_FAILURE_STARTS;
+
   if (!patternStartsWithAnchor(node)) {
-    return Array.from({ length: text.length }, (_, i) => i);
+    const { positions, limited } = linearStartPositions(text.length);
+    return { positions, startsLimited: limited };
   }
   if (multiline) {
-    const positions = [0];
+    const positions: number[] = [0];
     for (let i = 0; i < text.length; i++) {
       if (text[i] === "\n" && i + 1 < text.length) {
         positions.push(i + 1);
       }
     }
-    return positions;
+    const { positions: capped, limited } = subsampleSortedUnique(positions, max);
+    return { positions: capped, startsLimited: limited };
   }
-  return [0];
+  return { positions: [0], startsLimited: false };
 }
 
 function patternStartsWithAnchor(node: ComparableNode): boolean {

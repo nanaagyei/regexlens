@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { analyzeFailure } from "./analyzeFailure";
 import { parseRegex } from "@/lib/regex/parse";
 import type { ParseResult, MatchResult, FailureDiagnosis } from "@/types";
+import { REGEX_CONFIG } from "@/types";
 
 const EMPTY_MATCH: MatchResult = {
   matches: [],
@@ -267,6 +268,24 @@ describe("analyzeFailure", () => {
       const result = analyze("abc", "g", "axc");
       expect(result.relatedRange).toBeDefined();
       expect(result.relatedRange!.start).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe("performance limits", () => {
+    it("marks analysisLimited when text exceeds failure analysis window", () => {
+      const pattern = "foo";
+      const text = "x".repeat(REGEX_CONFIG.MAX_FAILURE_ANALYSIS_TEXT + 500);
+      const parseResult = parseRegex(pattern, "g");
+      const result = analyzeFailure(pattern, "g", text, parseResult, EMPTY_MATCH);
+      if (result.didMatch) throw new Error("expected failure");
+      expect(result.analysisLimited).toBe(true);
+      expect(result.analysisTextLength).toBe(text.length);
+      expect(result.analysisWindowLength).toBe(REGEX_CONFIG.MAX_FAILURE_ANALYSIS_TEXT);
+    });
+
+    it("does not mark analysisLimited for small inputs", () => {
+      const result = analyze("abc", "g", "axc");
+      expect(result.analysisLimited).toBe(false);
     });
   });
 });

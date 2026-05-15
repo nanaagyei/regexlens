@@ -1,7 +1,7 @@
 "use client";
 
 import { AstNode } from "@/types";
-import { useHoverSync } from "@/hooks/useHoverSync";
+import { setHoveredRange } from "@/lib/stores/hoverStore";
 import { getNodeRange } from "@/lib/regex/parse";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +26,6 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export function AstNodeRow({ node, depth, inline = false }: AstNodeRowProps) {
-  const { setHoveredRange } = useHoverSync();
   const range = getNodeRange(node);
 
   const handleMouseEnter = () => {

@@ -1,7 +1,13 @@
 "use client";
 
-import { MatchResult, Match } from "@/types";
-import { useHoverSync } from "@/hooks/useHoverSync";
+import { useCallback } from "react";
+import { MatchResult, Match, REGEX_CONFIG } from "@/types";
+import { useHoverSelector } from "@/hooks/useHoverSync";
+import {
+  setHoveredMatchIndex,
+  setSelectedMatchIndex,
+  getSnapshot,
+} from "@/lib/stores/hoverStore";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -20,8 +26,6 @@ const BADGE_VARIANTS = [
 ] as const;
 
 export function MatchList({ matches, onMatchClick }: MatchListProps) {
-  const { hoverState, setHoveredMatchIndex, setSelectedMatchIndex } = useHoverSync();
-
   if (matches.error) {
     return (
       <div className="flex items-center justify-center h-full p-4">
@@ -43,28 +47,75 @@ export function MatchList({ matches, onMatchClick }: MatchListProps) {
   return (
     <div className="p-2 space-y-2">
       {matches.matches.map((match, index) => (
-        <MatchItem
+        <MatchListRow
           key={index}
           match={match}
           index={index}
-          isHovered={hoverState.hoveredMatchIndex === index}
-          isSelected={hoverState.selectedMatchIndex === index}
-          onMouseEnter={() => setHoveredMatchIndex(index)}
-          onMouseLeave={() => setHoveredMatchIndex(null)}
-          onClick={() => {
-            setSelectedMatchIndex(
-              hoverState.selectedMatchIndex === index ? null : index
-            );
-            onMatchClick?.(index, match.full.start, match.full.end);
-          }}
+          onMatchClick={onMatchClick}
         />
       ))}
       {matches.truncated && (
-        <p className="text-xs text-muted-foreground text-center py-2">
-          Showing first {matches.matches.length} of {matches.totalCount} matches
-        </p>
+        <TruncationFooter matches={matches} />
       )}
     </div>
+  );
+}
+
+function TruncationFooter({ matches }: { matches: MatchResult }) {
+  const sample = matches.sampleTruncated === true;
+  const cap = matches.matchLimitReached === true;
+  const parts: string[] = [];
+  if (sample) {
+    parts.push(
+      `Sample text exceeds ${REGEX_CONFIG.MAX_TEXT_LENGTH.toLocaleString()} characters; only the first ${REGEX_CONFIG.MAX_TEXT_LENGTH.toLocaleString()} are used for matching.`,
+    );
+  }
+  if (cap) {
+    parts.push(
+      `Showing the first ${matches.matches.length.toLocaleString()} of ${matches.totalCount.toLocaleString()} matches (list cap ${REGEX_CONFIG.MAX_MATCHES.toLocaleString()}).`,
+    );
+  }
+  if (parts.length === 0) {
+    parts.push(
+      `Showing first ${matches.matches.length.toLocaleString()} of ${matches.totalCount.toLocaleString()} matches.`,
+    );
+  }
+  return (
+    <p className="text-xs text-muted-foreground text-center py-2">
+      {parts.join(" ")}
+    </p>
+  );
+}
+
+interface MatchListRowProps {
+  match: Match;
+  index: number;
+  onMatchClick?: (index: number, start: number, end: number) => void;
+}
+
+function MatchListRow({ match, index, onMatchClick }: MatchListRowProps) {
+  const isHovered = useHoverSelector((s) => s.hoveredMatchIndex === index);
+  const isSelected = useHoverSelector((s) => s.selectedMatchIndex === index);
+
+  const onMouseEnter = useCallback(() => setHoveredMatchIndex(index), [index]);
+  const onMouseLeave = useCallback(() => setHoveredMatchIndex(null), []);
+
+  const onClick = useCallback(() => {
+    const sel = getSnapshot().selectedMatchIndex;
+    setSelectedMatchIndex(sel === index ? null : index);
+    onMatchClick?.(index, match.full.start, match.full.end);
+  }, [index, match.full.start, match.full.end, onMatchClick]);
+
+  return (
+    <MatchItem
+      match={match}
+      index={index}
+      isHovered={isHovered}
+      isSelected={isSelected}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+    />
   );
 }
 
@@ -116,7 +167,7 @@ function MatchItem({
           pos {match.full.start}–{match.full.end}
         </span>
       </div>
-      
+
       <div className="font-mono text-sm break-all">
         <span className="text-foreground">&quot;{match.full.text}&quot;</span>
       </div>

@@ -2,7 +2,7 @@
 
 import type { FailureDiagnosis, MatchResult } from "@/types";
 import { FailureCard } from "./FailureCard";
-import { CheckCircle2, FileText } from "lucide-react";
+import { CheckCircle2, FileText, Info } from "lucide-react";
 
 interface FailurePanelProps {
   failureAnalysis: FailureDiagnosis | null;
@@ -61,6 +61,22 @@ export function FailurePanel({ failureAnalysis, matchResult, hasText }: FailureP
           Match failure diagnosis
         </h3>
       </div>
+      {failureAnalysis.analysisLimited && (
+        <div
+          className="mb-3 flex gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
+          role="status"
+        >
+          <Info className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
+          <span>
+            Failure simulation was limited for performance (first{" "}
+            {failureAnalysis.analysisWindowLength?.toLocaleString() ?? "N"} characters
+            {typeof failureAnalysis.analysisTextLength === "number"
+              ? ` of ${failureAnalysis.analysisTextLength.toLocaleString()} total`
+              : ""}
+            ).
+          </span>
+        </div>
+      )}
       <div role="region" aria-label="Failure analysis">
         <FailureCard failure={failureAnalysis} />
       </div>

@@ -33,6 +33,8 @@ function runSingleExecWithLastIndex(
       matches: [],
       spans: [],
       truncated: false,
+      sampleTruncated: false,
+      matchLimitReached: false,
       totalCount: 0,
     };
   }
@@ -53,6 +55,8 @@ function runSingleExecWithLastIndex(
     ],
     spans: [{ start, end, matchIndex: 0 }],
     truncated: false,
+    sampleTruncated: false,
+    matchLimitReached: false,
     totalCount: 1,
   };
 }

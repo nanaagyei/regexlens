@@ -127,6 +127,17 @@ test.describe("workspace integration", () => {
       page.getByText(/Explanation diff unavailable — one or both patterns could not be parsed/i)
     ).toBeVisible({ timeout: 10_000 });
   });
+
+  test("long sample input shows sample-length status banner", async ({ page }) => {
+    await page.goto("/app");
+    const sample = page.getByRole("textbox", { name: /Paste sample text/i });
+    await expect(sample).toBeVisible({ timeout: 20_000 });
+    await sample.fill("z".repeat(50_001));
+    await expect(
+      page.getByRole("status").filter({ hasText: /50[, ]?000/ }),
+    ).toBeVisible({ timeout: 15_000 });
+  });
+
 });
 
 test.describe("URL state sharing", () => {
@@ -242,4 +253,5 @@ test.describe("template library", () => {
 
     await expect(page.getByText("US phone number")).not.toBeVisible();
   });
+
 });

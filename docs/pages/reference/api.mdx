@@ -5,7 +5,7 @@ RegexLens exposes a REST API for authenticated integrations (saved snippets, ana
 import { Callout } from 'nextra/components'
 
 <Callout type="info">
-**Authentication Required:** All API endpoints (except `/api/me`) require authentication via session cookie or API token.
+**Authentication:** `GET /api/me` and `GET /api/fixtures/regexlens` work without signing in (anonymous rate limits still apply). Other routes in this reference require a **signed-in session cookie** unless noted. Programmatic **API tokens** are not available yet.
 </Callout>
 
 ## Base URL
@@ -41,7 +41,7 @@ These routes are designed for the RegexLens web UI running on the same site orig
 
 ### User profile
 
-#### GET /api/me
+#### GET /api/me [#get-api-me]
 
 Get the current signed-in user (if any).
 
@@ -68,9 +68,21 @@ Get the current signed-in user (if any).
 
 ---
 
+### Fixtures (public)
+
+#### GET /api/fixtures/regexlens [#get-api-fixtures-regexlens]
+
+Returns the built-in RegexLens fixture JSON used by the **Fixtures** panel in the workbench.
+
+**Authentication:** Not required
+
+**Caching:** Responses include `Cache-Control: public, max-age=60`.
+
+---
+
 ### Snippets
 
-#### GET /api/snippets
+#### GET /api/snippets [#get-api-snippets]
 
 List saved regex patterns.
 
@@ -104,7 +116,7 @@ List saved regex patterns.
 }
 ```
 
-#### POST /api/snippets
+#### POST /api/snippets [#post-api-snippets]
 
 Create a new saved pattern.
 
@@ -135,7 +147,7 @@ Create a new saved pattern.
 }
 ```
 
-#### GET /api/snippets/:id
+#### GET /api/snippets/:id [#get-api-snippets-id]
 
 Get a specific pattern.
 
@@ -155,7 +167,7 @@ Get a specific pattern.
 }
 ```
 
-#### PATCH /api/snippets/:id
+#### PATCH /api/snippets/:id [#patch-api-snippets-id]
 
 Update a pattern.
 
@@ -182,7 +194,7 @@ Update a pattern.
 }
 ```
 
-#### DELETE /api/snippets/:id
+#### DELETE /api/snippets/:id [#delete-api-snippets-id]
 
 Delete a pattern.
 
@@ -190,7 +202,7 @@ Delete a pattern.
 
 **Response:** `204 No Content`
 
-#### GET /api/snippets/:id/versions
+#### GET /api/snippets/:id/versions [#get-api-snippets-id-versions]
 
 Get version history for a pattern.
 
@@ -222,7 +234,7 @@ Get version history for a pattern.
 
 ### Export 
 
-#### POST /api/export
+#### POST /api/export [#post-api-export]
 
 Export explanation in various formats.
 
@@ -263,9 +275,9 @@ Export explanation in various formats.
 
 ### Analyze 
 
-#### POST /api/analyze
+#### POST /api/analyze [#post-api-analyze]
 
-Run server-side advanced analysis (same engine as the **Analysis** tab). Returns a **risk score**, structured warnings, optional rewrite suggestions, and a **complexity** summary.
+Run server-side advanced analysis (same engine as the **Safety** tab). Returns a **risk score**, structured warnings, optional rewrite suggestions, and a **complexity** summary.
 
 **Authentication:** Required (session cookie)
 
@@ -319,7 +331,7 @@ Fields may vary run-to-run; `warnings` / `suggestions` can be empty arrays. Seve
 
 ### AI chat 
 
-#### POST /api/ai/chat
+#### POST /api/ai/chat [#post-api-ai-chat]
 
 Streaming AI assistant used by **Regex Copilot**. **Signed-in only**; uses a **bring-your-own-key** model where you supply your Anthropic API key via the `X-Anthropic-Key` request header. Your key is used for the single request and never stored or logged.
 
@@ -366,10 +378,14 @@ All errors follow this format:
 
 | Endpoint | Anonymous | Signed in |
 |----------|------|-----|
-| `/api/me` | 60/min | 300/min |
-| `/api/snippets` | N/A | 300/min |
+| `/api/me` | 120/min | 120/min * |
+| `/api/fixtures/regexlens` | 120/min | 120/min * |
+| `/api/snippets` | N/A | 120/min * |
 | `/api/export` | N/A | 10/hour |
-| `/api/analyze` | N/A | 60/min |
+| `/api/analyze` | N/A | 120/min * |
+| `/api/ai/chat` | N/A | 10/min * |
+
+\* Values follow the `api_free` / `export` / `ai_chat` tiers in the server; exact headers are returned on each response.
 
 Rate limit headers are included in responses:
 

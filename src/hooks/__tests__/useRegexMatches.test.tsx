@@ -14,6 +14,8 @@ const mockMatchResult: MatchResult = {
   ],
   spans: [{ start: 0, end: 3, matchIndex: 0 }],
   truncated: false,
+  sampleTruncated: false,
+  matchLimitReached: false,
   totalCount: 1,
 };
 
@@ -21,6 +23,8 @@ const emptyResult: MatchResult = {
   matches: [],
   spans: [],
   truncated: false,
+  sampleTruncated: false,
+  matchLimitReached: false,
   totalCount: 0,
 };
 
@@ -131,8 +135,16 @@ describe("useRegexMatches", () => {
   });
 
   it("cancels stale results when inputs change", async () => {
-    let resolveFirst!: (value: MatchResult) => void;
-    let resolveSecond!: (value: MatchResult) => void;
+    const deferreds: Array<{
+      pattern: string;
+      resolve: (value: MatchResult) => void;
+    }> = [];
+
+    mockMatchWithTimeout.mockImplementation((pat: string) => {
+      return new Promise<MatchResult>((resolve) => {
+        deferreds.push({ pattern: pat, resolve });
+      });
+    });
 
     const firstResult: MatchResult = {
       ...emptyResult,
@@ -162,40 +174,41 @@ describe("useRegexMatches", () => {
       ],
     };
 
-    mockMatchWithTimeout
-      .mockImplementationOnce(
-        () => new Promise<MatchResult>((r) => { resolveFirst = r; })
-      )
-      .mockImplementationOnce(
-        () => new Promise<MatchResult>((r) => { resolveSecond = r; })
-      );
-
     const { result, rerender } = renderHook(
       ({ pattern }: { pattern: string }) =>
         useRegexMatches(pattern, "g", "test", true, 0),
       { initialProps: { pattern: "a" } }
     );
 
-    // Wait for first call
     await waitFor(() => {
-      expect(mockMatchWithTimeout).toHaveBeenCalledTimes(1);
+      expect(deferreds.some((d) => d.pattern === "a")).toBe(true);
     });
 
-    // Change pattern — triggers cleanup (cancelled=true) and new effect
     rerender({ pattern: "b" });
 
+    // After pattern changes, debounced pattern can lag one tick; last scheduled
+    // match should eventually use the updated debounced pattern "b".
     await waitFor(() => {
-      expect(mockMatchWithTimeout).toHaveBeenCalledTimes(2);
+      expect(deferreds[deferreds.length - 1]?.pattern).toBe("b");
     });
 
-    // Resolve first (stale) — should be ignored due to cancelled flag
-    await act(async () => { resolveFirst(firstResult); });
+    await act(async () => {
+      for (const d of deferreds) {
+        if (d.pattern !== "b") {
+          d.resolve(firstResult);
+        }
+      }
+    });
 
-    // Resolve second (current)
-    await act(async () => { resolveSecond(secondResult); });
+    const bDeferreds = deferreds.filter((d) => d.pattern === "b");
+    const lastB = bDeferreds[bDeferreds.length - 1];
+    expect(lastB).toBeDefined();
+
+    await act(async () => {
+      lastB!.resolve(secondResult);
+    });
 
     await waitFor(() => {
-      // Should have the second result, not the first
       expect(result.current.totalCount).toBe(2);
     });
   });
