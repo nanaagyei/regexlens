@@ -76,6 +76,46 @@ describe("useFailureAnalysis", () => {
     expect(result.current).toBeNull();
   });
 
+  it("debounces match result updates and clears diagnosis when a match appears", () => {
+    const parseResult = parseRegex("a", "g");
+    const syntheticMatch: MatchResult = {
+      matches: [
+        {
+          index: 0,
+          full: { groupIndex: 0, start: 0, end: 1, text: "a" },
+          groups: [],
+        },
+      ],
+      spans: [{ start: 0, end: 1, matchIndex: 0 }],
+      truncated: false,
+      sampleTruncated: false,
+      matchLimitReached: false,
+      totalCount: 1,
+    };
+    const { result, rerender } = renderHook(
+      ({ match }: { match: MatchResult }) =>
+        useFailureAnalysis("a", "g", "b", parseResult, match),
+      { initialProps: { match: EMPTY_MATCH } },
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(REGEX_CONFIG.HEAVY_ANALYSIS_DEBOUNCE_MS);
+    });
+    expect(result.current).not.toBeNull();
+    expect(result.current!.didMatch).toBe(false);
+
+    rerender({ match: syntheticMatch });
+    act(() => {
+      vi.advanceTimersByTime(REGEX_CONFIG.HEAVY_ANALYSIS_DEBOUNCE_MS - 1);
+    });
+    expect(result.current).not.toBeNull();
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(result.current).toBeNull();
+  });
+
   it("returns FailureDiagnosis when match fails", () => {
     const parseResult = parseRegex("abc", "g");
     const { result } = renderHook(() =>
