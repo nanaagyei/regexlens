@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-14T00:00:00Z",
+  "title": "Design System: RegexLens",
+  "extensions": {
+    "colorMeta": {
+      "lens-blue": {
+        "role": "primary",
+        "displayName": "Lens Blue",
+        "canonical": "hsl(217, 91%, 60%)",
+        "tonalRamp": ["#0c1a33", "#163066", "#204799", "#2a5ecc", "#3b82f6", "#6aa1f8", "#99c0fa", "#c8dffd"]
+      },
+      "midnight-ink": {
+        "role": "neutral",
+        "displayName": "Midnight Ink",
+        "canonical": "hsl(220, 20%, 4%)",
+        "tonalRamp": ["#040507", "#080a0f", "#0f1218", "#171b24", "#212530", "#2d323e", "#3a404e", "#48505f"]
+      },
+      "soft-cloud": {
+        "role": "neutral",
+        "displayName": "Soft Cloud",
+        "canonical": "hsl(210, 40%, 98%)",
+        "tonalRamp": ["#95a1b3", "#a8b2c1", "#bcc4d0", "#d0d6df", "#e4e8ee", "#eceff4", "#f2f5f8", "#f7f9fc"]
+      },
+      "deep-slate": {
+        "role": "neutral",
+        "displayName": "Deep Slate",
+        "canonical": "hsl(220, 18%, 7%)",
+        "tonalRamp": ["#060810", "#0f1218", "#171b24", "#1e222d", "#262b37", "#2e3441", "#373e4c", "#414958"]
+      },
+      "signal-red": {
+        "role": "destructive",
+        "displayName": "Signal Red",
+        "canonical": "hsl(0, 62%, 50%)",
+        "tonalRamp": ["#2e0a0a", "#5c1414", "#8a1e1e", "#ab2828", "#cd3131", "#d75a5a", "#e18383", "#ebacac"]
+      },
+      "clarity-green": {
+        "role": "match",
+        "displayName": "Clarity Green",
+        "canonical": "hsl(142, 71%, 45%)",
+        "tonalRamp": ["#052e14", "#0a5c28", "#108a3c", "#16ab4d", "#22c55e", "#4ed47e", "#7ae39e", "#a6f2be"]
+      },
+      "warm-amber": {
+        "role": "match",
+        "displayName": "Warm Amber",
+        "canonical": "hsl(25, 95%, 53%)",
+        "tonalRamp": ["#331a05", "#66340a", "#994e0f", "#cc6814", "#f97316", "#fa9245", "#fbb174", "#fcd0a3"]
+      },
+      "focus-purple": {
+        "role": "match",
+        "displayName": "Focus Purple",
+        "canonical": "hsl(280, 68%, 60%)",
+        "tonalRamp": ["#1a0833", "#340f66", "#4e1799", "#681fcc", "#a855f7", "#b977f9", "#ca99fa", "#dbbbfc"]
+      },
+      "stream-cyan": {
+        "role": "match",
+        "displayName": "Stream Cyan",
+        "canonical": "hsl(190, 82%, 50%)",
+        "tonalRamp": ["#05292e", "#0a525c", "#0f7b8a", "#14a4b8", "#17b8d9", "#45c6e1", "#73d4e9", "#a1e2f1"]
+      },
+      "accent-rose": {
+        "role": "match",
+        "displayName": "Accent Rose",
+        "canonical": "hsl(340, 75%, 55%)",
+        "tonalRamp": ["#2e0511", "#5c0a22", "#8a0f33", "#b81444", "#e23670", "#e85e8d", "#ee86aa", "#f4aec7"]
+      },
+       "cool-ash": {
+         "role": "neutral",
+         "displayName": "Cool Ash",
+         "canonical": "hsl(220, 14%, 18%)",
+         "tonalRamp": ["#0f1218", "#171b24", "#1e222d", "#262b37", "#272b34", "#2e3441", "#373e4c", "#414958"]
+        },
+        "worn-silver": {
+         "role": "neutral",
+         "displayName": "Worn Silver",
+         "canonical": "hsl(220, 14%, 65%)",
+         "tonalRamp": ["#5a6374", "#6b7485", "#7c8596", "#8d96a7", "#95a1b3", "#a8b2c1", "#bcc4d0", "#d0d6df"]
+        }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Hero headlines on the landing page only. Sora at maximum weight."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings, modal titles. Sora with tight leading."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Panel headers, card titles. Plus Jakarta Sans at semi-bold."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, descriptions, regex explanations. 65ch max width."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Section markers, badge text, metadata. Uppercase with wide tracking."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Regex patterns, code, AST labels, the editor. JetBrains Mono for glyph clarity."
+      }
+    },
+    "shadows": [
+      {
+        "name": "button-default",
+        "value": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+        "purpose": "Primary and secondary buttons at rest. Marks clickable affordance."
+      },
+      {
+        "name": "button-sm",
+        "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        "purpose": "Outline, destructive, and secondary buttons. Subtler than default."
+      }
+    ],
+    "motion": [
+      {
+        "name": "fade-up",
+        "value": "translateY(12px) → translateY(0), opacity 0 → 1, 550ms ease-out",
+        "purpose": "Landing page section entrance. Respects prefers-reduced-motion."
+      },
+      {
+        "name": "pulse-highlight",
+        "value": "opacity 1 → 0.5 → 1, 1000ms ease-in-out",
+        "purpose": "Typing cursor blink in the animated regex demo."
+      },
+      {
+        "name": "panel-transition",
+        "value": "all 150ms ease",
+        "purpose": "Panel resize and collapse transitions in the workbench."
+      }
+    ],
+    "breakpoints": [
+      { "name": "xs", "value": "480px" },
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main call-to-action. Lens Blue background, compact height.",
+      "html": "<button class=\"ds-btn-primary\">Start reviewing</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 8px 16px; background-color: #3b82f6; color: #f7f9fc; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 14px; font-weight: 500; line-height: 1; border: none; border-radius: 6px; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); cursor: pointer; transition: background-color 0.15s ease, opacity 0.15s ease; } .ds-btn-primary:hover { background-color: rgba(59, 130, 246, 0.9); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 1px #080a0f, 0 0 0 3px #3b82f6; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action. Transparent with border.",
+      "html": "<button class=\"ds-btn-outline\">Read the docs</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 8px 16px; background-color: #080a0f; color: #f7f9fc; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 14px; font-weight: 500; line-height: 1; border: 1px solid #272b34; border-radius: 6px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease; } .ds-btn-outline:hover { background-color: #272b34; } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 1px #080a0f, 0 0 0 3px #3b82f6; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Minimal action. No background or border at rest.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 8px 16px; background-color: transparent; color: #f7f9fc; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 14px; font-weight: 500; line-height: 1; border: none; border-radius: 6px; cursor: pointer; transition: background-color 0.15s ease; } .ds-btn-ghost:hover { background-color: #272b34; } .ds-btn-ghost:focus-visible { outline: none; box-shadow: 0 0 0 1px #080a0f, 0 0 0 3px #3b82f6; }"
+    },
+    {
+      "name": "Match Badge",
+      "kind": "chip",
+      "refersTo": null,
+      "description": "Labels capture groups with their assigned color. Used in explanation steps and match lists.",
+      "html": "<span class=\"ds-badge-match\" data-group=\"1\">Group 1</span>",
+      "css": ".ds-badge-match { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 12px; font-weight: 500; line-height: 1.4; border-radius: 9999px; } .ds-badge-match[data-group='0'] { background-color: rgba(59, 130, 246, 0.2); color: #3b82f6; } .ds-badge-match[data-group='1'] { background-color: rgba(34, 197, 94, 0.2); color: #22c55e; } .ds-badge-match[data-group='2'] { background-color: rgba(249, 115, 22, 0.2); color: #f97316; } .ds-badge-match[data-group='3'] { background-color: rgba(168, 85, 247, 0.2); color: #a855f7; } .ds-badge-match[data-group='4'] { background-color: rgba(23, 184, 217, 0.2); color: #17b8d9; } .ds-badge-match[data-group='5'] { background-color: rgba(226, 54, 112, 0.2); color: #e23670; }"
+    },
+    {
+      "name": "Warning Badge",
+      "kind": "chip",
+      "refersTo": null,
+      "description": "Severity indicator for regex analysis warnings.",
+      "html": "<span class=\"ds-badge-warn\">Performance</span>",
+      "css": ".ds-badge-warn { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 12px; font-weight: 500; line-height: 1.4; border-radius: 9999px; background-color: rgba(245, 158, 11, 0.2); color: #f59e0b; } .ds-badge-info { background-color: rgba(64, 120, 212, 0.2); color: #4078d4; } .ds-badge-danger { background-color: rgba(220, 38, 38, 0.2); color: #dc2626; }"
+    },
+    {
+      "name": "Panel Card",
+      "kind": "card",
+      "refersTo": null,
+      "description": "Flat surface container for workbench panels (explanation, AST, warnings).",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-header\">Explanation</div><div class=\"ds-card-body\">Pattern breaks down into 5 steps.</div></div>",
+      "css": ".ds-card { background-color: #0f1218; border: 1px solid rgba(39, 43, 52, 0.6); border-radius: 8px; overflow: hidden; } .ds-card-header { padding: 12px 16px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 14px; font-weight: 600; color: #f7f9fc; border-bottom: 1px solid rgba(39, 43, 52, 0.4); } .ds-card-body { padding: 16px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 14px; color: #95a1b3; line-height: 1.6; }"
+    },
+    {
+      "name": "Nav Header",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Sticky app header with logo, navigation links, and action buttons.",
+      "html": "<header class=\"ds-nav\"><span class=\"ds-nav-logo\">RegexLens</span><nav class=\"ds-nav-links\"><a href=\"#\" class=\"ds-nav-link\">Workbench</a><a href=\"#\" class=\"ds-nav-link\">Docs</a></nav></header>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 24px; background-color: #080a0f; border-bottom: 1px solid #272b34; position: sticky; top: 0; z-index: 50; } .ds-nav-logo { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 16px; font-weight: 700; color: #f7f9fc; } .ds-nav-links { display: flex; gap: 32px; } .ds-nav-link { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 14px; font-weight: 400; color: #95a1b3; text-decoration: none; transition: color 0.15s ease; } .ds-nav-link:hover { color: #f7f9fc; } .ds-nav-link:focus-visible { outline: none; box-shadow: 0 0 0 2px #3b82f6; border-radius: 2px; }"
+    },
+    {
+      "name": "Match Highlight",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Inline text highlight for regex matches in the test editor. Three states: passive, active (hover), selected.",
+      "html": "<span class=\"ds-match ds-match-1\">example</span> <span class=\"ds-match ds-match-1 ds-match-active\">hovered</span> <span class=\"ds-match ds-match-1 ds-match-selected\">selected</span>",
+      "css": ".ds-match { padding: 1px 0; border-radius: 2px; transition: background-color 0.1s ease; } .ds-match-1 { background-color: rgba(59, 130, 246, 0.3); } .ds-match-1.ds-match-active { background-color: rgba(59, 130, 246, 0.5); } .ds-match-1.ds-match-selected { background-color: rgba(59, 130, 246, 0.4); outline: 2px solid rgba(59, 130, 246, 0.7); outline-offset: -1px; } .ds-match-2 { background-color: rgba(34, 197, 94, 0.3); } .ds-match-2.ds-match-active { background-color: rgba(34, 197, 94, 0.5); } .ds-match-3 { background-color: rgba(249, 115, 22, 0.3); } .ds-match-3.ds-match-active { background-color: rgba(249, 115, 22, 0.5); } .ds-match-4 { background-color: rgba(168, 85, 247, 0.3); } .ds-match-4.ds-match-active { background-color: rgba(168, 85, 247, 0.5); } .ds-match-5 { background-color: rgba(23, 184, 217, 0.3); } .ds-match-5.ds-match-active { background-color: rgba(23, 184, 217, 0.5); } .ds-match-6 { background-color: rgba(226, 54, 112, 0.3); } .ds-match-6.ds-match-active { background-color: rgba(226, 54, 112, 0.5); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Friendly Desk Lamp",
+    "overview": "RegexLens's visual system behaves like a warm desk lamp pointed at a specific thing. It illuminates the work without flooding the room. Surfaces are dark and quiet; the blue primary and match highlight colors draw attention only where understanding happens. There is no ambient glow, no decorative light. Every bright pixel is functional.\n\nThe system is built for developers who arrive curious, sometimes under pressure, and need to understand a regex pattern quickly. The interface should feel like a sharp colleague at the desk beside you: helpful without being loud, precise without being cold. It respects the user's time and never decorates for its own sake.",
+    "keyCharacteristics": [
+      "Dark, warm, and quiet backgrounds; bright functional color only where understanding happens",
+      "Typography-driven hierarchy; no decorative effects carrying weight",
+      "Compact UI density appropriate for a workbench tool",
+      "A 6-color match palette that must remain distinguishable for color vision deficiencies",
+      "Solid colors only; gradients are prohibited across all surfaces"
+    ],
+    "rules": [
+      {
+        "name": "The Desk Lamp Rule",
+        "body": "Lens Blue is the only saturated color allowed in the base UI. It appears on interactive elements and active states. If you are reaching for a second accent color outside the match palette or warning system, stop. The restraint is the identity.",
+        "section": "colors"
+      },
+      {
+        "name": "The 14px Floor Rule",
+        "body": "Body text is 14px (0.875rem). Nothing in the workbench goes smaller except labels and badges (12px). Regex patterns must be readable at a glance; squinting defeats the product's purpose.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Surfaces are flat at rest. Borders, not shadows, separate panels. If a shadow appears, it marks an interactive state change (hover, focus, popover opening), never a static decorative layer.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use Lens Blue as the single accent color in the base UI. Its rarity is the identity.",
+      "Do maintain the 6-color match palette order. Group 0 is always Lens Blue, Group 1 is always Clarity Green.",
+      "Do use borders (1px, Cool Ash) to separate surfaces. Borders are the structural language, not shadows.",
+      "Do keep body text at 14px minimum. Regex patterns and explanations must be readable without effort.",
+      "Do respect prefers-reduced-motion. Disable auto-playing animations.",
+      "Do provide 44px minimum touch targets on mobile for all interactive elements.",
+      "Do use Sora for display/headline text and Plus Jakarta Sans for body/title/label text.",
+      "Do keep line lengths under 65ch for explanation text."
+    ],
+    "donts": [
+      "Don't use gradient color treatments. No gradient backgrounds, no gradient text, no aurora blobs, no gradient borders. Solid colors only.",
+      "Don't use Inter or other generic SaaS typefaces.",
+      "Don't use glassmorphism as a default surface treatment.",
+      "Don't use glowing orbs, particle fields, sparkle decorations, or any AI-aesthetic visual effects.",
+      "Don't use border-left or border-right greater than 1px as a colored accent stripe.",
+      "Don't create identical card grids. Vary the layout.",
+      "Don't use dark-corporate SaaS templates with hero metrics.",
+      "Don't use #000000 or #ffffff. Every neutral is tinted toward hue 220.",
+      "Don't add shadows to static surfaces. Shadows mark state changes only.",
+      "Don't use em dashes in UI copy."
+    ]
+  }
+}
