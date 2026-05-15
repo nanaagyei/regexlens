@@ -37,7 +37,7 @@ export function useRegexMatches(
   const [matchResult, setMatchResult] = useState<MatchResult>(EMPTY_RESULT);
 
   useEffect(() => {
-    if (!parseOk || !pattern || !debouncedPattern) {
+    if (!parseOk || !debouncedPattern) {
       setMatchResult(EMPTY_RESULT);
       return;
     }
@@ -63,7 +63,7 @@ export function useRegexMatches(
     return () => {
       cancelled = true;
     };
-  }, [pattern, debouncedPattern, debouncedFlags, debouncedText, parseOk, fixtureTimeoutMs]);
+  }, [debouncedPattern, debouncedFlags, debouncedText, parseOk, fixtureTimeoutMs]);
 
   return matchResult;
 }
