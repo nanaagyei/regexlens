@@ -279,6 +279,168 @@
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-float-delayed { animation: float 6s ease-in-out 2s infinite; }
 
+/* ─── A+C Animation System ─── */
+
+/* Easing curves (ease-out-expo / ease-out-quart) */
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Scroll-reveal base: hidden until JS triggers */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reveal-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes reveal-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.reveal {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.reveal.revealed {
+  animation-fill-mode: forwards;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+.reveal-up.revealed {
+  animation-name: reveal-up;
+  animation-duration: 700ms;
+}
+
+.reveal-left.revealed {
+  animation-name: reveal-left;
+  animation-duration: 600ms;
+}
+
+.reveal-scale.revealed {
+  animation-name: reveal-scale;
+  animation-duration: 800ms;
+}
+
+/* Stagger delay utilities */
+.stagger-1 { animation-delay: 0ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 200ms; }
+.stagger-4 { animation-delay: 300ms; }
+.stagger-5 { animation-delay: 400ms; }
+.stagger-6 { animation-delay: 500ms; }
+
+/* Hero-specific stagger (tighter, faster) */
+.hero-stagger-1 { animation-delay: 0ms; }
+.hero-stagger-2 { animation-delay: 120ms; }
+.hero-stagger-3 { animation-delay: 240ms; }
+.hero-stagger-4 { animation-delay: 360ms; }
+.hero-stagger-5 { animation-delay: 480ms; }
+.hero-stagger-6 { animation-delay: 600ms; }
+
+/* Button micro-interactions */
+.btn-lift {
+  transition: transform 180ms var(--ease-out-quart), box-shadow 180ms var(--ease-out-quart);
+}
+
+.btn-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px hsl(var(--primary) / 0.15);
+}
+
+.btn-lift:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 6px hsl(var(--primary) / 0.08);
+  transition-duration: 80ms;
+}
+
+.btn-lift-outline {
+  transition: transform 180ms var(--ease-out-quart), box-shadow 180ms var(--ease-out-quart);
+}
+
+.btn-lift-outline:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px hsl(var(--foreground) / 0.06);
+}
+
+.btn-lift-outline:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 80ms;
+}
+
+/* Card hover lift */
+.card-lift {
+  transition: transform 250ms var(--ease-out-quart), box-shadow 250ms var(--ease-out-quart), border-color 250ms var(--ease-out-quart);
+}
+
+.card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px hsl(var(--primary) / 0.08);
+}
+
+/* Perspective tilt container */
+.perspective-tilt {
+  perspective: 800px;
+}
+
+.perspective-tilt-inner {
+  transition: transform 200ms var(--ease-out-quart);
+  will-change: transform;
+}
+
+/* FAQ smooth expand */
+.faq-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 350ms var(--ease-out-quart);
+}
+
+.faq-content[data-state="open"] {
+  grid-template-rows: 1fr;
+}
+
+.faq-content-inner {
+  overflow: hidden;
+}
+
+/* Reduced motion: disable everything */
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; }
+  .reveal.revealed { animation: none; }
+  .btn-lift, .btn-lift-outline, .card-lift, .perspective-tilt-inner {
+    transition: none;
+  }
+  .btn-lift:hover, .btn-lift-outline:hover, .card-lift:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
 /* Static dot grid background — modern, non-animated texture */
 .landing-dots {
   background-image: radial-gradient(
