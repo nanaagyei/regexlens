@@ -58,7 +58,7 @@ const HOW_IT_WORKS = [
     description:
       "Paste any regex from a PR, config file, or codebase. No need to start from scratch.",
     icon: Copy,
-    image: "images/first.png",
+    image: "/images/first.png",
     imageAlt: "RegexLens editor with a pasted regex pattern",
   },
   {
@@ -67,7 +67,7 @@ const HOW_IT_WORKS = [
     description:
       "Read a plain-English breakdown, inspect the visual syntax tree, and verify matches in real time.",
     icon: Sparkles,
-    image: "images/second.png",
+    image: "/images/second.png",
     imageAlt: "RegexLens showing explanation and match highlighting",
   },
   {
@@ -76,7 +76,7 @@ const HOW_IT_WORKS = [
     description:
       "Generate a shareable link for code reviews, export the analysis, and catch safety issues before production.",
     icon: Download,
-    image: "images/third.png",
+    image: "/images/third.png",
     imageAlt: "Sharing a RegexLens analysis link in a PR comment",
   },
 ];
@@ -739,7 +739,7 @@ export function LandingPage() {
             <Reveal reducedMotion={reducedMotion} direction="scale">
               <div className="rounded-xl border border-border/40 overflow-hidden bg-card">
                 <Image
-                  src="images/main.png"
+                  src="/images/main.png"
                   alt="RegexLens application interface showing pattern analysis"
                   width={1200}
                   height={675}

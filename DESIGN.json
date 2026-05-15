@@ -63,7 +63,19 @@
         "displayName": "Accent Rose",
         "canonical": "hsl(340, 75%, 55%)",
         "tonalRamp": ["#2e0511", "#5c0a22", "#8a0f33", "#b81444", "#e23670", "#e85e8d", "#ee86aa", "#f4aec7"]
-      }
+      },
+       "cool-ash": {
+         "role": "neutral",
+         "displayName": "Cool Ash",
+         "canonical": "hsl(220, 14%, 18%)",
+         "tonalRamp": ["#0f1218", "#171b24", "#1e222d", "#262b37", "#272b34", "#2e3441", "#373e4c", "#414958"]
+        },
+        "worn-silver": {
+         "role": "neutral",
+         "displayName": "Worn Silver",
+         "canonical": "hsl(220, 14%, 65%)",
+         "tonalRamp": ["#5a6374", "#6b7485", "#7c8596", "#8d96a7", "#95a1b3", "#a8b2c1", "#bcc4d0", "#d0d6df"]
+        }
     },
     "typographyMeta": {
       "display": {
