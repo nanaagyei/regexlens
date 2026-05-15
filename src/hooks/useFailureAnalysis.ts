@@ -27,6 +27,7 @@ export function useFailureAnalysis(
   const debouncedMatch = useDebounce(matchResult, HEAVY_MS);
 
   return useMemo(() => {
+    if (!pattern || !text) return null;
     if (!debouncedPattern || !debouncedText) return null;
     const result = analyzeFailure(
       debouncedPattern,
@@ -38,6 +39,8 @@ export function useFailureAnalysis(
     if (result.didMatch) return null;
     return result;
   }, [
+    pattern,
+    text,
     debouncedPattern,
     debouncedFlags,
     debouncedText,

@@ -2,6 +2,10 @@
 
 Thank you for your interest in contributing to RegexLens! This guide will help you get started.
 
+## Documentation
+
+End-user and contributor-facing product documentation lives in the **Nextra** site under [`docs/pages/`](docs/pages/) and is published at **[docs.regexlens.dev](https://docs.regexlens.dev)**. When you change behavior or UX, update the relevant MDX there and run the docs app from the `docs/` directory to preview.
+
 ## Code of Conduct
 
 This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.

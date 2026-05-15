@@ -37,7 +37,7 @@ export function useRegexMatches(
   const [matchResult, setMatchResult] = useState<MatchResult>(EMPTY_RESULT);
 
   useEffect(() => {
-    if (!parseOk || !debouncedPattern) {
+    if (!parseOk || !pattern || !debouncedPattern) {
       setMatchResult(EMPTY_RESULT);
       return;
     }
@@ -45,7 +45,7 @@ export function useRegexMatches(
     let cancelled = false;
 
     const timeout = fixtureTimeoutMs ?? REGEX_CONFIG.MATCH_TIMEOUT_MS;
-    matchWithTimeout(
+    void matchWithTimeout(
       debouncedPattern,
       debouncedFlags,
       debouncedText,
@@ -54,12 +54,16 @@ export function useRegexMatches(
       if (!cancelled) {
         setMatchResult(result);
       }
+    }).catch(() => {
+      if (!cancelled) {
+        setMatchResult(EMPTY_RESULT);
+      }
     });
 
     return () => {
       cancelled = true;
     };
-  }, [debouncedPattern, debouncedFlags, debouncedText, parseOk, fixtureTimeoutMs]);
+  }, [pattern, debouncedPattern, debouncedFlags, debouncedText, parseOk, fixtureTimeoutMs]);
 
   return matchResult;
 }
