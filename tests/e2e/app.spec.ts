@@ -255,3 +255,24 @@ test.describe("template library", () => {
   });
 
 });
+
+test.describe("export", () => {
+  test("guests see sign-in prompt when opening export modal", async ({ page }) => {
+    await page.goto("/app");
+
+    const editor = page.locator(".monaco-editor").first();
+    await expect(editor).toBeVisible({ timeout: 30_000 });
+
+    await editor.click();
+    await page.keyboard.type("\\d+");
+
+    await page.getByRole("button", { name: /^Export$/i }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Sign in required" })
+    ).toBeVisible({ timeout: 5_000 });
+    await expect(
+      page.getByText(/Sign in to export regex reviews/i)
+    ).toBeVisible();
+  });
+});

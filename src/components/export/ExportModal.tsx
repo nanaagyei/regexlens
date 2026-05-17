@@ -26,6 +26,25 @@ import {
   Check,
 } from "lucide-react";
 
+
+function formatExportErrorMessage(body: unknown, fallback: string): string {
+  if (!body || typeof body !== "object") {
+    return fallback;
+  }
+  const record = body as {
+    message?: string;
+    details?: Array<{ path?: string; message?: string }>;
+  };
+  const detail = record.details?.[0];
+  if (detail?.path && detail?.message) {
+    return `${record.message ?? fallback}: ${detail.path} — ${detail.message}`;
+  }
+  if (typeof record.message === "string" && record.message.length > 0) {
+    return record.message;
+  }
+  return fallback;
+}
+
 type ExportFormat = "markdown" | "plain" | "pr_comment" | "notion";
 
 interface FormatOption {
@@ -100,23 +119,16 @@ export function ExportModal({
           title: "Regex Review",
           pattern,
           flags,
-          steps: steps.map((step) => ({
-            label: step.label,
-            detail: step.detail,
-            depth: step.depth,
-          })),
-          warnings: warnings.map((w) => ({
-            severity: w.severity,
-            title: w.title,
-            message: w.message,
-            hint: w.hint,
-          })),
+          steps,
+          warnings,
         }),
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Export failed");
+        const errorBody = await response.json().catch(() => null);
+        throw new Error(
+          formatExportErrorMessage(errorBody, "Export failed")
+        );
       }
 
       const data = await response.json();

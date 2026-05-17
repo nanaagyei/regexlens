@@ -173,49 +173,29 @@ export const exportFormatSchema = z.enum(["markdown", "plain", "pr_comment", "no
 export type ExportFormat = z.infer<typeof exportFormatSchema>;
 
 /**
- * Explanation step schema (for export)
+ * Minimal explanation step for export (matches public API docs).
+ * Passthrough accepts full workspace ExplanationStep objects from the client.
  */
-const explanationStepSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  detail: z.string().nullable().optional(),
-  kind: z.enum([
-    "anchor",
-    "group",
-    "quantifier",
-    "charclass",
-    "escape",
-    "alternation",
-    "literal",
-    "sequence",
-  ]),
-  depth: z.number().int().min(0),
-  range: z
-    .object({
-      start: z.number().int().min(0),
-      end: z.number().int().min(0),
-    })
-    .nullable()
-    .optional(),
-});
+export const exportStepSchema = z
+  .object({
+    label: z.string(),
+    detail: z.string().nullable().optional(),
+    depth: z.number().int().min(0),
+  })
+  .passthrough();
 
 /**
- * Warning schema (for export)
+ * Minimal warning for export (matches public API docs).
+ * Passthrough accepts full workspace Warning objects from the client.
  */
-const warningSchema = z.object({
-  id: z.string(),
-  severity: z.enum(["info", "warn", "danger"]),
-  title: z.string(),
-  message: z.string(),
-  hint: z.string().nullable().optional(),
-  range: z
-    .object({
-      start: z.number().int().min(0),
-      end: z.number().int().min(0),
-    })
-    .nullable()
-    .optional(),
-});
+export const exportWarningSchema = z
+  .object({
+    severity: z.enum(["info", "warn", "danger"]),
+    title: z.string(),
+    message: z.string(),
+    hint: z.string().nullable().optional(),
+  })
+  .passthrough();
 
 /**
  * Export request schema
@@ -225,8 +205,8 @@ export const exportRequestSchema = z.object({
   title: z.string().max(LIMITS.NAME_MAX_LENGTH).nullable().optional(),
   pattern: patternSchema,
   flags: flagsSchema,
-  steps: z.array(explanationStepSchema),
-  warnings: z.array(warningSchema).optional().default([]),
+  steps: z.array(exportStepSchema),
+  warnings: z.array(exportWarningSchema).optional().default([]),
 });
 
 export type ExportRequestInput = z.infer<typeof exportRequestSchema>;
