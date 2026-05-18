@@ -176,11 +176,14 @@ export type ExportFormat = z.infer<typeof exportFormatSchema>;
  * Minimal explanation step for export (matches public API docs).
  * Passthrough accepts full workspace ExplanationStep objects from the client.
  */
+
+const EXPORT_STEP_MAX_DEPTH = 32; // matches workspace ExplanationStep depth limit
+
 export const exportStepSchema = z
   .object({
     label: z.string(),
     detail: z.string().nullable().optional(),
-    depth: z.number().int().min(0),
+    depth: z.number().int().min(0).max(EXPORT_STEP_MAX_DEPTH),
   })
   .passthrough();
 

@@ -117,12 +117,22 @@ function escapeMarkdownTableCell(value: string): string {
     .replace(/\r?\n/g, "<br/>");
 }
 
+function escapeHTML(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function generatePRComment(data: ExportContentInput): string {
   const { title, pattern, flags, steps, warnings } = data;
   const lines: string[] = [];
+  const safeTitle = escapeHTML(title || "Regex Explanation");
 
   lines.push(`<details>`);
-  lines.push(`<summary><strong>${title || "Regex Explanation"}</strong></summary>`);
+  lines.push(`<summary><strong>${safeTitle}</strong></summary>`);
   lines.push("");
   lines.push("**Pattern:**");
   lines.push("```regex");
@@ -150,7 +160,9 @@ function generatePRComment(data: ExportContentInput): string {
 
     for (const warning of warnings) {
       const icon = getSeverityIcon(warning.severity);
-      lines.push(`- ${icon} **${warning.title}**: ${warning.message}`);
+      const safeTitle = escapeHTML(warning.title);
+      const safeMessage = escapeHTML(warning.message);
+      lines.push(`- ${icon} **${safeTitle}**: ${safeMessage}`);
     }
     lines.push("");
   }
