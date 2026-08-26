@@ -22,6 +22,18 @@ test.describe("smoke", () => {
     await expect(page).toHaveURL(/\/app/, { timeout: 20_000 });
   });
 
+  test("@smoke landing mini-bench explains the seeded pattern", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(page.getByLabel("Pattern")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByLabel("Pattern")).toHaveValue(/\(\\d\{4\}\)/);
+    await expect(page.getByText(/in plain english/i)).toBeVisible();
+    await expect(
+      page.locator("a[href^='/app?']").filter({ hasText: "Open RegexLens" }).first()
+    ).toBeVisible();
+  });
+
   test("@smoke app workspace shows pattern panel and Monaco editor", async ({ page }) => {
     await page.goto("/app");
     await expect(
@@ -32,6 +44,35 @@ test.describe("smoke", () => {
     await expect(page.locator(".monaco-editor").first()).toBeVisible({
       timeout: 30_000,
     });
+  });
+});
+
+test.describe("landing", () => {
+  test("invalid pattern shows an error", async ({ page }) => {
+    await page.goto("/");
+    const pattern = page.getByLabel("Pattern");
+    await expect(pattern).toBeVisible({ timeout: 20_000 });
+    await pattern.fill("(");
+    await expect(page.getByRole("alert")).toBeVisible({ timeout: 8_000 });
+  });
+
+  test("FAQ reveals an answer", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Do I need an account?" }).click();
+    await expect(
+      page.getByText(/core workbench runs without signing in/i)
+    ).toBeVisible();
+  });
+
+  test("hero Open RegexLens carries pattern state", async ({ page }) => {
+    await page.goto("/");
+    const continueLink = page
+      .locator("a[href^='/app?']")
+      .filter({ hasText: "Open RegexLens" })
+      .first();
+    await expect(continueLink).toBeVisible({ timeout: 20_000 });
+    await continueLink.click();
+    await expect(page).toHaveURL(/\/app\?p=/, { timeout: 20_000 });
   });
 });
 

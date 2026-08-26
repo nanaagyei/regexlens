@@ -1,0 +1,76 @@
+export function HeroCaptureMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 360 420"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        className="hero-mark-stroke"
+        d="M72 36c-46 48-46 300 0 348"
+        stroke="currentColor"
+        strokeOpacity="0.9"
+        strokeWidth="10"
+        strokeLinecap="round"
+      />
+      <path
+        className="hero-mark-stroke"
+        d="M288 36c46 48 46 300 0 348"
+        stroke="currentColor"
+        strokeOpacity="0.9"
+        strokeWidth="10"
+        strokeLinecap="round"
+      />
+      <line
+        x1="104"
+        y1="214"
+        x2="256"
+        y2="214"
+        stroke="currentColor"
+        strokeOpacity="0.28"
+        strokeWidth="1"
+      />
+      <rect
+        className="hero-mark-bar"
+        x="104"
+        y="236"
+        width="152"
+        height="10"
+        rx="2"
+        fill="hsl(var(--match-1))"
+        fillOpacity="0.22"
+      />
+      <rect
+        className="hero-mark-bar"
+        x="118"
+        y="268"
+        width="72"
+        height="10"
+        rx="2"
+        fill="hsl(var(--match-2))"
+        fillOpacity="0.22"
+      />
+      <rect
+        className="hero-mark-bar"
+        x="198"
+        y="268"
+        width="48"
+        height="10"
+        rx="2"
+        fill="hsl(var(--match-3))"
+        fillOpacity="0.22"
+      />
+      <circle
+        className="hero-mark-stroke"
+        cx="180"
+        cy="338"
+        r="34"
+        stroke="currentColor"
+        strokeOpacity="0.85"
+        strokeWidth="3"
+      />
+      <circle cx="180" cy="338" r="8" fill="currentColor" fillOpacity="0.7" />
+    </svg>
+  );
+}

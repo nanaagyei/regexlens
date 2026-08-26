@@ -270,29 +270,25 @@
   fill: hsl(var(--muted));
 }
 
-/* Landing page effects */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
-}
-
-.animate-float { animation: float 6s ease-in-out infinite; }
-.animate-float-delayed { animation: float 6s ease-in-out 2s infinite; }
-
-/* ─── A+C Animation System ─── */
-
-/* Easing curves (ease-out-expo / ease-out-quart) */
+/* Landing motion and labels */
 :root {
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Scroll-reveal base: hidden until JS triggers */
+.landing-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: hsl(var(--accent-label));
+}
+
 @keyframes reveal-up {
   from {
-    opacity: 0;
-    transform: translateY(24px);
+    opacity: 0.001;
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -300,77 +296,158 @@
   }
 }
 
-@keyframes reveal-left {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes reveal-scale {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
+/* Visible without JS. Animation only after IntersectionObserver adds .revealed. */
 .reveal {
-  opacity: 0;
-  will-change: opacity, transform;
+  opacity: 1;
 }
 
 .reveal.revealed {
-  animation-fill-mode: forwards;
+  animation-name: reveal-up;
+  animation-duration: 600ms;
+  animation-fill-mode: both;
   animation-timing-function: var(--ease-out-expo);
 }
 
-.reveal-up.revealed {
-  animation-name: reveal-up;
-  animation-duration: 700ms;
-}
-
-.reveal-left.revealed {
-  animation-name: reveal-left;
-  animation-duration: 600ms;
-}
-
-.reveal-scale.revealed {
-  animation-name: reveal-scale;
-  animation-duration: 800ms;
-}
-
-/* Stagger delay utilities */
-.stagger-1 { animation-delay: 0ms; }
-.stagger-2 { animation-delay: 100ms; }
-.stagger-3 { animation-delay: 200ms; }
-.stagger-4 { animation-delay: 300ms; }
-.stagger-5 { animation-delay: 400ms; }
-.stagger-6 { animation-delay: 500ms; }
-
-/* Hero-specific stagger (tighter, faster) */
-.hero-stagger-1 { animation-delay: 0ms; }
-.hero-stagger-2 { animation-delay: 120ms; }
-.hero-stagger-3 { animation-delay: 240ms; }
-.hero-stagger-4 { animation-delay: 360ms; }
-.hero-stagger-5 { animation-delay: 480ms; }
-.hero-stagger-6 { animation-delay: 600ms; }
-
-/* Button micro-interactions */
 .btn-lift {
+  position: relative;
+  overflow: hidden;
   transition: transform 180ms var(--ease-out-quart), box-shadow 180ms var(--ease-out-quart);
 }
 
-.btn-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px hsl(var(--primary) / 0.15);
+.btn-lift::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: hsl(var(--primary-foreground) / 0.1);
+  clip-path: inset(0 100% 0 0);
+  pointer-events: none;
+  transition: clip-path 420ms var(--ease-out-quart);
+}
+
+@media (hover: hover) {
+  .btn-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px hsl(var(--primary) / 0.15);
+  }
+
+  .btn-lift:hover::after {
+    clip-path: inset(0 0 0 0);
+  }
+
+  .btn-lift-outline:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px hsl(var(--foreground) / 0.06);
+  }
+}
+
+@keyframes landing-border-travel {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.landing-border-beam {
+  stroke-dasharray: 14 86;
+  stroke-dashoffset: 0;
+  animation: landing-border-travel 11s linear infinite;
+}
+
+.landing-live-dot {
+  box-shadow: 0 0 0 0 hsl(var(--match-2) / 0.45);
+  animation: landing-live-pulse 2.4s var(--ease-out-quart) infinite;
+}
+
+@keyframes landing-live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--match-2) / 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px hsl(var(--match-2) / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--match-2) / 0);
+  }
+}
+
+.specimen-crop {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  color: hsl(var(--border));
+}
+
+.specimen-crop::before,
+.specimen-crop::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+}
+
+.specimen-crop::before {
+  width: 1px;
+  height: 10px;
+}
+
+.specimen-crop::after {
+  width: 10px;
+  height: 1px;
+}
+
+.specimen-crop-tl {
+  top: -11px;
+  left: -11px;
+}
+
+.specimen-crop-tl::before,
+.specimen-crop-tl::after {
+  top: 0;
+  left: 0;
+}
+
+.specimen-crop-tr {
+  top: -11px;
+  right: -11px;
+}
+
+.specimen-crop-tr::before {
+  top: 0;
+  right: 0;
+}
+
+.specimen-crop-tr::after {
+  top: 0;
+  right: 0;
+}
+
+.specimen-crop-bl {
+  bottom: -11px;
+  left: -11px;
+}
+
+.specimen-crop-bl::before {
+  bottom: 0;
+  left: 0;
+}
+
+.specimen-crop-bl::after {
+  bottom: 0;
+  left: 0;
+}
+
+.specimen-crop-br {
+  bottom: -11px;
+  right: -11px;
+}
+
+.specimen-crop-br::before {
+  bottom: 0;
+  right: 0;
+}
+
+.specimen-crop-br::after {
+  bottom: 0;
+  right: 0;
 }
 
 .btn-lift:active {
@@ -383,37 +460,11 @@
   transition: transform 180ms var(--ease-out-quart), box-shadow 180ms var(--ease-out-quart);
 }
 
-.btn-lift-outline:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px hsl(var(--foreground) / 0.06);
-}
-
 .btn-lift-outline:active {
   transform: translateY(0) scale(0.98);
   transition-duration: 80ms;
 }
 
-/* Card hover lift */
-.card-lift {
-  transition: transform 250ms var(--ease-out-quart), box-shadow 250ms var(--ease-out-quart), border-color 250ms var(--ease-out-quart);
-}
-
-.card-lift:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px hsl(var(--primary) / 0.08);
-}
-
-/* Perspective tilt container */
-.perspective-tilt {
-  perspective: 800px;
-}
-
-.perspective-tilt-inner {
-  transition: transform 200ms var(--ease-out-quart);
-  will-change: transform;
-}
-
-/* FAQ smooth expand */
 .faq-content {
   display: grid;
   grid-template-rows: 0fr;
@@ -428,40 +479,32 @@
   overflow: hidden;
 }
 
-/* Reduced motion: disable everything */
 @media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; }
-  .reveal.revealed { animation: none; }
-  .btn-lift, .btn-lift-outline, .card-lift, .perspective-tilt-inner {
+  .reveal,
+  .reveal.revealed {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .btn-lift,
+  .btn-lift-outline,
+  .faq-content {
     transition: none;
   }
-  .btn-lift:hover, .btn-lift-outline:hover, .card-lift:hover {
+
+  .btn-lift::after,
+  .landing-border-beam,
+  .landing-live-dot {
+    animation: none;
+    transition: none;
+    box-shadow: none;
+    clip-path: none;
+  }
+
+  .btn-lift:hover,
+  .btn-lift-outline:hover {
     transform: none;
     box-shadow: none;
   }
-}
-
-/* Static dot grid background — modern, non-animated texture */
-.landing-dots {
-  background-image: radial-gradient(
-    circle,
-    hsl(var(--foreground) / 0.07) 1px,
-    transparent 1px
-  );
-  background-size: 24px 24px;
-}
-
-/* Mouse-follow spotlight — positioned via inline style with JS */
-.landing-spotlight {
-  position: fixed;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  background: hsl(var(--primary) / 0.06);
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 1;
-  transform: translate(-50%, -50%);
-  transition: left 0.15s ease-out, top 0.15s ease-out, opacity 0.3s ease;
-  will-change: left, top;
 }
