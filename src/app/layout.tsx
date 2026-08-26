@@ -22,9 +22,9 @@ const sora = Sora({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://regexlens.dev";
 const siteName = "RegexLens";
-const siteTitle = "RegexLens — Understand, Review & Debug Regular Expressions";
+const siteTitle = "RegexLens: Understand, Review, and Debug Regular Expressions";
 const siteDescription =
-  "The fastest way to understand, review, and safely modify regular expressions. Paste any regex for plain-English explanations, safety warnings, structural analysis, and shareable review links — all in your browser.";
+  "The fastest way to understand, review, and safely modify regular expressions. Paste any regex for plain-English explanations, safety warnings, structural analysis, and shareable review links, all in your browser.";
 
 export const metadata: Metadata = {
   // Basic metadata
@@ -102,7 +102,7 @@ export const metadata: Metadata = {
         url: `${siteUrl}/regexlens-logo.png`,
         width: 512,
         height: 512,
-        alt: "RegexLens — Understand, Review & Debug Regular Expressions",
+        alt: "RegexLens: Understand, Review, and Debug Regular Expressions",
         type: "image/png",
       },
     ],

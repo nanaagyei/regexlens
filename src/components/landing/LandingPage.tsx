@@ -1,254 +1,44 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { Button } from "@/components/ui/button";
-import {
-  DOCS_URL,
-  GITHUB_REPO_URL,
-  GITHUB_CONTRIBUTING_URL,
-  GITHUB_LICENSE_URL,
-  GITHUB_DISCUSSIONS_URL,
-  SUPPORT_URL,
-} from "@/lib/site";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ArrowRight, ChevronDown, Github, Menu } from "lucide-react";
 import {
-  FileText,
-  MousePointerClick,
-  TreeDeciduous,
-  AlertTriangle,
-  Share2,
-  Shield,
-  ChevronDown,
-  Menu,
-  ArrowRight,
-  Copy,
-  Sparkles,
-  Download,
-  Github,
-  Globe,
-  Code2,
-  Scale,
-  HeartHandshake,
-  Coffee,
-  Zap,
-  Terminal,
-  Braces,
-  CheckCircle2,
-} from "lucide-react";
-
-/* ─── Data ─── */
-
-const HOW_IT_WORKS = [
-  {
-    step: "01",
-    title: "Paste a regex you inherited",
-    description:
-      "Paste any regex from a PR, config file, or codebase. No need to start from scratch.",
-    icon: Copy,
-    image: "/images/first.png",
-    imageAlt: "RegexLens editor with a pasted regex pattern",
-  },
-  {
-    step: "02",
-    title: "Understand it instantly",
-    description:
-      "Read a plain-English breakdown, inspect the visual syntax tree, and verify matches in real time.",
-    icon: Sparkles,
-    image: "/images/second.png",
-    imageAlt: "RegexLens showing explanation and match highlighting",
-  },
-  {
-    step: "03",
-    title: "Review and share with your team",
-    description:
-      "Generate a shareable link for code reviews, export the analysis, and catch safety issues before production.",
-    icon: Download,
-    image: "/images/third.png",
-    imageAlt: "Sharing a RegexLens analysis link in a PR comment",
-  },
-];
-
-const CAPABILITIES = [
-  {
-    icon: FileText,
-    title: "Plain-English Explanations",
-    description:
-      "Every regex breaks down into clear, human-readable steps. Understand inherited patterns in seconds.",
-  },
-  {
-    icon: MousePointerClick,
-    title: "Live Match Highlighting",
-    description:
-      "Matches and capture groups light up in real time as you type test strings.",
-  },
-  {
-    icon: TreeDeciduous,
-    title: "Visual Structure Tree",
-    description:
-      "Inspect the regex as a collapsible AST. Click any node to understand its role in the pattern.",
-  },
-  {
-    icon: AlertTriangle,
-    title: "Safety Warnings",
-    description:
-      "Catch catastrophic backtracking, redundant quantifiers, and correctness issues before production.",
-  },
-  {
-    icon: Share2,
-    title: "Shareable Review Links",
-    description:
-      "One link. Reviewers see the pattern, explanation, and warnings in a single click.",
-  },
-  {
-    icon: Zap,
-    title: "Runs in Your Browser",
-    description:
-      "Core matching and explanations run locally. No server round trips for the fundamentals.",
-  },
-];
-
-const FAQ_ITEMS = [
-  {
-    q: "What is RegexLens?",
-    a: "RegexLens is an open-source developer tool for understanding, reviewing, and debugging JavaScript regular expressions. It provides plain-English explanations, safety analysis, a visual structure tree, and shareable review links.",
-  },
-  {
-    q: "Do I need an account?",
-    a: "No. The core workbench runs without signing in. Optional sign-in unlocks saved snippets, exports, deeper analysis, and Copilot when your deployment is configured to support those features.",
-  },
-  {
-    q: "Is my regex data stored on your servers?",
-    a: "By default, no. RegexLens runs matching and explanations in your browser. We only store patterns if you explicitly save them to your account.",
-  },
-  {
-    q: "What regex flavor does it support?",
-    a: "RegexLens targets JavaScript/ECMAScript RegExp syntax, including named groups, lookbehinds, and Unicode properties.",
-  },
-  {
-    q: "Can I use it for code reviews?",
-    a: "That is what it is built for. Generate a shareable link and paste it into a PR comment. Reviewers see the pattern, explanation, safety warnings, and match behavior in one click.",
-  },
-  {
-    q: "Is RegexLens open source?",
-    a: "Yes. The project is MIT-licensed. You can self-host, inspect the code, and contribute improvements on GitHub.",
-  },
-];
-
-const TRUST_ITEMS = [
-  { icon: Shield, text: "Runs entirely in your browser" },
-  { icon: Terminal, text: "No server-side regex execution" },
-  { icon: Braces, text: "Open analysis, no black boxes" },
-  { icon: CheckCircle2, text: "No tracking scripts by default" },
-];
-
-const NAV_LINKS = [
-  { href: "/app", label: "Workbench" },
-  { href: DOCS_URL, label: "Docs", external: true },
-  { href: GITHUB_REPO_URL, label: "GitHub", external: true },
-];
-
-const BROWSER_TARGETS = [
-  "Chrome",
-  "Firefox",
-  "Safari",
-  "Edge",
-  "Node.js",
-] as const;
-
-const REGEX_EXAMPLES = [
-  {
-    pattern: "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/",
-    label: "Email validation",
-  },
-  {
-    pattern: "/https?:\\/\\/[\\w\\-]+(\\.[\\w\\-]+)+[\\/\\w\\-.,@?^=%&:~+#]*/",
-    label: "URL extraction",
-  },
-  {
-    pattern: "/\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b/",
-    label: "IPv4 address",
-  },
-  {
-    pattern: "/(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})/",
-    label: "ISO datetime",
-  },
-];
-
-const TESTIMONIALS = [
-  {
-    quote:
-      "I used to spend 20 minutes deciphering regex in code reviews. Now I paste it into RegexLens and understand it in seconds.",
-    name: "Silas Bempong",
-    role: "Machine Learning Engineer",
-    avatar: "https://avatars1.githubusercontent.com/u/19541446?v=4",
-  },
-  {
-    quote:
-      "The visual AST explorer is perfect for explaining complex patterns to my students. It has been a game-changer for teaching.",
-    name: "Derrick Dwamena",
-    role: "Cognitive Neuroscientist",
-    avatar:
-      "https://i0.wp.com/sites.duke.edu/huettellab/files/2021/02/WhatsApp-Image-2021-02-07-at-1.44.19-PM.jpeg",
-  },
-  {
-    quote:
-      "Finally, a regex tool built for real work. The shareable links make code reviews so much faster.",
-    name: "Sylvester Bempong",
-    role: "Software Engineer",
-    avatar:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbF8Bzflr0P8YpDkpYZHKegScbpLpin2zxqg&s",
-  },
-];
-
-const OSS_LINKS = [
-  {
-    href: GITHUB_REPO_URL,
-    icon: Code2,
-    title: "Source & issues",
-    description: "Clone the repo, report bugs, and follow releases.",
-  },
-  {
-    href: GITHUB_CONTRIBUTING_URL,
-    icon: HeartHandshake,
-    title: "Contributing guide",
-    description: "Local development, tests, and how to open a pull request.",
-  },
-  {
-    href: GITHUB_LICENSE_URL,
-    icon: Scale,
-    title: "MIT License",
-    description: "Use RegexLens in your own projects with minimal friction.",
-  },
-  {
-    href: GITHUB_DISCUSSIONS_URL,
-    icon: Github,
-    title: "Discussions",
-    description: "Ask questions, compare approaches, and propose features.",
-  },
-  {
-    href: SUPPORT_URL,
-    icon: Coffee,
-    title: "Support the project",
-    description:
-      "RegexLens stays free and open source. If it helps you, you can thank the maintainers.",
-    span: true,
-  },
-];
-
-/* ─── Hooks ─── */
+  DOCS_URL,
+  GITHUB_REPO_URL,
+  GITHUB_CONTRIBUTING_URL,
+  GITHUB_DISCUSSIONS_URL,
+  SUPPORT_URL,
+} from "@/lib/site";
+import { cn } from "@/lib/utils";
+import {
+  LandingMiniBench,
+  useLandingBench,
+} from "@/components/landing/LandingMiniBench";
+import { HeroCaptureMark } from "@/components/landing/HeroCaptureMark";
+import {
+  CAPABILITIES,
+  FAQ_ITEMS,
+  HOW_IT_WORKS,
+  NAV_LINKS,
+  OSS_LINKS,
+  RUNTIME_TARGETS,
+  TESTIMONIALS,
+  TRUST_ITEMS,
+} from "@/components/landing/content";
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -266,30 +56,20 @@ function usePrefersReducedMotion(): boolean {
   return mounted ? reduced : false;
 }
 
-/** Scroll-reveal wrapper component */
 function Reveal({
   children,
   className = "",
-  direction = "up",
-  stagger,
-  heroStagger,
   reducedMotion,
 }: {
   children: React.ReactNode;
   className?: string;
-  direction?: "up" | "left" | "scale";
-  stagger?: number;
-  heroStagger?: number;
   reducedMotion: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || reducedMotion) {
-      el?.classList.add("revealed");
-      return;
-    }
+    if (!el || reducedMotion) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -298,141 +78,162 @@ function Reveal({
           observer.unobserve(el);
         }
       },
-      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
+      { threshold: 0.12, rootMargin: "0px 0px -32px 0px" },
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, [reducedMotion]);
 
-  const dirClass =
-    direction === "left"
-      ? "reveal-left"
-      : direction === "scale"
-        ? "reveal-scale"
-        : "reveal-up";
-
-  const staggerClass = heroStagger
-    ? `hero-stagger-${heroStagger}`
-    : stagger
-      ? `stagger-${stagger}`
-      : "";
-
   return (
-    <div ref={ref} className={`reveal ${dirClass} ${staggerClass} ${className}`}>
+    <div
+      ref={ref}
+      className={cn(!reducedMotion && "reveal reveal-up", className)}
+    >
       {children}
     </div>
   );
 }
 
-/** Perspective tilt toward cursor on a card */
-function useMouseTilt(reducedMotion: boolean) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || reducedMotion) return;
-
-    const handleMove = (e: MouseEvent) => {
-      const rect = el.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      el.style.transform = `rotateY(${x * 4}deg) rotateX(${y * -4}deg)`;
-    };
-
-    const handleLeave = () => {
-      el.style.transform = "rotateY(0deg) rotateX(0deg)";
-    };
-
-    const parent = el.parentElement;
-    parent?.addEventListener("mousemove", handleMove);
-    parent?.addEventListener("mouseleave", handleLeave);
-    return () => {
-      parent?.removeEventListener("mousemove", handleMove);
-      parent?.removeEventListener("mouseleave", handleLeave);
-    };
-  }, [reducedMotion]);
-
-  return ref;
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p className="landing-label mb-4">{children}</p>;
 }
 
-/* ─── Animated Regex Preview ─── */
+function navClassName() {
+  return "text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm";
+}
 
-function AnimatedRegex({ reducedMotion }: { reducedMotion: boolean }) {
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [displayText, setDisplayText] = useState("");
-  const [isTyping, setIsTyping] = useState(true);
-  const tiltRef = useMouseTilt(reducedMotion);
+gsap.registerPlugin(useGSAP);
 
-  useEffect(() => {
-    const example = REGEX_EXAMPLES[currentIdx];
+function LandingHero() {
+  const bench = useLandingBench();
+  const heroRef = useRef<HTMLElement>(null);
 
-    if (reducedMotion) {
-      setDisplayText(example.pattern);
-      setIsTyping(false);
-      const id = window.setTimeout(() => {
-        setCurrentIdx((prev) => (prev + 1) % REGEX_EXAMPLES.length);
-      }, 3200);
-      return () => window.clearTimeout(id);
-    }
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const strokes = heroRef.current?.querySelectorAll(".hero-mark-stroke");
+        strokes?.forEach((node) => {
+          const path = node as SVGGeometryElement;
+          if (typeof path.getTotalLength !== "function") return;
+          const length = path.getTotalLength();
+          gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
+          gsap.to(path, {
+            strokeDashoffset: 0,
+            duration: 1.15,
+            ease: "power3.out",
+          });
+        });
 
-    let charIndex = 0;
-    setIsTyping(true);
-    setDisplayText("");
+        gsap.from(".hero-mark-bar", {
+          scaleX: 0,
+          transformOrigin: "left center",
+          duration: 0.55,
+          stagger: 0.08,
+          delay: 0.45,
+          ease: "power3.out",
+        });
 
-    const typeInterval = window.setInterval(() => {
-      if (charIndex < example.pattern.length) {
-        setDisplayText(example.pattern.slice(0, charIndex + 1));
-        charIndex += 1;
-      } else {
-        window.clearInterval(typeInterval);
-        setIsTyping(false);
-        window.setTimeout(() => {
-          setCurrentIdx((prev) => (prev + 1) % REGEX_EXAMPLES.length);
-        }, 2200);
-      }
-    }, 32);
-
-    return () => window.clearInterval(typeInterval);
-  }, [currentIdx, reducedMotion]);
+        const tl = gsap.timeline({
+          defaults: { ease: "power4.out", duration: 0.65 },
+        });
+        tl.from(".hero-kicker", { y: 10, autoAlpha: 0, duration: 0.4 })
+          .from(
+            ".hero-line",
+            { y: 22, autoAlpha: 0, stagger: 0.09 },
+            "-=0.18",
+          )
+          .from(
+            ".hero-lede, .hero-actions, .hero-note",
+            { y: 14, autoAlpha: 0, stagger: 0.07 },
+            "-=0.38",
+          )
+          .from(".hero-bench", { x: 36, autoAlpha: 0 }, "-=0.48");
+      });
+      return () => mm.revert();
+    },
+    { scope: heroRef },
+  );
 
   return (
-    <div className="w-full perspective-tilt">
-      <div
-        ref={tiltRef}
-        className="rounded-xl border border-border/60 bg-card p-5 perspective-tilt-inner"
-      >
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-xs text-muted-foreground font-mono tracking-wide uppercase">
-            regexlens
-          </span>
-        </div>
-        <p className="font-mono text-sm sm:text-base leading-relaxed text-foreground/90 min-h-[28px] break-all">
-          <span>{displayText}</span>
-          <span
-            className={`inline-block w-[2px] h-[1.1em] bg-primary ml-0.5 align-middle motion-reduce:opacity-0 ${
-              isTyping ? "animate-pulse" : "opacity-0"
-            }`}
+    <section
+      ref={heroRef}
+      aria-labelledby="hero-heading"
+      className="border-b border-border/30 py-20 sm:py-28 lg:py-32"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid items-stretch lg:grid-cols-[minmax(0,0.88fr)_clamp(5.5rem,14vw,12rem)_minmax(0,1.12fr)]">
+          <div className="hero-copy relative self-start">
+            <HeroCaptureMark className="pointer-events-none absolute -left-12 top-8 h-[22rem] w-[19rem] text-foreground/10 sm:-left-16 sm:h-[26rem] sm:w-[22rem]" />
+            <div className="relative max-w-[20.5rem] sm:max-w-[22.5rem] xl:max-w-[26rem]">
+              <Badge
+                variant="outline"
+                className="hero-kicker mb-6 font-normal"
+              >
+                Open source, MIT licensed
+              </Badge>
+              <h1
+                id="hero-heading"
+                className="mb-6 font-serif text-[clamp(2.25rem,5vw,4.5rem)] font-bold leading-[1.08] tracking-[-0.02em] text-foreground"
+              >
+                <span className="hero-line block">Stop guessing.</span>
+                <span className="hero-line block">Start understanding.</span>
+              </h1>
+              <p className="hero-lede mb-8 max-w-[42ch] text-lg leading-relaxed text-muted-foreground">
+                Paste any regex and get instant clarity. Plain-English
+                breakdowns, safety warnings, and shareable analysis for code
+                reviews.
+              </p>
+              <div
+                className="hero-actions flex flex-col gap-3 sm:flex-row"
+                aria-label="Primary calls to action"
+              >
+                <Button size="lg" asChild className="h-12 px-8 btn-lift">
+                  <Link href={bench.appHref}>
+                    Open RegexLens
+                    <ArrowRight aria-hidden="true" />
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  asChild
+                  className="h-12 px-8 border-border/60 btn-lift-outline"
+                >
+                  <a href={DOCS_URL} target="_blank" rel="noopener noreferrer">
+                    Read the docs
+                  </a>
+                </Button>
+              </div>
+              <p className="hero-note mt-5 text-sm text-muted-foreground/70">
+                No account required. Runs in your browser.
+              </p>
+            </div>
+          </div>
+
+          <div
+            className="relative hidden lg:block"
             aria-hidden="true"
-          />
-        </p>
-        <div className="mt-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs text-primary font-medium">
-            <Sparkles className="w-3 h-3" aria-hidden="true" />
-            {REGEX_EXAMPLES[currentIdx].label}
-          </span>
+          >
+            <Separator
+              orientation="vertical"
+              className="absolute inset-y-[8%] left-1/2 h-auto w-px -translate-x-1/2 bg-border/50"
+            />
+          </div>
+
+          <div className="hero-bench mt-16 self-start lg:mt-1">
+            <LandingMiniBench bench={bench} />
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
-/* ─── Main Component ─── */
-
 export function LandingPage() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [openFaq, setOpenFaq] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const reducedMotion = usePrefersReducedMotion();
+  const [openFaq, setOpenFaq] = useState<string | null>(FAQ_ITEMS[0]?.q ?? null);
 
   useEffect(() => {
     const p = searchParams.get("p");
@@ -447,11 +248,11 @@ export function LandingPage() {
     }
   }, [searchParams]);
 
+  const featuredQuote = TESTIMONIALS[0];
+  const supportingQuotes = TESTIMONIALS.slice(1);
+
   return (
-    <div
-      ref={containerRef}
-      className="min-h-screen bg-background relative overflow-x-hidden"
-    >
+    <div className="min-h-screen bg-background relative overflow-x-hidden">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:shadow-lg focus:ring-2 focus:ring-ring"
@@ -459,10 +260,9 @@ export function LandingPage() {
         Skip to content
       </a>
 
-      {/* ─── Header ─── */}
-      <header className="sticky top-0 z-50 bg-background/95 border-b border-border/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2 shrink-0">
+      <header className="sticky top-0 z-50 h-14 border-b border-border/40 bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
+          <Link href="/" className="flex shrink-0 items-center">
             <Image
               src="/regexlens-logo.png"
               alt="RegexLens home"
@@ -471,24 +271,24 @@ export function LandingPage() {
               priority
               loading="eager"
               fetchPriority="high"
-              sizes="160px"
-              className="h-9 w-auto rounded"
+              sizes="144px"
+              className="h-8 w-auto rounded"
               style={{ width: "auto" }}
             />
           </Link>
 
           <nav
             aria-label="Primary"
-            className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2"
+            className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 lg:flex"
           >
             {NAV_LINKS.map((link) =>
-              link.external ? (
+              "external" in link && link.external ? (
                 <a
                   key={link.label}
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
+                  className={navClassName()}
                 >
                   {link.label}
                 </a>
@@ -496,7 +296,7 @@ export function LandingPage() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
+                  className={navClassName()}
                 >
                   {link.label}
                 </Link>
@@ -504,8 +304,13 @@ export function LandingPage() {
             )}
           </nav>
 
-          <div className="hidden md:flex items-center gap-2">
-            <Button size="sm" variant="outline" asChild className="btn-lift-outline">
+          <div className="hidden items-center gap-2 lg:flex">
+            <Button
+              size="sm"
+              variant="outline"
+              asChild
+              className="btn-lift-outline"
+            >
               <a
                 href={GITHUB_REPO_URL}
                 target="_blank"
@@ -516,30 +321,37 @@ export function LandingPage() {
                 Star
               </a>
             </Button>
-            <Button size="sm" variant="outline" asChild className="btn-lift-outline">
+            <Button
+              size="sm"
+              variant="outline"
+              asChild
+              className="btn-lift-outline"
+            >
               <Link href="/signin?callbackUrl=%2Fapp">Sign in</Link>
             </Button>
             <Button size="sm" asChild className="btn-lift">
               <Link href="/app" className="gap-1.5">
                 Open RegexLens
-                <ArrowRight
-                  className="ml-1.5 h-3.5 w-3.5"
-                  aria-hidden="true"
-                />
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             </Button>
           </div>
 
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-11 w-11"
+                  aria-label="Open menu"
+                >
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 {NAV_LINKS.map((link) =>
-                  link.external ? (
+                  "external" in link && link.external ? (
                     <DropdownMenuItem asChild key={link.label}>
                       <a
                         href={link.href}
@@ -556,6 +368,15 @@ export function LandingPage() {
                   ),
                 )}
                 <DropdownMenuItem asChild>
+                  <a
+                    href={GITHUB_REPO_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Star on GitHub
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href="/signin?callbackUrl=%2Fapp">Sign in</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
@@ -568,153 +389,57 @@ export function LandingPage() {
       </header>
 
       <main id="main-content" className="relative z-10">
-        {/* ─── Hero ─── */}
-        <section
-          aria-labelledby="hero-heading"
-          className="relative py-24 sm:py-32 lg:py-40 border-b border-border/30"
-        >
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-              <div>
-                <Reveal reducedMotion={reducedMotion} heroStagger={1}>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm text-primary font-medium mb-8">
-                    <Github
-                      className="w-3.5 h-3.5 shrink-0"
-                      aria-hidden="true"
-                    />
-                    Open source, MIT licensed
-                  </div>
-                </Reveal>
+        <LandingHero />
 
-                <Reveal reducedMotion={reducedMotion} heroStagger={2}>
-                  <h1
-                    id="hero-heading"
-                    className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-[1.1]"
-                  >
-                    Stop guessing.{" "}
-                    <span className="text-primary">Start understanding.</span>
-                  </h1>
-                </Reveal>
-
-                <Reveal reducedMotion={reducedMotion} heroStagger={3}>
-                  <p className="text-lg text-muted-foreground max-w-lg mb-8 leading-relaxed">
-                    Paste any regex and get instant clarity. Plain-English
-                    breakdowns, safety warnings, and shareable analysis for code
-                    reviews.
-                  </p>
-                </Reveal>
-
-                <Reveal reducedMotion={reducedMotion} heroStagger={4}>
-                  <div
-                    className="flex flex-col sm:flex-row gap-3"
-                    aria-label="Primary calls to action"
-                  >
-                    <Button size="lg" asChild className="text-base h-12 px-8 btn-lift">
-                      <Link href="/app">
-                        Start reviewing
-                        <ArrowRight
-                          className="ml-2 h-4 w-4"
-                          aria-hidden="true"
-                        />
-                      </Link>
-                    </Button>
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      asChild
-                      className="text-base h-12 px-8 border-border/60 btn-lift-outline"
-                    >
-                      <a
-                        href={DOCS_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Read the docs
-                      </a>
-                    </Button>
-                  </div>
-                </Reveal>
-
-                <Reveal reducedMotion={reducedMotion} heroStagger={5}>
-                  <p className="text-sm text-muted-foreground/70 mt-5">
-                    No account required. Runs in your browser.
-                  </p>
-                </Reveal>
-              </div>
-
-              <Reveal reducedMotion={reducedMotion} direction="scale" heroStagger={3} className="lg:pl-4">
-                <AnimatedRegex reducedMotion={reducedMotion} />
-              </Reveal>
-            </div>
-          </div>
-        </section>
-
-        {/* ─── Browser Support ─── */}
-        <section className="py-10 border-b border-border/30">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6">
-            <p className="text-center text-xs font-medium uppercase tracking-wider text-muted-foreground/60 mb-5">
-              Works everywhere you write code
+        <section className="border-b border-border/30 py-10">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <p className="text-center text-sm text-muted-foreground">
+              Works where you write JavaScript: {RUNTIME_TARGETS}.
             </p>
-            <ul className="flex flex-wrap justify-center gap-x-8 gap-y-3 sm:gap-x-12 text-sm text-muted-foreground list-none m-0 p-0">
-              {BROWSER_TARGETS.map((name) => (
-                <li key={name} className="inline-flex items-center gap-2">
-                  <Globe
-                    className="h-4 w-4 text-primary/70 shrink-0"
-                    aria-hidden="true"
-                  />
-                  <span className="font-medium text-foreground/80">
-                    {name}
-                  </span>
-                </li>
-              ))}
-            </ul>
           </div>
         </section>
 
-        {/* ─── How It Works ─── */}
-        <section className="py-28 sm:py-36">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <Reveal reducedMotion={reducedMotion} className="text-center mb-20">
-              <p className="text-xs font-medium uppercase tracking-wider text-primary mb-4">
-                How it works
-              </p>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold max-w-3xl mx-auto leading-tight">
-                From inherited regex to{" "}
-                <span className="text-primary">confident review</span> in three
-                steps
+        <section className="py-28">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <Reveal reducedMotion={reducedMotion} className="mb-20 max-w-3xl">
+              <SectionLabel>How it works</SectionLabel>
+              <h2 className="font-serif text-[clamp(1.5rem,3vw,2.25rem)] font-bold leading-[1.2]">
+                From inherited regex to confident review in three steps
               </h2>
             </Reveal>
 
-            <div className="space-y-24 lg:space-y-36">
-              {HOW_IT_WORKS.map((step, i) => (
-                <Reveal
-                  key={step.title}
-                  reducedMotion={reducedMotion}
-                  stagger={i + 1}
-                >
-                  <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            <div className="space-y-24 lg:space-y-28">
+              {HOW_IT_WORKS.map((step, index) => (
+                <Reveal key={step.title} reducedMotion={reducedMotion}>
+                  <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
                     <div
-                      className={`space-y-4 ${i % 2 === 1 ? "lg:order-2" : ""}`}
+                      className={cn(
+                        "space-y-4",
+                        index % 2 === 1 && "lg:order-2",
+                      )}
                     >
-                      <span className="inline-block font-mono text-5xl font-bold text-primary/15">
+                      <span
+                        className="block font-mono text-5xl font-bold text-foreground/12"
+                        aria-hidden="true"
+                      >
                         {step.step}
                       </span>
-                      <h3 className="font-serif text-2xl sm:text-3xl font-bold">
+                      <h3 className="font-serif text-2xl font-bold sm:text-3xl">
                         {step.title}
                       </h3>
-                      <p className="text-muted-foreground text-lg leading-relaxed max-w-lg">
+                      <p className="max-w-lg text-lg leading-relaxed text-muted-foreground">
                         {step.description}
                       </p>
                     </div>
-                    <div className={i % 2 === 1 ? "lg:order-1" : ""}>
-                      <div className="rounded-xl overflow-hidden border border-border/40">
+                    <div className={index % 2 === 1 ? "lg:order-1" : undefined}>
+                      <div className="overflow-hidden rounded-lg border border-border bg-card">
                         <Image
                           src={step.image}
                           alt={step.imageAlt}
                           width={600}
                           height={400}
-                          className="w-full h-auto object-cover aspect-[3/2]"
-                          unoptimized
+                          sizes="(min-width: 1024px) 50vw, 100vw"
+                          className="h-auto w-full object-contain object-top"
                         />
                       </div>
                     </div>
@@ -725,308 +450,132 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* ─── App Demo ─── */}
-        <section className="py-20 sm:py-28">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <Reveal reducedMotion={reducedMotion} className="text-center mb-12">
-              <p className="text-xs font-medium uppercase tracking-wider text-primary mb-4">
-                See it in action
-              </p>
-              <h2 className="font-serif text-3xl sm:text-4xl font-bold">
+        <section className="py-28">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <Reveal reducedMotion={reducedMotion} className="mb-10">
+              <SectionLabel>See it in action</SectionLabel>
+              <h2 className="font-serif text-[clamp(1.5rem,3vw,2.25rem)] font-bold leading-[1.2]">
                 One screen. Everything you need.
               </h2>
             </Reveal>
-            <Reveal reducedMotion={reducedMotion} direction="scale">
-              <div className="rounded-xl border border-border/40 overflow-hidden bg-card">
-                <Image
-                  src="/images/main.png"
-                  alt="RegexLens application interface showing pattern analysis"
-                  width={1200}
-                  height={675}
-                  className="w-full h-auto"
-                  unoptimized
-                />
-              </div>
+            <Reveal reducedMotion={reducedMotion}>
+              <figure>
+                <div className="overflow-hidden rounded-lg border border-border bg-card">
+                  <Image
+                    src="/images/main.png"
+                    alt="RegexLens application interface showing pattern analysis"
+                    width={1200}
+                    height={675}
+                    className="h-auto w-full"
+                  />
+                </div>
+                <figcaption className="mt-4 text-sm text-muted-foreground">
+                  Pattern, matches, explanation, and warnings in a single
+                  workbench.
+                </figcaption>
+              </figure>
             </Reveal>
-            <Reveal reducedMotion={reducedMotion} className="mt-8 text-center">
+            <Reveal reducedMotion={reducedMotion} className="mt-8">
               <Button size="lg" asChild className="h-12 px-8 btn-lift">
                 <Link href="/app">
                   Open RegexLens
-                  <ArrowRight
-                    className="ml-2 h-4 w-4"
-                    aria-hidden="true"
-                  />
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
             </Reveal>
           </div>
         </section>
 
-        {/* ─── Capabilities ─── */}
-        <section className="py-28 sm:py-36">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6">
-            <Reveal reducedMotion={reducedMotion} direction="left" className="mb-16">
-              <p className="text-xs font-medium uppercase tracking-wider text-primary mb-4">
-                What you get
-              </p>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold max-w-2xl">
+        <section className="py-28">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <Reveal reducedMotion={reducedMotion} className="mb-16 max-w-2xl">
+              <SectionLabel>What you get</SectionLabel>
+              <h2 className="font-serif text-[clamp(1.5rem,3vw,2.25rem)] font-bold leading-[1.2]">
                 Built for understanding, not just matching
               </h2>
-              <p className="text-muted-foreground text-lg mt-4 max-w-xl">
-                Most tools tell you <em>if</em> a regex matches. RegexLens
-                tells you <strong className="text-foreground">why</strong>,
+              <p className="mt-4 max-w-xl text-lg text-muted-foreground">
+                Most tools tell you if a regex matches. RegexLens tells you{" "}
+                <strong className="font-semibold text-foreground">why</strong>,
                 where it fails, and whether it is safe to ship.
               </p>
             </Reveal>
 
-            <div className="grid md:grid-cols-2 gap-x-16 gap-y-12">
-              {CAPABILITIES.map((cap, i) => (
-                <Reveal
-                  key={cap.title}
-                  reducedMotion={reducedMotion}
-                  stagger={i + 1}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="rounded-lg bg-primary/10 p-2.5 shrink-0 mt-0.5">
-                      <cap.icon
-                        className="h-5 w-5 text-primary"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-base mb-1">
-                        {cap.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
+            <dl className="grid gap-x-16 gap-y-10 md:grid-cols-2">
+              {CAPABILITIES.map((cap, index) => {
+                const Icon = cap.icon;
+                return (
+                  <Reveal key={cap.title} reducedMotion={reducedMotion}>
+                    <div className={index === 0 ? "md:col-span-2" : undefined}>
+                      {index === 0 ? (
+                        <div className="mb-3 inline-flex rounded-md bg-muted p-2 text-muted-foreground">
+                          <Icon className="h-5 w-5" aria-hidden="true" />
+                        </div>
+                      ) : null}
+                      <dt className="text-base font-semibold">{cap.title}</dt>
+                      <dd className="mt-1 max-w-prose text-sm leading-relaxed text-muted-foreground">
                         {cap.description}
+                      </dd>
+                    </div>
+                  </Reveal>
+                );
+              })}
+            </dl>
+          </div>
+        </section>
+
+        <section className="border-y border-border/30 py-28">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <Reveal reducedMotion={reducedMotion} className="mb-12">
+              <SectionLabel>What developers say</SectionLabel>
+            </Reveal>
+            <div className="grid gap-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-16">
+              <Reveal reducedMotion={reducedMotion}>
+                <blockquote>
+                  <p className="font-serif text-2xl font-medium leading-snug sm:text-3xl">
+                    &ldquo;{featuredQuote.quote}&rdquo;
+                  </p>
+                  <footer className="mt-6 flex items-center gap-3">
+                    <Image
+                      src={featuredQuote.avatar}
+                      alt=""
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 rounded-full object-cover"
+                    />
+                    <div>
+                      <p className="text-sm font-semibold">
+                        {featuredQuote.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {featuredQuote.role}
                       </p>
                     </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ─── Testimonials ─── */}
-        <section className="py-24 sm:py-32 border-y border-border/30">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6">
-            <Reveal reducedMotion={reducedMotion} className="text-center mb-12">
-              <p className="text-xs font-medium uppercase tracking-wider text-primary mb-4">
-                What developers say
-              </p>
-              <h2 className="font-serif text-3xl sm:text-4xl font-bold">
-                Loved by regex wranglers
-              </h2>
-            </Reveal>
-            <div className="grid md:grid-cols-3 gap-6">
-              {TESTIMONIALS.map((t, i) => (
-                <Reveal
-                  key={t.name}
-                  reducedMotion={reducedMotion}
-                  stagger={i + 1}
-                >
-                  <div className="p-6 rounded-xl border border-border/40 card-lift h-full">
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                      &ldquo;{t.quote}&rdquo;
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
-                        <Image
-                          src={t.avatar}
-                          alt={t.name}
-                          fill
-                          className="object-cover"
-                          sizes="40px"
-                          unoptimized
-                        />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold">{t.name}</p>
-                        <p className="text-xs text-muted-foreground">{t.role}</p>
-                      </div>
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ─── Open Source + Trust ─── */}
-        <section className="py-24 sm:py-32" aria-labelledby="oss-heading">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6">
-            <Reveal reducedMotion={reducedMotion} className="text-center max-w-2xl mx-auto mb-10">
-              <p className="text-xs font-medium uppercase tracking-wider text-primary mb-3">
-                Open source
-              </p>
-              <h2
-                id="oss-heading"
-                className="font-serif text-2xl sm:text-3xl font-bold mb-4"
-              >
-                Built in the open. Privacy by default.
-              </h2>
-              <p className="text-muted-foreground text-base sm:text-lg">
-                MIT-licensed. Inspect the code, self-host, and help shape the
-                roadmap on GitHub.
-              </p>
-            </Reveal>
-
-            <Reveal reducedMotion={reducedMotion}>
-              <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 mb-14 text-sm">
-                {TRUST_ITEMS.map((item) => (
-                  <span
-                    key={item.text}
-                    className="inline-flex items-center gap-2 text-muted-foreground"
-                  >
-                    <item.icon
-                      className="h-4 w-4 text-primary/70 shrink-0"
-                      aria-hidden="true"
-                    />
-                    {item.text}
-                  </span>
-                ))}
-              </div>
-            </Reveal>
-
-            <div className="text-center mb-8">
-              <p className="text-sm text-muted-foreground">
-                <Link
-                  href="/privacy"
-                  className="text-primary hover:underline underline-offset-4"
-                >
-                  Privacy Policy
-                </Link>
-                <span className="mx-2 text-border">·</span>
-                <Link
-                  href="/terms"
-                  className="text-primary hover:underline underline-offset-4"
-                >
-                  Terms of Service
-                </Link>
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              {OSS_LINKS.map((link, i) => (
-                <Reveal
-                  key={link.title}
-                  reducedMotion={reducedMotion}
-                  stagger={i + 1}
-                  className={link.span ? "sm:col-span-2" : ""}
-                >
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group block rounded-xl border border-border/40 p-5 text-left hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer card-lift"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="rounded-lg bg-primary/10 p-2.5 text-primary shrink-0">
-                        <link.icon className="h-5 w-5" aria-hidden="true" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-sm">{link.title}</p>
-                        <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                          {link.description}
-                        </p>
-                      </div>
-                    </div>
-                  </a>
-                </Reveal>
-              ))}
-            </div>
-
-            <Reveal reducedMotion={reducedMotion} className="mt-10">
-              <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
-                <Button size="lg" asChild className="h-12 px-8 btn-lift">
-                  <Link href="/app">Open RegexLens</Link>
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  asChild
-                  className="h-12 px-8 border-border/60 btn-lift-outline"
-                >
-                  <a
-                    href={GITHUB_REPO_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="gap-2"
-                  >
-                    <Github className="h-4 w-4" aria-hidden="true" />
-                    View on GitHub
-                  </a>
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  asChild
-                  className="h-12 px-8 border-border/60 btn-lift-outline"
-                >
-                  <a
-                    href={SUPPORT_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="gap-2"
-                  >
-                    <Coffee className="h-4 w-4" aria-hidden="true" />
-                    Buy me a coffee
-                  </a>
-                </Button>
-              </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ─── FAQ ─── */}
-        <section className="py-24 sm:py-32 border-t border-border/30">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6">
-            <div className="grid md:grid-cols-[1fr_1.5fr] gap-12 md:gap-16">
-              <Reveal reducedMotion={reducedMotion} direction="left">
-                <p className="text-xs font-medium uppercase tracking-wider text-primary mb-4">
-                  FAQ
-                </p>
-                <h2 className="font-serif text-3xl sm:text-4xl font-bold">
-                  Got questions?
-                </h2>
+                  </footer>
+                </blockquote>
               </Reveal>
-              <div className="space-y-2">
-                {FAQ_ITEMS.map((item, i) => (
-                  <Reveal
-                    key={item.q}
-                    reducedMotion={reducedMotion}
-                    stagger={Math.min(i + 1, 6)}
-                  >
-                    <Collapsible
-                      open={openFaq === item.q}
-                      onOpenChange={(open) =>
-                        setOpenFaq(open ? item.q : null)
-                      }
-                    >
-                      <CollapsibleTrigger asChild>
-                        <button
-                          type="button"
-                          className="flex items-center justify-between w-full p-4 rounded-xl border border-border/40 hover:border-border/60 transition-colors cursor-pointer text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                        >
-                          <span className="font-medium text-sm pr-4">
-                            {item.q}
-                          </span>
-                          <ChevronDown
-                            className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-300 ${
-                              openFaq === item.q ? "rotate-180" : ""
-                            }`}
-                            style={{ transitionTimingFunction: "var(--ease-out-quart)" }}
-                            aria-hidden="true"
-                          />
-                        </button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <div className="px-4 pb-4 pt-3 text-sm text-muted-foreground leading-relaxed border-x border-b border-border/40 rounded-b-xl -mt-1 mx-1">
-                          {item.a}
+              <div className="space-y-8 border-t border-border/40 pt-8 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0">
+                {supportingQuotes.map((quote) => (
+                  <Reveal key={quote.name} reducedMotion={reducedMotion}>
+                    <blockquote>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        &ldquo;{quote.quote}&rdquo;
+                      </p>
+                      <footer className="mt-3 flex items-center gap-2">
+                        <Image
+                          src={quote.avatar}
+                          alt=""
+                          width={32}
+                          height={32}
+                          className="h-8 w-8 rounded-full object-cover"
+                        />
+                        <div>
+                          <p className="text-sm font-semibold">{quote.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {quote.role}
+                          </p>
                         </div>
-                      </CollapsibleContent>
-                    </Collapsible>
+                      </footer>
+                    </blockquote>
                   </Reveal>
                 ))}
               </div>
@@ -1034,30 +583,174 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* ─── Final CTA ─── */}
-        <section className="py-28 sm:py-36 relative border-t border-border/30">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+        <section className="py-28" aria-labelledby="oss-heading">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <Reveal
+              reducedMotion={reducedMotion}
+              className="mb-10 max-w-2xl"
+            >
+              <SectionLabel>Open source</SectionLabel>
+              <h2
+                id="oss-heading"
+                className="mb-4 font-serif text-[clamp(1.5rem,3vw,2.25rem)] font-bold leading-[1.2]"
+              >
+                Built in the open. Privacy by default.
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                MIT-licensed. Inspect the code, self-host, and help shape the
+                roadmap on GitHub.
+              </p>
+            </Reveal>
+
+            <p className="mb-10 text-sm text-muted-foreground">
+              {TRUST_ITEMS.join(" · ")}
+            </p>
+
+            <p className="mb-10 text-sm text-muted-foreground">
+              <Link
+                href="/privacy"
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                Privacy Policy
+              </Link>
+              <span className="mx-2 text-border">·</span>
+              <Link
+                href="/terms"
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                Terms of Service
+              </Link>
+            </p>
+
+            <ul className="divide-y divide-border/40 border-y border-border/40">
+              {OSS_LINKS.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <li key={link.title}>
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-start gap-3 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    >
+                      <Icon
+                        className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary"
+                        aria-hidden="true"
+                      />
+                      <span>
+                        <span className="block text-sm font-semibold group-hover:text-primary">
+                          {link.title}
+                        </span>
+                        <span className="mt-0.5 block text-sm text-muted-foreground">
+                          {link.description}
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Button size="lg" asChild className="h-12 px-8 btn-lift">
+                <Link href="/app">Open RegexLens</Link>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                asChild
+                className="h-12 px-8 border-border/60 btn-lift-outline"
+              >
+                <a
+                  href={GITHUB_REPO_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="gap-2"
+                >
+                  <Github className="h-4 w-4" aria-hidden="true" />
+                  View on GitHub
+                </a>
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t border-border/30 py-28">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <div className="grid gap-12 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:gap-16">
+              <Reveal reducedMotion={reducedMotion}>
+                <SectionLabel>FAQ</SectionLabel>
+                <h2 className="font-serif text-[clamp(1.5rem,3vw,2.25rem)] font-bold leading-[1.2]">
+                  Account, privacy, and flavor
+                </h2>
+              </Reveal>
+              <div>
+                {FAQ_ITEMS.map((item) => {
+                  const open = openFaq === item.q;
+                  return (
+                    <div
+                      key={item.q}
+                      className="border-b border-border/40 first:border-t"
+                    >
+                      <h3>
+                        <button
+                          type="button"
+                          aria-expanded={open}
+                          onClick={() =>
+                            setOpenFaq(open ? null : item.q)
+                          }
+                          className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          {item.q}
+                          <ChevronDown
+                            className={cn(
+                              "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-300",
+                              open && "rotate-180",
+                            )}
+                            style={{
+                              transitionTimingFunction:
+                                "var(--ease-out-quart)",
+                            }}
+                            aria-hidden="true"
+                          />
+                        </button>
+                      </h3>
+                      <div
+                        className="faq-content"
+                        data-state={open ? "open" : "closed"}
+                      >
+                        <div className="faq-content-inner">
+                          <p className="pb-4 text-sm leading-relaxed text-muted-foreground">
+                            {item.a}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t border-border/30 py-28 sm:py-32">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <Reveal reducedMotion={reducedMotion}>
-              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Ready to <span className="text-primary">review</span> your next
-                regex?
+              <h2 className="mb-6 font-serif text-[clamp(2.25rem,5vw,4.5rem)] font-bold leading-[1.1] tracking-[-0.02em]">
+                Ready to review your next regex?
               </h2>
             </Reveal>
-            <Reveal reducedMotion={reducedMotion} stagger={2}>
-              <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
+            <Reveal reducedMotion={reducedMotion}>
+              <p className="mb-10 max-w-xl text-lg text-muted-foreground">
                 Understand any pattern in seconds. Share a review link with your
                 team.
               </p>
             </Reveal>
-            <Reveal reducedMotion={reducedMotion} stagger={3}>
-              <Button
-                size="lg"
-                asChild
-                className="h-14 px-10 text-lg btn-lift"
-              >
+            <Reveal reducedMotion={reducedMotion}>
+              <Button size="lg" asChild className="h-12 px-8 text-base btn-lift">
                 <Link href="/app">
-                  Start reviewing
-                  <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+                  Open RegexLens
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
             </Reveal>
@@ -1065,28 +758,27 @@ export function LandingPage() {
         </section>
       </main>
 
-      {/* ─── Footer ─── */}
-      <footer className="py-16 border-t border-border/30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+      <footer className="border-t border-border/30 py-16">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mb-12 grid grid-cols-2 gap-8 md:grid-cols-5">
             <div className="col-span-2 md:col-span-1">
-              <Link href="/" className="inline-block mb-4">
+              <Link href="/" className="mb-4 inline-block">
                 <Image
                   src="/regexlens-logo.png"
                   alt="RegexLens"
                   width={160}
                   height={40}
-                  sizes="160px"
-                  className="h-9 w-auto rounded"
+                  sizes="144px"
+                  className="h-8 w-auto rounded"
                   style={{ width: "auto" }}
                 />
               </Link>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 Understand, review, and safely modify regular expressions.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-sm mb-4">Product</h4>
+              <h4 className="mb-4 text-sm font-semibold">Product</h4>
               <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li>
                   <Link
@@ -1139,7 +831,7 @@ export function LandingPage() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-sm mb-4">Resources</h4>
+              <h4 className="mb-4 text-sm font-semibold">Resources</h4>
               <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li>
                   <a
@@ -1162,7 +854,7 @@ export function LandingPage() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-sm mb-4">Legal</h4>
+              <h4 className="mb-4 text-sm font-semibold">Legal</h4>
               <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li>
                   <Link
@@ -1183,21 +875,19 @@ export function LandingPage() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-sm mb-4">Connect</h4>
-              <div className="flex gap-2">
-                <a
-                  href={GITHUB_REPO_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-lg border border-border/30 hover:border-primary/30 transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  aria-label="RegexLens on GitHub"
-                >
-                  <Github className="h-4 w-4" />
-                </a>
-              </div>
+              <h4 className="mb-4 text-sm font-semibold">Connect</h4>
+              <a
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border/40 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="RegexLens on GitHub"
+              >
+                <Github className="h-4 w-4" />
+              </a>
             </div>
           </div>
-          <div className="pt-8 border-t border-border/20">
+          <div className="border-t border-border/20 pt-8">
             <p className="text-center text-xs text-muted-foreground/60">
               &copy; {new Date().getFullYear()} RegexLens. All rights reserved.
             </p>
